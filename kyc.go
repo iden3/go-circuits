@@ -55,24 +55,24 @@ func (c *KYC) PrepareInputs(in TypedInputs) (map[string]interface{}, error) {
 	return inputs, nil
 }
 
-type KYCClaim struct {
+type Claim struct {
 	ZKInputs  []*big.Int
-	Proof     KYCProof
+	Proof     Proof
 	TreeState TreeState
 }
 
-type KYCNodeAux struct {
+type NodeAux struct {
 	HIndex *merkletree.Hash
 	HValue *merkletree.Hash
 }
 
-type KYCProof struct {
+type Proof struct {
 	Siblings []*merkletree.Hash
-	NodeAux  *KYCNodeAux
+	NodeAux  *NodeAux
 }
 
 // PrepareRegularClaimInputs prepares inputs for regular claims
-func (c *KYC) prepareRegularClaimInputs(claim KYCClaim, rs RevocationStatus,
+func (c *KYC) prepareRegularClaimInputs(claim Claim, rs RevocationStatus,
 	fieldName string) (map[string]interface{}, error) {
 
 	inputs := map[string]interface{}{
@@ -97,7 +97,7 @@ func (c *KYC) prepareRegularClaimInputs(claim KYCClaim, rs RevocationStatus,
 
 // PrepareAuthClaimInputs prepare inputs for authorization (ID ownership)
 func (c *KYC) prepareAuthClaimInputs(id *core.ID, pk *babyjub.PrivateKey,
-	mtp KYCProof, claimTreeRoot *merkletree.Hash,
+	mtp Proof, claimTreeRoot *merkletree.Hash,
 	challenge int64) map[string]interface{} {
 
 	inputs := make(map[string]interface{})
@@ -161,13 +161,13 @@ func (c *KYC) prepareCircuitPublicInputs(rules map[string]interface{}) (map[stri
 
 // KYCInputs represents input data for kyc and kycBySignatures circuits
 type KYCInputs struct {
-	KYCAgeCredential                      KYCClaim
+	KYCAgeCredential                      Claim
 	KYCAgeCredentialRevocationStatus      RevocationStatus
-	KYCCountryOfResidenceCredential       KYCClaim
+	KYCCountryOfResidenceCredential       Claim
 	KYCCountryOfResidenceRevocationStatus RevocationStatus
 	ID                                    *core.ID
 	PK                                    *babyjub.PrivateKey
-	IssuerAuthClaimMTP                    KYCProof
+	IssuerAuthClaimMTP                    Proof
 	IssuerAuthClaimClamTreeRoot           *merkletree.Hash
 	Challenge                             int64
 	TypedInputs
@@ -185,7 +185,7 @@ func (c KYC) GetPublicSignalsSchema() PublicSchemaJSON {
 	return KycPublicSignalsSchema
 }
 
-func handleMTPInputs(mtp KYCProof, fieldName string, inputs map[string]interface{}) (err error) {
+func handleMTPInputs(mtp Proof, fieldName string, inputs map[string]interface{}) (err error) {
 
 	inputs[fieldName+"ClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(mtp.Siblings, LevelsKYCCircuits))
 
@@ -247,7 +247,7 @@ func (ts TreeState) RootOfRootsRootStr() string {
 
 type RevocationStatus struct {
 	TreeState TreeState
-	Proof     KYCProof
+	Proof     Proof
 }
 
 func handleRevocationStateInputs(rs RevocationStatus, fieldName string,
