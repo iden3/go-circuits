@@ -75,22 +75,17 @@ type KYCProof struct {
 func (c *KYC) prepareRegularClaimInputs(claim KYCClaim, rs RevocationStatus,
 	fieldName string) (map[string]interface{}, error) {
 
-	if err := claim.TreeState.Validate(); err != nil {
-		return nil, err
-	}
-
 	inputs := map[string]interface{}{
 		fieldName + "Claim": bigIntArrayToStringArray(claim.ZKInputs),
 		fieldName + "ClaimIssuanceMtp": bigIntArrayToStringArray(
 			PrepareSiblings(claim.Proof.Siblings, LevelsKYCCircuits)),
 		fieldName + "ClaimIssuanceClaimsTreeRoot": claim.TreeState.
-			ClaimsRoot.BigInt().String(),
+			ClaimsRootStr(),
 		fieldName + "ClaimIssuanceRevTreeRoot": claim.TreeState.
-			RevocationRoot.BigInt().String(),
+			RevocationRootStr(),
 		fieldName + "ClaimIssuanceRootsTreeRoot": claim.TreeState.
-			RootOfRoots.BigInt().String(),
-		fieldName + "ClaimIssuanceIdenState": claim.TreeState.
-			State.BigInt().String(),
+			RootOfRootsRootStr(),
+		fieldName + "ClaimIssuanceIdenState": claim.TreeState.StateStr(),
 	}
 
 	if err := handleRevocationStateInputs(rs, fieldName, inputs); err != nil {
@@ -222,17 +217,32 @@ type TreeState struct {
 	RootOfRoots    *merkletree.Hash
 }
 
-func (ts TreeState) Validate() error {
+func (ts TreeState) StateStr() string {
 	if ts.State == nil {
-		return errors.New("incorrect TreeState: State is nil")
-	} else if ts.ClaimsRoot == nil {
-		return errors.New("incorrect TreeState: ClaimsRoot is nil")
-	} else if ts.RevocationRoot == nil {
-		return errors.New("incorrect TreeState: RevocationRoot is nil")
-	} else if ts.RootOfRoots == nil {
-		return errors.New("incorrect TreeState: RootOfRoots is nil")
+		return merkletree.HashZero.BigInt().String()
 	}
-	return nil
+	return ts.State.BigInt().String()
+}
+
+func (ts TreeState) ClaimsRootStr() string {
+	if ts.ClaimsRoot == nil {
+		return merkletree.HashZero.BigInt().String()
+	}
+	return ts.ClaimsRoot.BigInt().String()
+}
+
+func (ts TreeState) RevocationRootStr() string {
+	if ts.RevocationRoot == nil {
+		return merkletree.HashZero.BigInt().String()
+	}
+	return ts.RevocationRoot.BigInt().String()
+}
+
+func (ts TreeState) RootOfRootsRootStr() string {
+	if ts.RootOfRoots == nil {
+		return merkletree.HashZero.BigInt().String()
+	}
+	return ts.RootOfRoots.BigInt().String()
 }
 
 type RevocationStatus struct {
@@ -242,12 +252,12 @@ type RevocationStatus struct {
 
 func handleRevocationStateInputs(rs RevocationStatus, fieldName string,
 	inputs map[string]interface{}) error {
-	if err := rs.TreeState.Validate(); err != nil {
-		return err
-	}
-	inputs[fieldName+"ClaimNonRevIssuerState"] = rs.TreeState.State.BigInt().String()
-	inputs[fieldName+"ClaimNonRevIssuerRootsTreeRoot"] = rs.TreeState.RootOfRoots.BigInt().String()
-	inputs[fieldName+"ClaimNonRevIssuerRevTreeRoot"] = rs.TreeState.RevocationRoot.BigInt().String()
-	inputs[fieldName+"ClaimNonRevIssuerClaimsTreeRoot"] = rs.TreeState.ClaimsRoot.BigInt().String()
+	inputs[fieldName+"ClaimNonRevIssuerState"] = rs.TreeState.StateStr()
+	inputs[fieldName+"ClaimNonRevIssuerRootsTreeRoot"] = rs.TreeState.
+		RootOfRootsRootStr()
+	inputs[fieldName+"ClaimNonRevIssuerRevTreeRoot"] = rs.TreeState.
+		RevocationRootStr()
+	inputs[fieldName+"ClaimNonRevIssuerClaimsTreeRoot"] = rs.TreeState.
+		ClaimsRootStr()
 	return handleMTPInputs(rs.Proof, fieldName, inputs)
 }
