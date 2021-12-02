@@ -3,6 +3,7 @@ package circuits
 import (
 	"errors"
 	"math/big"
+	"strconv"
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
@@ -103,9 +104,7 @@ func (c *KYC) prepareAuthClaimInputs(id *core.ID, pk *babyjub.PrivateKey,
 	inputs := make(map[string]interface{})
 	inputs["id"] = id.BigInt().String()
 
-	challengeBigInt := new(big.Int).SetInt64(challenge)
-
-	inputs["challenge"] = challengeBigInt.String()
+	inputs["challenge"] = strconv.FormatInt(challenge, 10)
 	inputs["BBJClaimMtp"] = bigIntArrayToStringArray(
 		PrepareSiblings(mtp.Siblings, IDStateLevels))
 	inputs["BBJClaimClaimsTreeRoot"] = claimTreeRoot.BigInt().String()

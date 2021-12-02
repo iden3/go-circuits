@@ -1,15 +1,13 @@
 package circuits
 
 import (
-	"encoding/hex"
 	"errors"
 	"math/big"
+	"strconv"
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
-	"github.com/iden3/identity-server/pkg/common/crypto/primitive"
-	"github.com/iden3/identity-server/pkg/repository/models"
 )
 
 const (
@@ -42,20 +40,27 @@ func (c *KYCBySignatures) GetPublicSignalsSchema() PublicSchemaJSON {
 // PrepareInputs rerurns inputs for circuit KycBySignatures
 func (c *KYCBySignatures) PrepareInputs(in TypedInputs) (map[string]interface{}, error) {
 
-	kycInputs, ok := in.(KYCInputs)
+	kycInputs, ok := in.(KYCBySignaturesInputs)
 	if !ok {
 		return nil, errors.New("wrong type of input arguments")
 	}
-	ageClaimInputs, err := c.prepareRegularClaimInputs(kycInputs.KYCAgeCredential, kycInputs.KYCAgeCredentialRevocationStatus, "birthday")
+	ageClaimInputs, err := c.prepareRegularClaimInputs(
+		kycInputs.KYCAgeCredential, kycInputs.KYCAgeCredentialRevocationStatus,
+		"birthday", kycInputs.AgeSignatureProof)
 	if err != nil {
 		return nil, err
 	}
-	countryClaimInputs, err := c.prepareRegularClaimInputs(kycInputs.KYCCountryOfResidenceCredential, kycInputs.KYCCountryOfResidenceRevocationStatus, "country")
+	countryClaimInputs, err := c.prepareRegularClaimInputs(
+		kycInputs.KYCCountryOfResidenceCredential,
+		kycInputs.KYCCountryOfResidenceRevocationStatus, "country",
+		kycInputs.CountrySignatureProof)
 	if err != nil {
 		return nil, err
 	}
 
-	authClaimInputs, err := c.prepareAuthClaimInputs(kycInputs.ID, kycInputs.PK, kycInputs.IssuerAuthClaimMTP, kycInputs.IssuerAuthClaimClamTreeRoot, kycInputs.Challenge)
+	authClaimInputs, err := c.prepareAuthClaimInputs(kycInputs.ID,
+		kycInputs.IssuerAuthClaimMTP, kycInputs.IssuerAuthClaimClamTreeRoot,
+		kycInputs.Challenge, kycInputs.Signature, kycInputs.PubKey)
 	if err != nil {
 		return nil, err
 	}
@@ -68,85 +73,55 @@ func (c *KYCBySignatures) PrepareInputs(in TypedInputs) (map[string]interface{},
 	return inputs, nil
 }
 
+type SignatureProof interface {
+	signatureProofMarker()
+}
+
+type BaseSignatureProof struct {
+	IssuerID        *core.ID
+	IssuerTreeState TreeState
+	Siblings        []*merkletree.Hash
+}
+
+type BJJSignatureProof struct {
+	BaseSignatureProof
+	IssuerPublicKey *babyjub.PublicKey
+	Signature       *babyjub.Signature
+}
+
+func (BJJSignatureProof) signatureProofMarker() {}
+
 // prepareRegularClaimInputs prepares inputs for regular claims
-func (c *KYCBySignatures) prepareRegularClaimInputs(claim *models.Claim,
-	rs RevocationStatus, fieldName string) (map[string]interface{}, error) {
+func (c *KYCBySignatures) prepareRegularClaimInputs(claim Claim,
+	rs RevocationStatus, fieldName string,
+	signatureProof2 SignatureProof) (map[string]interface{}, error) {
 
 	inputs := make(map[string]interface{})
 	var err error
 
-	zkInputs, err := claim.GetZKInputs()
-	if err != nil {
-		return nil, err
-	}
+	inputs[fieldName+"Claim"] = bigIntArrayToStringArray(claim.ZKInputs)
 
-	inputs[fieldName+"Claim"] = bigIntArrayToStringArray(zkInputs)
-
-	var signatureProof models.SignatureProof
-	err = claim.SignatureProof.Unmarshal(&signatureProof)
-	if err != nil {
-		return nil, err
-	}
-
-	signatureHex := signatureProof.ProofValue
-	//TODO: support other types of signature format (JWS / base64 / ethereum signature)
-	signatureBytes, err := hex.DecodeString(signatureHex)
-	if err != nil {
-		return nil, err
-	}
-
-	inputs[fieldName+"ClaimIssuerBBJClaimMtp"] = bigIntArrayToStringArray(PrepareSiblings(signatureProof.IssuerMTP.Mtp.Siblings, LevelsKYCCircuits))
-
-	// issuer Public key
-
-	switch signatureProof.Type {
-	case models.BJJSignatureProof:
-
-		/* extract public key */
-		var pubKeyIssuer babyjub.PublicKey
-		err = pubKeyIssuer.UnmarshalText([]byte(signatureProof.VerificationMethod))
-		if err != nil {
-			return nil, err
-		}
-		inputs[fieldName+"ClaimIssuerBBJAx"] = pubKeyIssuer.X.String()
-		inputs[fieldName+"ClaimIssuerBBJAy"] = pubKeyIssuer.Y.String()
-
-		var sig [64]byte
-		copy(sig[:], signatureBytes)
-		var decompressedSig *babyjub.Signature
-		decompressedSig, err = new(babyjub.Signature).Decompress(sig)
-		if err != nil {
-			return nil, err
-		}
-
-		inputs[fieldName+"ClaimSignatureR8x"] = decompressedSig.R8.X.String()
-		inputs[fieldName+"ClaimSignatureR8y"] = decompressedSig.R8.Y.String()
-		inputs[fieldName+"ClaimSignatureS"] = decompressedSig.S.String()
-
+	switch sp := signatureProof2.(type) {
+	case BJJSignatureProof:
+		inputs[fieldName+"ClaimIssuerBBJClaimMtp"] = bigIntArrayToStringArray(
+			PrepareSiblings(sp.Siblings, LevelsKYCCircuits))
+		inputs[fieldName+"ClaimIssuerBBJAx"] = sp.IssuerPublicKey.X.String()
+		inputs[fieldName+"ClaimIssuerBBJAy"] = sp.IssuerPublicKey.Y.String()
+		inputs[fieldName+"ClaimSignatureR8x"] = sp.Signature.R8.X.String()
+		inputs[fieldName+"ClaimSignatureR8y"] = sp.Signature.R8.Y.String()
+		inputs[fieldName+"ClaimSignatureS"] = sp.Signature.S.String()
+		// Issuer identifier
+		inputs[fieldName+"ClaimIssuerId"] = sp.IssuerID.BigInt().String()
+		inputs[fieldName+"ClaimIssuerBBJClaimClaimsTreeRoot"] = sp.
+			IssuerTreeState.ClaimsRootStr()
+		inputs[fieldName+"ClaimIssuerBBJClaimRevTreeRoot"] = sp.
+			IssuerTreeState.RevocationRootStr()
+		inputs[fieldName+"ClaimIssuerBBJClaimRootsTreeRoot"] = sp.
+			IssuerTreeState.RootOfRootsRootStr()
+		inputs[fieldName+"ClaimIssuerBBJIdenState"] = sp.
+			IssuerTreeState.StateStr()
 	default:
 		return nil, errors.New("signature type is not supported")
-	}
-
-	// Issuer identifier
-
-	id, err := core.IDFromString(signatureProof.IssuerMTP.Issuer)
-	if err != nil {
-		return nil, err
-	}
-	inputs[fieldName+"ClaimIssuerId"] = id.BigInt().String()
-
-	// Issuer root data
-	inputs[fieldName+"ClaimIssuerBBJClaimClaimsTreeRoot"], err = hashFromHex(signatureProof.IssuerMTP.State.ClaimsTreeRoot)
-	if err != nil {
-		return nil, err
-	}
-
-	inputs[fieldName+"ClaimIssuerBBJClaimRevTreeRoot"] = merkletree.HashZero
-	inputs[fieldName+"ClaimIssuerBBJClaimRootsTreeRoot"] = merkletree.HashZero
-
-	inputs[fieldName+"ClaimIssuerBBJIdenState"], err = hashFromHex(signatureProof.IssuerMTP.State.Value)
-	if err != nil {
-		return nil, err
 	}
 
 	err = handleRevocationStateInputs(rs, fieldName, inputs)
@@ -158,40 +133,30 @@ func (c *KYCBySignatures) prepareRegularClaimInputs(claim *models.Claim,
 }
 
 // prepareAuthClaimInputs prepare inputs for authorization (ID ownership)
-func (c *KYCBySignatures) prepareAuthClaimInputs(id *core.ID, pk *babyjub.PrivateKey, mtp *merkletree.Proof, claimTreeRoot *merkletree.Hash, challenge int64) (map[string]interface{}, error) {
+func (c *KYCBySignatures) prepareAuthClaimInputs(id *core.ID,
+	mtp Proof, claimTreeRoot *merkletree.Hash, challenge int64,
+	sig *babyjub.Signature,
+	pubKey *babyjub.PublicKey) (map[string]interface{}, error) {
+
+	if sig == nil {
+		return nil, errors.New("signature is null")
+	}
+
+	if pubKey == nil {
+		return nil, errors.New("public key is null")
+	}
 
 	inputs := make(map[string]interface{})
 	inputs["id"] = id.BigInt().String()
-
-	challengeBigInt := new(big.Int).SetInt64(challenge)
-
-	inputs["challenge"] = challengeBigInt.String()
-	inputs["BBJClaimMtp"] = bigIntArrayToStringArray(PrepareSiblings(mtp.Siblings, IDStateLevels))
+	inputs["challenge"] = strconv.FormatInt(challenge, 10)
+	inputs["BBJClaimMtp"] = bigIntArrayToStringArray(
+		PrepareSiblings(mtp.Siblings, IDStateLevels))
 	inputs["BBJClaimClaimsTreeRoot"] = claimTreeRoot.BigInt().String()
-	pubKeyUser := pk.Public()
-	inputs["BBJAx"] = pubKeyUser.X.String()
-	inputs["BBJAy"] = pubKeyUser.Y.String()
-	bjjSigner := primitive.NewBJJSigner(pk)
-
-	// we don't use digest here.
-	// circuit verifies plain data and assumes that it is already in field
-
-	signature, err := bjjSigner.Sign(challengeBigInt.Bytes())
-
-	if err != nil {
-		return nil, err
-	}
-	var sig [64]byte
-	copy(sig[:], signature)
-	var decompressedSig *babyjub.Signature
-	decompressedSig, err = new(babyjub.Signature).Decompress(sig)
-	if err != nil {
-		return nil, err
-	}
-
-	inputs["challengeSignatureR8x"] = decompressedSig.R8.X.String()
-	inputs["challengeSignatureR8y"] = decompressedSig.R8.Y.String()
-	inputs["challengeSignatureS"] = decompressedSig.S.String()
+	inputs["BBJAx"] = pubKey.X.String()
+	inputs["BBJAy"] = pubKey.Y.String()
+	inputs["challengeSignatureR8x"] = sig.R8.X.String()
+	inputs["challengeSignatureR8y"] = sig.R8.Y.String()
+	inputs["challengeSignatureS"] = sig.S.String()
 
 	inputs["BBJClaimRevTreeRoot"] = merkletree.HashZero
 	inputs["BBJClaimRootsTreeRoot"] = merkletree.HashZero
@@ -242,4 +207,24 @@ func (c *KYCBySignatures) prepareCircuitPublicInputs(rules map[string]interface{
 	inputs["minAge"] = new(big.Int).SetInt64(int64(minAge)).String()
 
 	return inputs, nil
+}
+
+// KYCBySignaturesInputs represents input data for kyc and kycBySignatures circuits
+type KYCBySignaturesInputs struct {
+	KYCAgeCredential                      Claim
+	KYCAgeCredentialRevocationStatus      RevocationStatus
+	AgeSignatureProof                     SignatureProof
+	KYCCountryOfResidenceCredential       Claim
+	KYCCountryOfResidenceRevocationStatus RevocationStatus
+	CountrySignatureProof                 SignatureProof
+	ID                                    *core.ID
+	IssuerAuthClaimMTP                    Proof
+	IssuerAuthClaimClamTreeRoot           *merkletree.Hash
+	Challenge                             int64
+	PubKey                                *babyjub.PublicKey
+	Signature                             *babyjub.Signature
+
+	Rules map[string]interface{}
+
+	TypedInputs
 }
