@@ -57,9 +57,11 @@ func (c *KYC) PrepareInputs(in TypedInputs) (map[string]interface{}, error) {
 }
 
 type Claim struct {
-	ZKInputs  []*big.Int
-	Proof     Proof
-	TreeState TreeState
+	Schema           core.SchemaHash
+	ZKInputs         []*big.Int //TODO: refactor to claim slots
+	Proof            Proof
+	TreeState        TreeState
+	CurrentTimeStamp int64
 }
 
 type NodeAux struct {
