@@ -99,7 +99,7 @@ func (c *KYCBySignatures) prepareRegularClaimInputs(claim Claim,
 	inputs := make(map[string]interface{})
 	var err error
 
-	inputs[fieldName+"Claim"] = bigIntArrayToStringArray(claim.ZKInputs)
+	inputs[fieldName+"Claim"] = bigIntArrayToStringArray(claim.Slots)
 
 	switch sp := signatureProof2.(type) {
 	case BJJSignatureProof:

@@ -58,7 +58,7 @@ func (c *KYC) PrepareInputs(in TypedInputs) (map[string]interface{}, error) {
 
 type Claim struct {
 	Schema           core.SchemaHash
-	ZKInputs         []*big.Int //TODO: refactor to claim slots
+	Slots            []*big.Int
 	Proof            Proof
 	TreeState        TreeState
 	CurrentTimeStamp int64
@@ -79,7 +79,7 @@ func (c *KYC) prepareRegularClaimInputs(claim Claim, rs RevocationStatus,
 	fieldName string) (map[string]interface{}, error) {
 
 	inputs := map[string]interface{}{
-		fieldName + "Claim": bigIntArrayToStringArray(claim.ZKInputs),
+		fieldName + "Claim": bigIntArrayToStringArray(claim.Slots),
 		fieldName + "ClaimIssuanceMtp": bigIntArrayToStringArray(
 			PrepareSiblings(claim.Proof.Siblings, LevelsKYCCircuits)),
 		fieldName + "ClaimIssuanceClaimsTreeRoot": claim.TreeState.

@@ -27,7 +27,7 @@ type AtomicQuery struct{}
 
 // nolint // common approach to register default supported circuit
 func init() {
-	RegisterCircuit(AtomicQueryID, &AtomicQuery{})
+	RegisterCircuit(AtomicQueryCircuitID, &AtomicQuery{})
 }
 
 // PrepareInputs returns inputs as a map for credentialAtomicQuery.circom
@@ -60,7 +60,7 @@ func (c *AtomicQuery) PrepareInputs(in TypedInputs) (map[string]interface{}, err
 func (c *AtomicQuery) prepareRegularClaimInputs(claim Claim, rs RevocationStatus) (map[string]interface{}, error) {
 
 	inputs := map[string]interface{}{
-		"claim": bigIntArrayToStringArray(claim.ZKInputs),
+		"claim": bigIntArrayToStringArray(claim.Slots),
 		"claimIssuanceMtp": bigIntArrayToStringArray(
 			PrepareSiblings(claim.Proof.Siblings, LevelsAtomicQueryCircuit)),
 		"claimIssuanceClaimsTreeRoot": claim.TreeState.
@@ -122,8 +122,8 @@ func (c *AtomicQuery) prepareAuthClaimInputs(in *AtomicQueryInputs) (map[string]
 	inputs["BBJClaimMtp"] = bigIntArrayToStringArray(
 		PrepareSiblings(in.AuthClaim.Proof.Siblings, IDStateLevels))
 	inputs["BBJClaimClaimsTreeRoot"] = in.AuthClaim.TreeState.ClaimsRoot.BigInt().String()
-	inputs["BBJAx"] = in.AuthClaim.ZKInputs[2].String()
-	inputs["BBJAy"] = in.AuthClaim.ZKInputs[3].String()
+	inputs["BBJAx"] = in.AuthClaim.Slots[2].String()
+	inputs["BBJAy"] = in.AuthClaim.Slots[3].String()
 	inputs["challengeSignatureR8x"] = in.Signature.R8.X.String()
 	inputs["challengeSignatureR8y"] = in.Signature.R8.Y.String()
 	inputs["challengeSignatureS"] = in.Signature.S.String()
