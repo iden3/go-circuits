@@ -2,7 +2,6 @@ package circuits
 
 import (
 	"errors"
-	"fmt"
 	"math/big"
 	"strconv"
 
@@ -59,13 +58,6 @@ func (c *AtomicQuery) PrepareInputs(in TypedInputs) (map[string]interface{}, err
 
 // PrepareRegularClaimInputs prepares inputs for regular claims
 func (c *AtomicQuery) prepareRegularClaimInputs(claim Claim, rs RevocationStatus) (map[string]interface{}, error) {
-
-	fmt.Println("slot with schema ", claim.Slots[0].Bytes())
-	fmt.Println("schema: ", claim.Schema[:])
-	fmt.Println("schema swapped ", merkletree.SwapEndianness(claim.Schema[:]))
-
-	fmt.Println("slot with country code ", claim.Slots[2].Bytes())
-	fmt.Println("country code bytes", new(big.Int).SetInt64(980980980).Bytes())
 
 	inputs := map[string]interface{}{
 		"claim": bigIntArrayToStringArray(claim.Slots),
