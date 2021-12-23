@@ -83,12 +83,12 @@ func (c *AtomicQuery) prepareRegularClaimInputs(claim Claim, rs RevocationStatus
 
 	// claim non revocation
 
-	inputs["claimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(rs.Proof.Siblings, LevelsKYCCircuits))
+	inputs["claimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(rs.Proof.Siblings, LevelsAtomicQueryCircuit))
 
 	if rs.Proof.NodeAux == nil {
 		inputs["claimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
 		inputs["claimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
-		inputs["claimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1) // TODO: clarify with Jordi
+		inputs["claimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1)
 	} else {
 		inputs["claimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
 		if rs.Proof.NodeAux.HIndex == nil {
