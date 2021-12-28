@@ -1,5 +1,7 @@
 # go-circuits
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/iden3/go-circuits.svg)](https://pkg.go.dev/github.com/iden3/go-circuits)
+[![Go Report Card](https://goreportcard.com/badge/github.com/iden3/go-circuits)](https://goreportcard.com/report/github.com/iden3/go-circuits)
 ### General description:
 
 The library goal is to create a wrapper on top of standard circuits set
