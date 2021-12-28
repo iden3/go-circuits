@@ -18,8 +18,6 @@ The current implementation supports the next circuits:
 
 ### How to use :
 
-**Schema examples:** 
-
 - All circuits implement *InputsPreparer*  and *BaseCircuit* Interfaces
     
     ```go
@@ -63,7 +61,7 @@ The current implementation supports the next circuits:
     RegisterCircuit(CustomQueryCircuitID, &CustomQueryCircuit{})
     ```
     
-    ### Querying  :
+    ### Querying :
     
     The library defines the Query structure for atomic circuits and contains the mapping between query operation and its number. This library is not responsible for resolving SlotIndex for the claim field.
     
