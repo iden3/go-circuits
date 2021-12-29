@@ -37,16 +37,53 @@ func (c *IDStateCircuit) PrepareInputs(in TypedInputs) (map[string]interface{}, 
 		return nil, errors.New("wrong type of input arguments")
 	}
 	inputs := make(map[string]interface{})
-	inputs["id"] = ownerShipInputs.GenesisID.BigInt().String()
-	inputs["oldIdState"] = ownerShipInputs.LatestState.BigInt().String()
-	inputs["userPrivateKey"] = (*big.Int)(ownerShipInputs.SK).String()
-
-	inputs["siblings"] = bigIntArrayToStringArray(
-		PrepareSiblings(ownerShipInputs.SiblingsMTP, IDStateLevels))
-	inputs["claimsTreeRoot"] = ownerShipInputs.ClaimsTreeRoot.BigInt().String()
-	// -- inputs["revTreeRoot"] = ownerShipInputs.RevTreeRoot.BigInt().String()
+	inputs["id"] = ownerShipInputs.ID.BigInt().String()
+	inputs["oldIdState"] = ownerShipInputs.OldTreeState.State.BigInt().String()
 	inputs["newIdState"] = ownerShipInputs.NewState.BigInt().String()
+
+	inputs["authClaimMtp"] = bigIntArrayToStringArray(
+		PrepareSiblings(ownerShipInputs.AuthClaim.Proof.Siblings, IDStateLevels))
+	inputs["authClaim"] = bigIntArrayToStringArray(ownerShipInputs.AuthClaim.Slots)
+
+	inputs["signatureR8x"] = ownerShipInputs.Signature.R8.X.String()
+	inputs["signatureR8y"] = ownerShipInputs.Signature.R8.Y.String()
+	inputs["signatureS"] = ownerShipInputs.Signature.S.String()
+
+	inputs["claimsTreeRoot"] = ownerShipInputs.OldTreeState.ClaimsRootStr()
+	inputs["revTreeRoot"] = ownerShipInputs.OldTreeState.RevocationRootStr()
+	inputs["rootsTreeRoot"] = ownerShipInputs.OldTreeState.RootOfRootsRootStr()
+
+	err := handleAuthMTPInputs(ownerShipInputs.AuthClaim.Proof, inputs)
+	if err != nil {
+		return nil, err
+	}
+
 	return inputs, nil
+}
+
+func handleAuthMTPInputs(mtp Proof, inputs map[string]interface{}) (err error) {
+
+	inputs["authClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(mtp.Siblings, IDStateLevels))
+
+	if mtp.NodeAux == nil {
+		inputs["authClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
+		inputs["authClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
+		inputs["authClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1) // TODO: clarify with Jordi
+		return nil
+	}
+	inputs["authClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
+	if mtp.NodeAux.HIndex == nil {
+		inputs["authClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
+	} else {
+		inputs["authClaimNonRevMtpAuxHi"] = mtp.NodeAux.HIndex.BigInt().String()
+	}
+	if mtp.NodeAux.HValue == nil {
+		inputs["authClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
+	} else {
+		inputs["authClaimNonRevMtpAuxHv"] = mtp.NodeAux.HValue.BigInt().String()
+	}
+
+	return nil
 }
 
 // GetVerificationKey returns key to verify proof
@@ -61,12 +98,14 @@ func (c *IDStateCircuit) GetPublicSignalsSchema() PublicSchemaJSON {
 
 // IDOwnershipGenesisInputs ZK inputs
 type IDOwnershipGenesisInputs struct {
-	GenesisID      *core.ID
-	ClaimsTreeRoot *merkletree.Hash
-	RevTreeRoot    *merkletree.Hash
-	SK             *babyjub.PrivKeyScalar
-	SiblingsMTP    []*merkletree.Hash
-	LatestState    *merkletree.Hash
-	NewState       *merkletree.Hash
+	ID *core.ID
+
+	OldTreeState TreeState
+	NewState     *merkletree.Hash
+
+	AuthClaim                   Claim
+	AuthClaimNonRevocationProof Proof
+	Signature                   *babyjub.Signature
+
 	TypedInputs
 }
