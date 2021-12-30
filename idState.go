@@ -53,7 +53,7 @@ func (c *IDStateCircuit) PrepareInputs(in TypedInputs) (map[string]interface{}, 
 	inputs["revTreeRoot"] = ownerShipInputs.OldTreeState.RevocationRootStr()
 	inputs["rootsTreeRoot"] = ownerShipInputs.OldTreeState.RootOfRootsRootStr()
 
-	err := handleAuthMTPInputs(ownerShipInputs.AuthClaim.Proof, inputs)
+	err := handleAuthMTPInputs(ownerShipInputs.AuthClaimNonRevocationProof, inputs)
 	if err != nil {
 		return nil, err
 	}
