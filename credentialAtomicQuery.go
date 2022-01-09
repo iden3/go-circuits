@@ -118,18 +118,40 @@ func (c *AtomicQuery) prepareAuthClaimInputs(in *AtomicQueryInputs) (map[string]
 
 	inputs := make(map[string]interface{})
 	inputs["id"] = in.ID.BigInt().String()
+	inputs["hoIdenState"] = in.AuthClaim.TreeState.StateStr()
 	inputs["challenge"] = strconv.FormatInt(in.Challenge, 10)
-	inputs["BBJClaimMtp"] = bigIntArrayToStringArray(
+
+	inputs["authClaim"] = bigIntArrayToStringArray(in.AuthClaim.Slots)
+	inputs["authClaimMtp"] = bigIntArrayToStringArray(
 		PrepareSiblings(in.AuthClaim.Proof.Siblings, LevelsAtomicQueryCircuit))
-	inputs["BBJClaimClaimsTreeRoot"] = in.AuthClaim.TreeState.ClaimsRoot.BigInt().String()
-	inputs["BBJAx"] = in.AuthClaim.Slots[2].String()
-	inputs["BBJAy"] = in.AuthClaim.Slots[3].String()
+
+	inputs["authClaimRevTreeRoot"] = in.AuthClaim.TreeState.ClaimsRoot.BigInt().String()
+	inputs["authClaimRevTreeRoot"] = in.AuthClaim.TreeState.RevocationRootStr()
+	inputs["authClaimRootsTreeRoot"] = in.AuthClaim.TreeState.RootOfRootsRootStr()
+
+	inputs["authClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(in.AuthClaim.Proof.Siblings, LevelsAtomicQueryCircuit))
+
+	if in.AuthClaim.Proof.NodeAux == nil {
+		inputs["authClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
+		inputs["authClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
+		inputs["authClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1)
+	} else {
+		inputs["authClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
+		if in.AuthClaim.Proof.NodeAux.HIndex == nil {
+			inputs["authClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
+		} else {
+			inputs["authClaimNonRevMtpAuxHi"] = in.AuthClaim.Proof.NodeAux.HIndex.BigInt().String()
+		}
+		if in.AuthClaim.Proof.NodeAux.HValue == nil {
+			inputs["authClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
+		} else {
+			inputs["authClaimNonRevMtpAuxHv"] = in.AuthClaim.Proof.NodeAux.HValue.BigInt().String()
+		}
+	}
+
 	inputs["challengeSignatureR8x"] = in.Signature.R8.X.String()
 	inputs["challengeSignatureR8y"] = in.Signature.R8.Y.String()
 	inputs["challengeSignatureS"] = in.Signature.S.String()
-
-	inputs["BBJClaimRevTreeRoot"] = in.AuthClaim.TreeState.RevocationRootStr()
-	inputs["BBJClaimRootsTreeRoot"] = in.AuthClaim.TreeState.RootOfRootsRootStr()
 
 	return inputs, nil
 }
