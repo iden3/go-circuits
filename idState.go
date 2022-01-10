@@ -18,7 +18,7 @@ const (
 )
 
 // IDStateLevels is number of levels currently used by idState circuits
-const IDStateLevels = 4
+const IDStateLevels = 40
 
 // IDStateCircuit represents idState circuit
 type IDStateCircuit struct {

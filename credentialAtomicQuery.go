@@ -118,16 +118,16 @@ func (c *AtomicQuery) prepareAuthClaimInputs(in *AtomicQueryInputs) (map[string]
 
 	inputs := make(map[string]interface{})
 	inputs["id"] = in.ID.BigInt().String()
-	inputs["hoIdenState"] = in.AuthClaim.TreeState.StateStr()
 	inputs["challenge"] = strconv.FormatInt(in.Challenge, 10)
 
 	inputs["authClaim"] = bigIntArrayToStringArray(in.AuthClaim.Slots)
 	inputs["authClaimMtp"] = bigIntArrayToStringArray(
 		PrepareSiblings(in.AuthClaim.Proof.Siblings, LevelsAtomicQueryCircuit))
 
-	inputs["authClaimRevTreeRoot"] = in.AuthClaim.TreeState.ClaimsRoot.BigInt().String()
-	inputs["authClaimRevTreeRoot"] = in.AuthClaim.TreeState.RevocationRootStr()
-	inputs["authClaimRootsTreeRoot"] = in.AuthClaim.TreeState.RootOfRootsRootStr()
+	inputs["hoIdenState"] = in.CurrentStateTree.StateStr()
+	inputs["hoClaimsTreeRoot"] = in.CurrentStateTree.ClaimsRootStr()
+	inputs["hoRevTreeRoot"] = in.CurrentStateTree.RevocationRootStr()
+	inputs["hoRootsTreeRoot"] = in.CurrentStateTree.RootOfRootsRootStr()
 
 	inputs["authClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(in.AuthClaim.Proof.Siblings, LevelsAtomicQueryCircuit))
 
@@ -172,6 +172,8 @@ type AtomicQueryInputs struct {
 	AuthClaim Claim
 	Challenge int64
 	Signature *babyjub.Signature
+
+	CurrentStateTree TreeState
 
 	// claim
 	Claim
