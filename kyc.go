@@ -105,7 +105,7 @@ func (c *KYC) prepareAuthClaimInputs(in *KYCInputs) map[string]interface{} {
 	inputs["id"] = in.ID.BigInt().String()
 	inputs["challenge"] = strconv.FormatInt(in.Challenge, 10)
 	inputs["BBJClaimMtp"] = bigIntArrayToStringArray(
-		PrepareSiblings(in.AuthClaim.Proof.Siblings, IDStateLevels))
+		PrepareSiblings(in.AuthClaim.Proof.Siblings, 4))
 	inputs["BBJClaimClaimsTreeRoot"] = in.AuthClaim.TreeState.ClaimsRoot.BigInt().String()
 	inputs["userPrivateKey"] = (*big.Int)(in.PK.Scalar()).String()
 
