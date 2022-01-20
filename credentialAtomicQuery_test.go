@@ -161,6 +161,11 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		Value:     new(big.Int).SetInt64(10),
 		Operator:  0,
 	}
+
+	userAuthClaimNonRevProof := Proof{
+		Siblings: nil,
+		NodeAux:  nil,
+	}
 	atomicInputs := AtomicQueryInputs{
 		ID:        userIdentity,
 		AuthClaim: inputsAuthClaim,
@@ -172,6 +177,10 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		Claim:            inputsUserClaim,
 		RevocationStatus: revocationStatus,
 
+		AuthClaimRevStatus: RevocationStatus{
+			TreeState: userAuthTreeState,
+			Proof:     userAuthClaimNonRevProof,
+		},
 		Query: query,
 	}
 
