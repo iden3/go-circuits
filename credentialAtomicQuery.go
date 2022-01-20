@@ -129,23 +129,23 @@ func (c *AtomicQuery) prepareAuthClaimInputs(in *AtomicQueryInputs) (map[string]
 	inputs["hoRevTreeRoot"] = in.CurrentStateTree.RevocationRootStr()
 	inputs["hoRootsTreeRoot"] = in.CurrentStateTree.RootOfRootsRootStr()
 
-	inputs["authClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(in.AuthClaim.Proof.Siblings, LevelsAtomicQueryCircuit))
+	inputs["authClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(in.AuthClaimRevStatus.Proof.Siblings, LevelsAtomicQueryCircuit))
 
-	if in.AuthClaim.Proof.NodeAux == nil {
+	if in.AuthClaimRevStatus.Proof.NodeAux == nil {
 		inputs["authClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
 		inputs["authClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
 		inputs["authClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1)
 	} else {
 		inputs["authClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
-		if in.AuthClaim.Proof.NodeAux.HIndex == nil {
+		if in.AuthClaimRevStatus.Proof.NodeAux.HIndex == nil {
 			inputs["authClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
 		} else {
-			inputs["authClaimNonRevMtpAuxHi"] = in.AuthClaim.Proof.NodeAux.HIndex.BigInt().String()
+			inputs["authClaimNonRevMtpAuxHi"] = in.AuthClaimRevStatus.Proof.NodeAux.HIndex.BigInt().String()
 		}
-		if in.AuthClaim.Proof.NodeAux.HValue == nil {
+		if in.AuthClaimRevStatus.Proof.NodeAux.HValue == nil {
 			inputs["authClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
 		} else {
-			inputs["authClaimNonRevMtpAuxHv"] = in.AuthClaim.Proof.NodeAux.HValue.BigInt().String()
+			inputs["authClaimNonRevMtpAuxHv"] = in.AuthClaimRevStatus.Proof.NodeAux.HValue.BigInt().String()
 		}
 	}
 
@@ -168,10 +168,11 @@ func (c *AtomicQuery) prepareQueryInputs(in *AtomicQueryInputs) (map[string]inte
 // AtomicQueryInputs represents input data for kyc and kycBySignatures circuits
 type AtomicQueryInputs struct {
 	// auth
-	ID        *core.ID
-	AuthClaim Claim
-	Challenge int64
-	Signature *babyjub.Signature
+	ID                 *core.ID
+	AuthClaim          Claim
+	AuthClaimRevStatus RevocationStatus
+	Challenge          int64
+	Signature          *babyjub.Signature
 
 	CurrentStateTree TreeState
 
