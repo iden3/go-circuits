@@ -62,6 +62,7 @@ type Claim struct {
 	Proof            Proof
 	TreeState        TreeState
 	CurrentTimeStamp int64
+	IssuerID         *core.ID
 }
 
 type NodeAux struct {
