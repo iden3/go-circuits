@@ -23,7 +23,7 @@ const (
 const LevelsAtomicQueryMTPCircuit = 40
 
 // ValueArraySizeAtomicQueryMTPCircuit size of value array
-const ValueArraySizeAtomicQueryMTPCircuit = 4
+const ValueArraySizeAtomicQueryMTPCircuit = 16
 
 // AtomicQueryMTP represents credentialAtomicQuery.circom
 type AtomicQueryMTP struct{}

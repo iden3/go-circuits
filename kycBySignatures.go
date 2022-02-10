@@ -2,11 +2,12 @@ package circuits
 
 import (
 	"errors"
+	"math/big"
+	"strconv"
+
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
-	"math/big"
-	"strconv"
 )
 
 const (
@@ -75,15 +76,17 @@ type SignatureProof interface {
 }
 
 type BaseSignatureProof struct {
-	IssuerID        *core.ID
-	IssuerTreeState TreeState
-	Siblings        []*merkletree.Hash
+	IssuerID           *core.ID
+	IssuerTreeState    TreeState
+	AuthClaimIssuerMTP Proof
 }
 
 type BJJSignatureProof struct {
 	BaseSignatureProof
 	IssuerPublicKey *babyjub.PublicKey
 	Signature       *babyjub.Signature
+	HIndex          *merkletree.Hash
+	HValue          *merkletree.Hash
 }
 
 func (BJJSignatureProof) signatureProofMarker() {}
@@ -101,7 +104,7 @@ func (c *KYCBySignatures) prepareRegularClaimInputs(claim Claim,
 	switch sp := signatureProof2.(type) {
 	case BJJSignatureProof:
 		inputs[fieldName+"ClaimIssuerBBJClaimMtp"] = bigIntArrayToStringArray(
-			PrepareSiblings(sp.Siblings, LevelsKYCCircuits))
+			PrepareSiblings(sp.AuthClaimIssuerMTP.Siblings, LevelsKYCCircuits))
 		inputs[fieldName+"ClaimIssuerBBJAx"] = sp.IssuerPublicKey.X.String()
 		inputs[fieldName+"ClaimIssuerBBJAy"] = sp.IssuerPublicKey.Y.String()
 		inputs[fieldName+"ClaimSignatureR8x"] = sp.Signature.R8.X.String()

@@ -23,7 +23,7 @@ const (
 const LevelsAtomicQuerySigCircuit = 40
 
 // ValueArraySizeAtomicQuerySigCircuit size of value array
-const ValueArraySizeAtomicQuerySigCircuit = 4
+const ValueArraySizeAtomicQuerySigCircuit = 16
 
 // AtomicQuerySig represents credentialAtomicQueryMTP.circom
 type AtomicQuerySig struct{}
@@ -44,23 +44,11 @@ type AtomicQuerySigInputs struct {
 	RevocationStatus
 
 	//
-	ClaimIssuerSignature
+	SignatureProof BJJSignatureProof
 	// query
 	Query
 
 	TypedInputs
-}
-
-// ClaimIssuerSignature struct issuer signature of claim
-type ClaimIssuerSignature struct {
-	ID                 *core.ID
-	Signature          *babyjub.Signature
-	AuthClaimTreeState TreeState
-	AuthClaimProof     Proof
-	AuthClaimHi        *merkletree.Hash
-	AuthClaimHv        *merkletree.Hash
-	AuthClaimPubKeyX   *big.Int
-	AuthClaimPubKeyY   *big.Int
 }
 
 // nolint // common approach to register default supported circuit
@@ -91,7 +79,7 @@ func (c *AtomicQuerySig) PrepareInputs(in TypedInputs) (map[string]interface{}, 
 		return nil, err
 	}
 
-	signatureInput, err := c.prepareClaimIssuerSigInputs(&atomicInput.ClaimIssuerSignature)
+	signatureInput, err := c.prepareClaimIssuerSigInputs(&atomicInput.SignatureProof)
 	if err != nil {
 		return nil, err
 	}
@@ -191,27 +179,27 @@ func (c *AtomicQuerySig) prepareAuthClaimInputs(in *AtomicQuerySigInputs) (map[s
 }
 
 // prepareClaimIssuerSigInputs prepare inputs for claim that is signed by issuer
-func (c *AtomicQuerySig) prepareClaimIssuerSigInputs(in *ClaimIssuerSignature) (map[string]interface{}, error) {
+func (c *AtomicQuerySig) prepareClaimIssuerSigInputs(in *BJJSignatureProof) (map[string]interface{}, error) {
 
 	if in.Signature == nil {
 		return nil, errors.New("signature is null")
 	}
 
 	inputs := make(map[string]interface{})
-	inputs["issuerID"] = in.ID.BigInt().String()
+	inputs["issuerID"] = in.IssuerID.BigInt().String()
 
 	inputs["issuerAuthClaimMtp"] = bigIntArrayToStringArray(
-		PrepareSiblings(in.AuthClaimProof.Siblings, LevelsAtomicQuerySigCircuit))
+		PrepareSiblings(in.AuthClaimIssuerMTP.Siblings, LevelsAtomicQuerySigCircuit))
 
-	inputs["issuerIdenState"] = in.AuthClaimTreeState.StateStr()
-	inputs["issuerClaimsTreeRoot"] = in.AuthClaimTreeState.ClaimsRootStr()
-	inputs["issuerRevTreeRoot"] = in.AuthClaimTreeState.RevocationRootStr()
-	inputs["issuerRootsTreeRoot"] = in.AuthClaimTreeState.RootOfRootsRootStr()
+	inputs["issuerIdenState"] = in.IssuerTreeState.StateStr()
+	inputs["issuerClaimsTreeRoot"] = in.IssuerTreeState.ClaimsRootStr()
+	inputs["issuerRevTreeRoot"] = in.IssuerTreeState.RevocationRootStr()
+	inputs["issuerRootsTreeRoot"] = in.IssuerTreeState.RootOfRootsRootStr()
 
-	inputs["issuerAuthHi"] = in.AuthClaimHi.BigInt().String()
-	inputs["issuerAuthHv"] = in.AuthClaimHv.BigInt().String()
-	inputs["issuerPubKeyX"] = in.AuthClaimPubKeyX.String()
-	inputs["issuerPubKeyY"] = in.AuthClaimPubKeyY.String()
+	inputs["issuerAuthHi"] = in.HIndex.BigInt().String()
+	inputs["issuerAuthHv"] = in.HValue.BigInt().String()
+	inputs["issuerPubKeyX"] = in.IssuerPublicKey.X.String()
+	inputs["issuerPubKeyY"] = in.IssuerPublicKey.Y.String()
 
 	inputs["claimSignatureR8x"] = in.Signature.R8.X.String()
 	inputs["claimSignatureR8y"] = in.Signature.R8.Y.String()
