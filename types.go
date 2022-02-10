@@ -18,8 +18,10 @@ const (
 	KycCircuitCircuitID CircuitID = "kyc"
 	// IDStateCircuitID is a type that must be used for idState circuit definition
 	IDStateCircuitID CircuitID = "idState"
-	// AtomicQueryCircuitID is a type for credentialAtomicQuery.circom
-	AtomicQueryCircuitID CircuitID = "credentialAtomicQuery"
+	// AtomicQueryMTPCircuitID is a type for credentialAtomicQueryMTP.circom
+	AtomicQueryMTPCircuitID CircuitID = "credentialAtomicQueryMTP"
+	// AtomicQuerySigCircuitID is a type for credentialAttrQuerySig.circom
+	AtomicQuerySigCircuitID CircuitID = "credentialAtomicQuerySig"
 )
 
 // TypedInputs is inputs that can be validated in the specific circuit
