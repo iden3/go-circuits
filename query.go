@@ -5,7 +5,7 @@ import "math/big"
 // Query represents basic request to claim slot verification
 type Query struct {
 	SlotIndex int
-	Value     *big.Int
+	Values    []*big.Int
 	Operator  int
 }
 

@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"math/big"
+	"testing"
+	"time"
+
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-merkletree-sql/db/memory"
 	"github.com/stretchr/testify/assert"
-	"math/big"
-	"testing"
-	"time"
 )
 
 func TestAtomicQuery_PrepareInputs(t *testing.T) {
@@ -58,7 +59,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	challengeSignature := userPrivateKey.SignPoseidon(message)
 
 	// Issuer
-	_, iClaimsTree, _, _, err := generateIdentity(ctx, issuerPrivKHex, challenge)
+	issuerID, iClaimsTree, _, _, err := generateIdentity(ctx, issuerPrivKHex, challenge)
 	assert.Nil(t, err)
 
 	// issue claim for user
@@ -149,6 +150,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		Proof:            mtpClaimProof,
 		TreeState:        issuerStateAfterClaimAdd,
 		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
+		IssuerID:         issuerID,
 	}
 
 	revocationStatus := RevocationStatus{
@@ -158,7 +160,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 
 	query := Query{
 		SlotIndex: 2,
-		Value:     new(big.Int).SetInt64(10),
+		Values:    []*big.Int{new(big.Int).SetInt64(10)},
 		Operator:  0,
 	}
 
@@ -166,7 +168,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		Siblings: nil,
 		NodeAux:  nil,
 	}
-	atomicInputs := AtomicQueryInputs{
+	atomicInputs := AtomicQueryMTPInputs{
 		ID:        userIdentity,
 		AuthClaim: inputsAuthClaim,
 		Challenge: challenge.Int64(),
@@ -184,7 +186,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		Query: query,
 	}
 
-	c, err := GetCircuit(AtomicQueryCircuitID)
+	c, err := GetCircuit(AtomicQueryMTPCircuitID)
 	assert.Nil(t, err)
 
 	inputs, err := c.PrepareInputs(atomicInputs)
@@ -193,7 +195,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	bytesInputs, err := json.Marshal(inputs)
 	assert.Nil(t, err)
 
-	expectedJSONInputs := `{"authClaim":["164867201768971999401702181843803888060","0","17640206035128972995519606214765283372613874593503528180869261482403155458945","20634138280259599560273310290025659992320584624461316485434108770067472477956","15930428023331155902","0","0","0"],"authClaimMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"authClaimNonRevMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"authClaimNonRevMtpAuxHi":"0","authClaimNonRevMtpAuxHv":"0","authClaimNonRevMtpNoAux":"1","challenge":"1","challengeSignatureR8x":"8553678144208642175027223770335048072652078621216414881653012537434846327449","challengeSignatureR8y":"5507837342589329113352496188906367161790372084365285966741761856353367255709","challengeSignatureS":"2093461910575977345603199789919760192811763972089699387324401771367839603655","claim":["3677203805624134172815825715044445108615","293373448908678327289599234275657468666604586273320428510206058753616052224","10","0","30803922965249841627828060161","0","0","0"],"claimIssuanceClaimsTreeRoot":"7246896034587217404391735131819928831029447598354448731452631177424919458245","claimIssuanceIdenState":"3465800424177143196107127845857728750770736366457056414231195686681735039800","claimIssuanceMtp":["417537058197893761686953664555712220182002293231272771939654136223079364880","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"claimIssuanceRevTreeRoot":"0","claimIssuanceRootsTreeRoot":"0","claimNonRevIssuerClaimsTreeRoot":"7246896034587217404391735131819928831029447598354448731452631177424919458245","claimNonRevIssuerRevTreeRoot":"0","claimNonRevIssuerRootsTreeRoot":"0","claimNonRevIssuerState":"3465800424177143196107127845857728750770736366457056414231195686681735039800","claimNonRevMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"claimNonRevMtpAuxHi":"0","claimNonRevMtpAuxHv":"0","claimNonRevMtpNoAux":"1","claimSchema":"274380136414749538182079640726762994055","hoClaimsTreeRoot":"209113798174833776229979813091844404331713644587766182643501254985715193770","hoIdenState":"15383795261052586569047113011994713909892315748410703061728793744343300034754","hoRevTreeRoot":"0","hoRootsTreeRoot":"0","id":"293373448908678327289599234275657468666604586273320428510206058753616052224","operator":0,"slotIndex":2,"timestamp":"1642074362","value":"10"}`
+	expectedJSONInputs := `{"authClaim":["164867201768971999401702181843803888060","0","17640206035128972995519606214765283372613874593503528180869261482403155458945","20634138280259599560273310290025659992320584624461316485434108770067472477956","15930428023331155902","0","0","0"],"authClaimMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"authClaimNonRevMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"authClaimNonRevMtpAuxHi":"0","authClaimNonRevMtpAuxHv":"0","authClaimNonRevMtpNoAux":"1","challenge":"1","challengeSignatureR8x":"8553678144208642175027223770335048072652078621216414881653012537434846327449","challengeSignatureR8y":"5507837342589329113352496188906367161790372084365285966741761856353367255709","challengeSignatureS":"2093461910575977345603199789919760192811763972089699387324401771367839603655","claim":["3677203805624134172815825715044445108615","293373448908678327289599234275657468666604586273320428510206058753616052224","10","0","30803922965249841627828060161","0","0","0"],"claimIssuanceClaimsTreeRoot":"7246896034587217404391735131819928831029447598354448731452631177424919458245","claimIssuanceIdenState":"3465800424177143196107127845857728750770736366457056414231195686681735039800","claimIssuanceMtp":["417537058197893761686953664555712220182002293231272771939654136223079364880","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"claimIssuanceRevTreeRoot":"0","claimIssuanceRootsTreeRoot":"0","claimNonRevIssuerClaimsTreeRoot":"7246896034587217404391735131819928831029447598354448731452631177424919458245","claimNonRevIssuerRevTreeRoot":"0","claimNonRevIssuerRootsTreeRoot":"0","claimNonRevIssuerState":"3465800424177143196107127845857728750770736366457056414231195686681735039800","claimNonRevMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"claimNonRevMtpAuxHi":"0","claimNonRevMtpAuxHv":"0","claimNonRevMtpNoAux":"1","claimSchema":"274380136414749538182079640726762994055","hoClaimsTreeRoot":"209113798174833776229979813091844404331713644587766182643501254985715193770","hoIdenState":"15383795261052586569047113011994713909892315748410703061728793744343300034754","hoRevTreeRoot":"0","hoRootsTreeRoot":"0","id":"293373448908678327289599234275657468666604586273320428510206058753616052224","issuerID":"238622032992029818959027522035982899478798944063520057730894779896578244608","operator":0,"slotIndex":2,"timestamp":"1642074362","value":["10","0","0","0"]}`
 
 	var actualInputs map[string]interface{}
 	err = json.Unmarshal(bytesInputs, &actualInputs)

@@ -6,6 +6,7 @@ require (
 	github.com/iden3/go-iden3-core v0.0.12
 	github.com/iden3/go-iden3-crypto v0.0.11
 	github.com/iden3/go-merkletree-sql v1.0.0-pre8
+	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 )
 
