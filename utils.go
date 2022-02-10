@@ -3,6 +3,8 @@ package circuits
 import (
 	"math/big"
 
+	"github.com/pkg/errors"
+
 	"github.com/iden3/go-merkletree-sql"
 )
 
@@ -36,4 +38,21 @@ func bigIntArrayToStringArray(array []*big.Int) []string {
 		res = append(res, array[i].String())
 	}
 	return res
+}
+
+// PrepareCircuitArrayValues padding values to size. Validate array size and throw an exception if array is bigger
+// than size
+// if array is bigger circuit cannot compile because number of inputs does not match
+func PrepareCircuitArrayValues(arr []*big.Int, size int) ([]*big.Int, error) {
+
+	if len(arr) > size {
+		return nil, errors.Errorf("array size {%d} is bigger max expected size {%d}", len(arr), size)
+	}
+
+	// Add the empty values
+	for i := len(arr); i < size; i++ {
+		arr = append(arr, new(big.Int))
+	}
+
+	return arr, nil
 }
