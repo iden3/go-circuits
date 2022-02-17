@@ -22,6 +22,10 @@ const (
 	AtomicQueryMTPCircuitID CircuitID = "credentialAtomicQueryMTP"
 	// AtomicQuerySigCircuitID is a type for credentialAttrQuerySig.circom
 	AtomicQuerySigCircuitID CircuitID = "credentialAtomicQuerySig"
+	// AtomicQueryMTPCircuitID is a type for credentialAtomicQueryMTPWithRelay.circom
+	AtomicQueryMTPWithRelayCircuitID CircuitID = "credentialAtomicQueryMTPWithRelay"
+	// AtomicQuerySigCircuitID is a type for credentialAttrQuerySigWithRelay.circom
+	AtomicQuerySigWithRelayCircuitID CircuitID = "credentialAtomicQuerySigWithRelay"
 )
 
 // TypedInputs is inputs that can be validated in the specific circuit
