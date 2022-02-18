@@ -196,8 +196,9 @@ func (c *AtomicQueryMTPWithRelay) prepareQueryInputs(in *AtomicQueryMTPWithRelay
 func (c *AtomicQueryMTPWithRelay) prepareRelayClaimInputs(claim Claim) (map[string]interface{}, error) {
 	inputs := map[string]interface{}{
 		"reIdenState": claim.TreeState.StateStr(),
-		"hoStateInRelayerClaimMtp": bigIntArrayToStringArray(
+		"hoStateInRelayClaimMtp": bigIntArrayToStringArray(
 			PrepareSiblings(claim.Proof.Siblings, LevelsAtomicQueryMTPCircuit)),
+		"hoStateInRelayClaim":        bigIntArrayToStringArray(claim.Slots),
 		"reProofValidClaimsTreeRoot": claim.TreeState.ClaimsRootStr(),
 		"reProofValidRevTreeRoot":    claim.TreeState.RevocationRootStr(),
 		"reProofValidRootsTreeRoot":  claim.TreeState.RootOfRootsRootStr(),

@@ -56,7 +56,7 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	challengeSignature := userPrivateKey.SignPoseidon(message)
 
 	//Relay
-	relayState, proofUserStateInRelay, relayClaimsTreeRoot, relayRevTreeRoot, relayRootsTreeRoot, err := generateRelayWithIdenStateClaim(
+	claimUserStateInRelay, proofUserStateInRelay, relayClaimsTreeRoot, relayRevTreeRoot, relayRootsTreeRoot, relayState, err := generateRelayWithIdenStateClaim(
 		relayPrivKHex, userIdentity, userState)
 	if err != nil {
 		return
@@ -167,8 +167,11 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	}
 
 	inputsUserStateInRelayClaim := Claim{
-		Proof:     mtpUserStateInRelay,
-		TreeState: relayTreeState,
+		Schema:           authClaim.Schema,
+		Slots:            getSlots(claimUserStateInRelay),
+		Proof:            mtpUserStateInRelay,
+		TreeState:        relayTreeState,
+		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
 	}
 
 	inputsUserClaim := Claim{
@@ -244,7 +247,9 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 "issuerID":"238622032992029818959027522035982899478798944063520057730894779896578244608",
 
 "hoRevTreeRoot":"0","hoRootsTreeRoot":"0",
-"hoStateInRelayerClaimMtp":["18047743298370107539939754774009453741110855435190506577082250302770481914539", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+"hoStateInRelayClaimMtp":["18047743298370107539939754774009453741110855435190506577082250302770481914539", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"],
+"hoStateInRelayClaim": ["928251232571379559706167670634346311933","293373448908678327289599234275657468666604586273320428510206058753616052224","0","0","0","0","15383795261052586569047113011994713909892315748410703061728793744343300034754","0"],
+
 "id":"293373448908678327289599234275657468666604586273320428510206058753616052224",
 
 "reIdenState":"3300770897574178928333210974936451626419947776482964304466500024901391344058",
@@ -263,13 +268,12 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	assert.Equal(t, expectedInputs, actualInputs)
 }
 
-func generateRelayWithIdenStateClaim(relayPrivKeyHex string, identifier *core.ID, identityState *merkletree.Hash) (
-	*merkletree.Hash, *merkletree.Proof, *merkletree.Hash, *merkletree.Hash, *merkletree.Hash, error) {
+func generateRelayWithIdenStateClaim(relayPrivKeyHex string, identifier *core.ID, identityState *merkletree.Hash) (*core.Claim, *merkletree.Proof, *merkletree.Hash, *merkletree.Hash, *merkletree.Hash, *merkletree.Hash, error) {
 	ctx := context.Background()
 	_, relayClaimsTree, _, _, _ := generateIdentity(ctx, relayPrivKeyHex, big.NewInt(0))
 
 	var schemaHash core.SchemaHash
-	schemaEncodedBytes, _ := hex.DecodeString("ba56af399498b2dfce51e2d14ba1f0fd") //todo shema encoded value may be wrong and WIP value. Need to check!
+	schemaEncodedBytes, _ := hex.DecodeString("ba56af399498b2dfce51e2d14ba1f0fd")
 	copy(schemaHash[:], schemaEncodedBytes)
 	valueSlotA, _ := core.NewDataSlotFromInt(identityState.BigInt())
 	claim, err := core.NewClaim(
@@ -278,20 +282,20 @@ func generateRelayWithIdenStateClaim(relayPrivKeyHex string, identifier *core.ID
 		core.WithValueData(valueSlotA, core.DataSlot{}),
 	)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	proofIdenStateInRelay, err := addClaimToTree(relayClaimsTree, claim)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	relayState, err := calcIdentityStateFromRoots(relayClaimsTree)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	return relayState, proofIdenStateInRelay, relayClaimsTree.Root(), &merkletree.HashZero, &merkletree.HashZero, nil
+	return claim, proofIdenStateInRelay, relayClaimsTree.Root(), &merkletree.HashZero, &merkletree.HashZero, relayState, nil
 }
 
 func addClaimToTree(tree *merkletree.MerkleTree, claim *core.Claim) (*merkletree.Proof, error) {
