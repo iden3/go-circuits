@@ -5,14 +5,15 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"math/big"
+	"testing"
+
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-merkletree-sql/db/memory"
 	"github.com/stretchr/testify/assert"
-	"math/big"
-	"testing"
 )
 
 func TestAuthCircuit_PrepareInputs(t *testing.T) {
@@ -92,7 +93,7 @@ func TestAuthCircuit_PrepareInputs(t *testing.T) {
 		},
 		AuthClaimNonRevocationProof: nonRevProof,
 		Signature:                   signature,
-		Challenge:                   challenge.Int64(),
+		Challenge:                   challenge,
 	})
 	assert.Nil(t, err)
 	fmt.Println(inputs)
