@@ -214,7 +214,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	atomicInputs := AtomicQuerySigInputs{
 		ID:        userIdentity,
 		AuthClaim: inputsAuthClaim,
-		Challenge: challenge.Int64(),
+		Challenge: challenge,
 		Signature: challengeSignature,
 
 		CurrentStateTree: userAuthTreeState,
