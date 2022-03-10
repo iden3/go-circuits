@@ -5,11 +5,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	core "github.com/iden3/go-iden3-core"
+	"github.com/iden3/go-circuits/auth"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/iden3/go-merkletree-sql"
-	"github.com/iden3/go-merkletree-sql/db/memory"
 	"github.com/stretchr/testify/assert"
 	"math/big"
 	"testing"
@@ -24,9 +22,9 @@ func TestAuthCircuit_PrepareInputs(t *testing.T) {
 		panic(err)
 	}
 
-	claim, err := AuthClaimFromPubKey(privKey.Public().X, privKey.Public().Y)
+	claim, err := auth.ClaimFromPubKey(privKey.Public().X, privKey.Public().Y)
 	assert.Nil(t, err)
-	identifier, claimsTree, revTree, currentState, err := createAuthClaim(ctx, claim)
+	identifier, claimsTree, revTree, currentState, err := auth.InitStateWithClaim(ctx, claim)
 	assert.Nil(t, err)
 
 	authEntry := claim.TreeEntry()
@@ -111,69 +109,4 @@ func TestAuthCircuit_PrepareInputs(t *testing.T) {
 
 	assert.Equal(t, actualInputs, expectedInputs)
 
-}
-
-func createAuthClaim(
-	ctx context.Context, authClaim *core.Claim) (
-	*core.ID, *merkletree.MerkleTree, *merkletree.MerkleTree, *merkletree.Hash, error) {
-	claimTreeStorage := memory.NewMemoryStorage()
-	claimsTree, err := merkletree.NewMerkleTree(ctx, claimTreeStorage, 40)
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
-	var identifier *core.ID
-
-	entry := authClaim.TreeEntry()
-	err = claimsTree.AddEntry(ctx, &entry)
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
-	identifier, err = core.CalculateGenesisID(claimsTree.Root())
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
-	fmt.Println(claimsTree.Root().String())
-	fmt.Println(identifier)
-	treeStorage := memory.NewMemoryStorage()
-	revTree, err := merkletree.NewMerkleTree(ctx, treeStorage, 40)
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
-	state, err := merkletree.HashElems(
-		claimsTree.Root().BigInt(),
-		revTree.Root().BigInt(),
-		merkletree.HashZero.BigInt())
-	return identifier, claimsTree, revTree, state, err
-}
-func AuthClaimFromPubKey(X, Y *big.Int) (*core.Claim, error) {
-	var schemaHash core.SchemaHash
-	schemaEncodedBytes, _ := hex.DecodeString("7c0844a075a9ddc7fcbdfb4f88acd9bc")
-	copy(schemaHash[:], schemaEncodedBytes)
-
-	// NOTE: We take nonce as hash of public key to make it random
-	// We don't use random number here because this test vectors will be used for tests
-	// and have randomization inside tests is usually a bad idea
-	revNonce, err := poseidon.Hash([]*big.Int{X})
-	if err != nil {
-		return nil, err
-	}
-	return core.NewClaim(schemaHash,
-		core.WithIndexDataInts(X, Y),
-		core.WithRevocationNonce(revNonce.Uint64()))
-}
-
-func getSlots(claim *core.Claim) []*big.Int {
-	inputs := make([]*big.Int, 0)
-
-	entry := claim.TreeEntry()
-
-	indexes := entry.Index()
-	values := entry.Value()
-	for _, index := range indexes {
-		inputs = append(inputs, index.BigInt())
-	}
-	for _, value := range values {
-		inputs = append(inputs, value.BigInt())
-	}
-	return inputs
 }

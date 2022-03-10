@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/iden3/go-circuits/auth"
 	"math/big"
 	"testing"
 	"time"
@@ -226,7 +227,7 @@ func generateIdentity(ctx context.Context, privKHex string, challenge *big.Int) 
 		return nil, nil, nil, nil, err
 	}
 	// create auth claim
-	authClaim, err := AuthClaimFromPubKey(X, Y)
+	authClaim, err := auth.ClaimFromPubKey(X, Y)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
