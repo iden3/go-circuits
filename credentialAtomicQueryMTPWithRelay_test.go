@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/iden3/go-circuits/identity"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-merkletree-sql/db/memory"
@@ -21,10 +22,10 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	ctx := context.Background()
 
 	//User
-	userIdentity, uClaimsTree, userAuthClaim, userPrivateKey, err := generateIdentity(ctx, userPrivKHex, challenge)
+	userIdentity, uClaimsTree, _, _, err, userAuthClaim, userPrivateKey := identity.Generate(ctx, userPrivKHex)
 	assert.Nil(t, err)
 
-	userState, err := calcIdentityStateFromRoots(uClaimsTree)
+	userState, err := identity.CalcStateFromRoots(uClaimsTree)
 
 	userAuthTreeState := TreeState{
 		State:          userState, // Note: userState is not going as an input into the circuit
@@ -81,7 +82,7 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	}
 
 	// Issuer
-	issuerID, iClaimsTree, _, _, err := generateIdentity(ctx, issuerPrivKHex, challenge)
+	issuerID, iClaimsTree, _, _, err, _, _ := identity.Generate(ctx, issuerPrivKHex)
 	assert.Nil(t, err)
 
 	// issue claim for user
@@ -279,7 +280,7 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 
 func generateRelayWithIdenStateClaim(relayPrivKeyHex string, identifier *core.ID, identityState *merkletree.Hash) (*core.Claim, *merkletree.Proof, *merkletree.Hash, *merkletree.Hash, *merkletree.Hash, *merkletree.Hash, error) {
 	ctx := context.Background()
-	_, relayClaimsTree, _, _, _ := generateIdentity(ctx, relayPrivKeyHex, big.NewInt(0))
+	_, relayClaimsTree, _, _, _, _, _ := identity.Generate(ctx, relayPrivKeyHex)
 
 	var schemaHash core.SchemaHash
 	schemaEncodedBytes, _ := hex.DecodeString("ba56af399498b2dfce51e2d14ba1f0fd")
@@ -299,7 +300,7 @@ func generateRelayWithIdenStateClaim(relayPrivKeyHex string, identifier *core.ID
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	relayState, err := calcIdentityStateFromRoots(relayClaimsTree)
+	relayState, err := identity.CalcStateFromRoots(relayClaimsTree)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
@@ -319,20 +320,4 @@ func addClaimToTree(tree *merkletree.MerkleTree, claim *core.Claim) (*merkletree
 	proof, _, err := tree.GenerateProof(context.TODO(), index.BigInt(), tree.Root())
 
 	return proof, err
-}
-
-func calcIdentityStateFromRoots(claimsTree *merkletree.MerkleTree, optTrees ...*merkletree.MerkleTree) (*merkletree.Hash, error) {
-	revTreeRoot := merkletree.HashZero.BigInt()
-	rootsTreeRoot := merkletree.HashZero.BigInt()
-	if len(optTrees) > 0 {
-		revTreeRoot = optTrees[0].Root().BigInt()
-	}
-	if len(optTrees) > 1 {
-		rootsTreeRoot = optTrees[1].Root().BigInt()
-	}
-	state, err := merkletree.HashElems(
-		claimsTree.Root().BigInt(),
-		revTreeRoot,
-		rootsTreeRoot)
-	return state, err
 }

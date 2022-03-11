@@ -4,13 +4,12 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/iden3/go-circuits/auth"
+	"github.com/iden3/go-circuits/identity"
 	"math/big"
 	"testing"
 	"time"
 
 	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-merkletree-sql/db/memory"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +21,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
 
-	userIdentity, uClaimsTree, userAuthClaim, userPrivateKey, err := generateIdentity(ctx, userPrivKHex, challenge)
+	userIdentity, uClaimsTree, _, _, err, userAuthClaim, userPrivateKey := identity.Generate(ctx, userPrivKHex)
 	assert.Nil(t, err)
 
 	state, err := merkletree.HashElems(
@@ -60,7 +59,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	challengeSignature := userPrivateKey.SignPoseidon(message)
 
 	// Issuer
-	issuerID, iClaimsTree, _, _, err := generateIdentity(ctx, issuerPrivKHex, challenge)
+	issuerID, iClaimsTree, _, _, err, _, _ := identity.Generate(ctx, issuerPrivKHex)
 	assert.Nil(t, err)
 
 	// issue claim for user
@@ -208,51 +207,4 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 
 	assert.Equal(t, expectedInputs, actualInputs)
 
-}
-
-func generateIdentity(ctx context.Context, privKHex string, challenge *big.Int) (*core.ID, *merkletree.MerkleTree, *core.Claim, *babyjub.PrivateKey, error) {
-
-	// extract pubKey
-	var privKey babyjub.PrivateKey
-
-	if _, err := hex.Decode(privKey[:], []byte(privKHex)); err != nil {
-		panic(err)
-	}
-	X := privKey.Public().X
-	Y := privKey.Public().Y
-
-	// init claims tree
-	claimsTree, err := merkletree.NewMerkleTree(ctx, memory.NewMemoryStorage(), 40)
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
-	// create auth claim
-	authClaim, err := auth.ClaimFromPubKey(X, Y)
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
-
-	// add auth claim to claimsMT
-	entry := authClaim.TreeEntry()
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
-
-	hi, hv, err := entry.HiHv()
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
-
-	err = claimsTree.Add(ctx, hi.BigInt(), hv.BigInt())
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
-
-	// create new identity
-	identifier, err := core.CalculateGenesisID(claimsTree.Root())
-	if err != nil {
-		return nil, nil, nil, nil, err
-	}
-
-	return identifier, claimsTree, authClaim, &privKey, nil
 }

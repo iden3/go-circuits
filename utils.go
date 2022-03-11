@@ -73,3 +73,16 @@ func getSlots(claim *core.Claim) []*big.Int {
 	}
 	return inputs
 }
+
+func convertMTPtoProof(claimEntryMTP *merkletree.Proof) Proof {
+	var claimEntryProof Proof
+	claimEntryProof.Siblings = claimEntryMTP.AllSiblings()
+
+	if claimEntryMTP.NodeAux != nil {
+		claimEntryProof.NodeAux = &NodeAux{
+			HIndex: claimEntryMTP.NodeAux.Key,
+			HValue: claimEntryMTP.NodeAux.Key,
+		}
+	}
+	return claimEntryProof
+}
