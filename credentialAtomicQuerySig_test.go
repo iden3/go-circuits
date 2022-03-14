@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"github.com/iden3/go-circuits/identity"
 	"math/big"
 	"testing"
 	"time"
@@ -20,7 +21,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
 
-	userIdentity, uClaimsTree, userAuthClaim, userPrivateKey, err := generateIdentity(ctx, userPrivKHex, challenge)
+	userIdentity, uClaimsTree, _, _, err, userAuthClaim, userPrivateKey := identity.Generate(ctx, userPrivKHex)
 	assert.Nil(t, err)
 
 	state, err := merkletree.HashElems(
@@ -58,7 +59,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	challengeSignature := userPrivateKey.SignPoseidon(message)
 
 	// Issuer
-	issuerIdentity, iClaimsTree, issuerAuthClaim, issuerKey, err := generateIdentity(ctx, issuerPrivKHex, challenge)
+	issuerIdentity, iClaimsTree, _, _, err, issuerAuthClaim, issuerKey := identity.Generate(ctx, issuerPrivKHex)
 	assert.Nil(t, err)
 
 	// issuer state
