@@ -6,7 +6,6 @@ import (
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
 	"math/big"
-	"strconv"
 )
 
 const (
@@ -61,7 +60,7 @@ func (c *AuthCircuit) PrepareInputs(in TypedInputs) (map[string]interface{}, err
 	inputs["revTreeRoot"] = authInputs.State.RevocationRootStr()
 	inputs["rootsTreeRoot"] = authInputs.State.RootOfRootsRootStr()
 
-	inputs["challenge"] = strconv.FormatInt(authInputs.Challenge, 10)
+	inputs["challenge"] = authInputs.Challenge.String()
 	inputs["challengeSignatureR8x"] = authInputs.Signature.R8.X.String()
 	inputs["challengeSignatureR8y"] = authInputs.Signature.R8.Y.String()
 	inputs["challengeSignatureS"] = authInputs.Signature.S.String()
@@ -97,7 +96,7 @@ type AuthInputs struct {
 	AuthClaimNonRevocationProof Proof
 
 	Signature *babyjub.Signature
-	Challenge int64
+	Challenge *big.Int
 
 	TypedInputs
 }

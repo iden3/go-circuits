@@ -171,7 +171,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	atomicInputs := AtomicQueryMTPInputs{
 		ID:        userIdentity,
 		AuthClaim: inputsAuthClaim,
-		Challenge: challenge.Int64(),
+		Challenge: challenge,
 		Signature: challengeSignature,
 
 		CurrentStateTree: userAuthTreeState,
