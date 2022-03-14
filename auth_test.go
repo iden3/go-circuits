@@ -43,7 +43,7 @@ func TestAuthCircuit_PrepareInputs(t *testing.T) {
 		},
 		AuthClaimNonRevocationProof: claimNonRevEntryProof,
 		Signature:                   signature,
-		Challenge:                   challenge.Int64(),
+		Challenge:                   challenge,
 	})
 	assert.Nil(t, err)
 	fmt.Println(inputs)
