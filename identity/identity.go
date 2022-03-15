@@ -110,7 +110,7 @@ func AuthClaimFullInfo(ctx context.Context, privKeyHex string, challenge *big.In
 	//Proof claim exists
 	claimEntry := claim.TreeEntry()
 	hIndexAuthClaimEntry, _ := claimEntry.HIndex()
-	claimEntryMTP, _, _ := claimsTree.GenerateProof(ctx, hIndexAuthClaimEntry.BigInt(), claimsTree.Root())
+	claimMTP, _, _ := claimsTree.GenerateProof(ctx, hIndexAuthClaimEntry.BigInt(), claimsTree.Root())
 
 	//Proof claim not revoked
 	revNonce := claim.GetRevocationNonce()
@@ -124,5 +124,5 @@ func AuthClaimFullInfo(ctx context.Context, privKeyHex string, challenge *big.In
 	message := big.NewInt(0).SetBytes(challenge.Bytes())
 	challengeSignature := privateKey.SignPoseidon(message)
 
-	return identity, claim, state, claimsTree, revTree, rootsTree, claimEntryMTP, claimNonRevMTP, challengeSignature, nil
+	return identity, claim, state, claimsTree, revTree, rootsTree, claimMTP, claimNonRevMTP, challengeSignature, nil
 }

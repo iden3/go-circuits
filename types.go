@@ -12,6 +12,8 @@ type CircuitID string
 const (
 	// AuthCircuitID is a type that must be used for auth circuit id definition
 	AuthCircuitID CircuitID = "auth"
+	// AuthWithRelayCircuitID is a type for authWithRelay.circom
+	AuthWithRelayCircuitID CircuitID = "authWithRelay"
 	// KycBySignaturesCircuitID is a type that must be used for kycBySignatures circuit id definition
 	KycBySignaturesCircuitID CircuitID = "kycBySignatures"
 	// KycCircuitCircuitID is a type that must be used for kyc circuit id definition
