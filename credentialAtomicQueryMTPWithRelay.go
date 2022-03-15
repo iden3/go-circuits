@@ -2,11 +2,11 @@ package circuits
 
 import (
 	"errors"
+	"math/big"
+
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
-	"math/big"
-	"strconv"
 )
 
 const (
@@ -31,7 +31,7 @@ type AtomicQueryMTPWithRelayInputs struct {
 	ID                 *core.ID
 	AuthClaim          Claim
 	AuthClaimRevStatus RevocationStatus
-	Challenge          int64
+	Challenge          *big.Int
 	Signature          *babyjub.Signature
 
 	CurrentStateTree TreeState
@@ -146,7 +146,7 @@ func (c *AtomicQueryMTPWithRelay) prepareAuthClaimInputs(in *AtomicQueryMTPWithR
 
 	inputs := make(map[string]interface{})
 	inputs["userID"] = in.ID.BigInt().String()
-	inputs["challenge"] = strconv.FormatInt(in.Challenge, 10)
+	inputs["challenge"] = in.Challenge.String()
 
 	inputs["authClaim"] = bigIntArrayToStringArray(in.AuthClaim.Slots)
 	inputs["authClaimMtp"] = bigIntArrayToStringArray(
