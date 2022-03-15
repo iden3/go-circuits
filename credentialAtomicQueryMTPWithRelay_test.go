@@ -4,14 +4,15 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"math/big"
+	"testing"
+	"time"
+
 	"github.com/iden3/go-circuits/identity"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-merkletree-sql/db/memory"
 	"github.com/stretchr/testify/assert"
-	"math/big"
-	"testing"
-	"time"
 )
 
 func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
@@ -202,7 +203,7 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	atomicInputs := AtomicQueryMTPWithRelayInputs{
 		ID:        userIdentity,
 		AuthClaim: inputsAuthClaim,
-		Challenge: challenge.Int64(),
+		Challenge: challenge,
 		Signature: challengeSignature,
 
 		CurrentStateTree: userAuthTreeState,
