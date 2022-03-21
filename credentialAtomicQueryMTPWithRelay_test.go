@@ -284,7 +284,7 @@ func generateRelayWithIdenStateClaim(relayPrivKeyHex string, identifier *core.ID
 	_, relayClaimsTree, _, _, _, _, _ := identity.Generate(ctx, relayPrivKeyHex)
 
 	var schemaHash core.SchemaHash
-	schemaEncodedBytes, _ := hex.DecodeString("ba56af399498b2dfce51e2d14ba1f0fd")
+	schemaEncodedBytes, _ := hex.DecodeString("e22dd9c0f7aef15788c130d4d86c7156")
 	copy(schemaHash[:], schemaEncodedBytes)
 	valueSlotA, _ := core.NewDataSlotFromInt(identityState.BigInt())
 	claim, err := core.NewClaim(
