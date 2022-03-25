@@ -4,10 +4,13 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/iden3/go-circuits/identity"
 	"math/big"
 	"testing"
 	"time"
+
+	"github.com/iden3/go-circuits/identity"
+	"github.com/iden3/go-iden3-crypto/poseidon"
+	"github.com/stretchr/testify/require"
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql"
@@ -21,7 +24,8 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
 
-	userIdentity, uClaimsTree, _, _, err, userAuthClaim, userPrivateKey := identity.Generate(ctx, userPrivKHex)
+	userIdentity, uClaimsTree, _, _, err, userAuthClaim, userPrivateKey := identity.Generate(ctx,
+		userPrivKHex)
 	assert.Nil(t, err)
 
 	state, err := merkletree.HashElems(
@@ -37,11 +41,11 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	}
 	assert.Nil(t, err)
 
-	authEntryUser := userAuthClaim.TreeEntry()
-	hIndexAuthEntryUser, err := authEntryUser.HIndex()
-	assert.Nil(t, err)
+	hIndexAuthEntryUser, _, err := claimsIndexValueHashes(*userAuthClaim)
+	require.NoError(t, err)
 
-	mtpProofUser, _, err := uClaimsTree.GenerateProof(ctx, hIndexAuthEntryUser.BigInt(), uClaimsTree.Root())
+	mtpProofUser, _, err := uClaimsTree.GenerateProof(ctx,
+		hIndexAuthEntryUser, uClaimsTree.Root())
 	assert.Nil(t, err)
 	var mtpAuthUser Proof
 	mtpAuthUser.Siblings = mtpProofUser.AllSiblings()
@@ -59,11 +63,12 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	challengeSignature := userPrivateKey.SignPoseidon(message)
 
 	// Issuer
-	issuerID, iClaimsTree, _, _, err, _, _ := identity.Generate(ctx, issuerPrivKHex)
+	issuerID, iClaimsTree, _, _, err, _, _ := identity.Generate(ctx,
+		issuerPrivKHex)
 	assert.Nil(t, err)
 
 	// issue claim for user
-	dataSlotA, err := core.NewDataSlotFromInt(big.NewInt(10))
+	dataSlotA, err := core.NewElemBytesFromInt(big.NewInt(10))
 	assert.Nil(t, err)
 
 	nonce := 1
@@ -77,19 +82,20 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	claim, err := core.NewClaim(
 		schemaHash,
 		core.WithIndexID(*userIdentity),
-		core.WithIndexData(dataSlotA, core.DataSlot{}),
-		core.WithExpirationDate(time.Unix(1669884010, 0)), //Thu Dec 01 2022 08:40:10 GMT+0000
+		core.WithIndexData(dataSlotA, core.ElemBytes{}),
+		core.WithExpirationDate(time.Unix(1669884010,
+			0)), //Thu Dec 01 2022 08:40:10 GMT+0000
 		core.WithRevocationNonce(uint64(nonce)))
 	assert.Nil(t, err)
 
-	claimEntry := claim.TreeEntry()
-	hIndexClaimEntry, err := claimEntry.HIndex()
-	assert.Nil(t, err)
+	hIndexClaimEntry, hValueClaimEntry, err := claimsIndexValueHashes(*claim)
+	require.NoError(t, err)
 
-	err = iClaimsTree.AddEntry(ctx, &claimEntry)
-	assert.Nil(t, err)
+	err = iClaimsTree.Add(ctx, hIndexClaimEntry, hValueClaimEntry)
+	require.NoError(t, err)
 
-	proof, _, err := iClaimsTree.GenerateProof(ctx, hIndexClaimEntry.BigInt(), iClaimsTree.Root())
+	proof, _, err := iClaimsTree.GenerateProof(ctx, hIndexClaimEntry,
+		iClaimsTree.Root())
 	assert.Nil(t, err)
 
 	stateAfterClaimAdd, err := merkletree.HashElems(
@@ -117,10 +123,12 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	}
 
 	issuerRevTreeStorage := memory.NewMemoryStorage()
-	issuerRevTree, err := merkletree.NewMerkleTree(ctx, issuerRevTreeStorage, 40)
+	issuerRevTree, err := merkletree.NewMerkleTree(ctx, issuerRevTreeStorage,
+		40)
 	assert.Nil(t, err)
 
-	proofNotRevoke, _, err := issuerRevTree.GenerateProof(ctx, big.NewInt(int64(nonce)), issuerRevTree.Root())
+	proofNotRevoke, _, err := issuerRevTree.GenerateProof(ctx,
+		big.NewInt(int64(nonce)), issuerRevTree.Root())
 	assert.Nil(t, err)
 
 	var nonRevProof Proof
@@ -207,4 +215,14 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 
 	assert.Equal(t, expectedInputs, actualInputs)
 
+}
+
+func claimsIndexValueHashes(c core.Claim) (*big.Int, *big.Int, error) {
+	index, value := c.RawSlots()
+	indexHash, err := poseidon.Hash(core.ElemBytesToInts(index[:]))
+	if err != nil {
+		return nil, nil, err
+	}
+	valueHash, err := poseidon.Hash(core.ElemBytesToInts(value[:]))
+	return indexHash, valueHash, err
 }
