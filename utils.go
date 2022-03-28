@@ -1,12 +1,11 @@
 package circuits
 
 import (
-	"github.com/iden3/go-iden3-core"
 	"math/big"
 
-	"github.com/pkg/errors"
-
+	"github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql"
+	"github.com/pkg/errors"
 )
 
 // PrepareSiblings prepare siblings for zk zk
@@ -27,9 +26,9 @@ func PrepareSiblings(siblings []*merkletree.Hash, levels int) []*big.Int {
 // than size
 // if array is bigger circuit cannot compile because number of inputs does not match
 func PrepareCircuitArrayValues(arr []*big.Int, size int) ([]*big.Int, error) {
-
 	if len(arr) > size {
-		return nil, errors.Errorf("array size {%d} is bigger max expected size {%d}", len(arr), size)
+		return nil, errors.Errorf("array size {%d} is bigger max expected size {%d}",
+			len(arr), size)
 	}
 
 	// Add the empty values
@@ -61,15 +60,13 @@ func bigIntArrayToStringArray(array []*big.Int) []string {
 func getSlots(claim *core.Claim) []*big.Int {
 	inputs := make([]*big.Int, 0)
 
-	entry := claim.TreeEntry()
+	index, value := claim.RawSlots()
 
-	indexes := entry.Index()
-	values := entry.Value()
-	for _, index := range indexes {
-		inputs = append(inputs, index.BigInt())
+	for i := range index {
+		inputs = append(inputs, index[i].ToInt())
 	}
-	for _, value := range values {
-		inputs = append(inputs, value.BigInt())
+	for i := range value {
+		inputs = append(inputs, value[i].ToInt())
 	}
 	return inputs
 }

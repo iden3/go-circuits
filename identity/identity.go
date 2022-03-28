@@ -3,12 +3,13 @@ package identity
 import (
 	"context"
 	"encoding/hex"
+	"math/big"
+
 	"github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-merkletree-sql/db/memory"
-	"math/big"
 )
 
 func AuthClaimFromPubKey(X, Y *big.Int) (*core.Claim, error) {
@@ -28,7 +29,9 @@ func AuthClaimFromPubKey(X, Y *big.Int) (*core.Claim, error) {
 		core.WithRevocationNonce(revNonce.Uint64()))
 }
 
-func Generate(ctx context.Context, privKHex string) (*core.ID, *merkletree.MerkleTree, *merkletree.MerkleTree, *merkletree.MerkleTree, error, *core.Claim, *babyjub.PrivateKey) {
+func Generate(ctx context.Context, privKHex string) (*core.ID,
+	*merkletree.MerkleTree, *merkletree.MerkleTree, *merkletree.MerkleTree,
+	error, *core.Claim, *babyjub.PrivateKey) {
 
 	// extract pubKey
 	var privKey babyjub.PrivateKey
@@ -40,7 +43,8 @@ func Generate(ctx context.Context, privKHex string) (*core.ID, *merkletree.Merkl
 	Y := privKey.Public().Y
 
 	// init claims tree
-	claimsTree, err := merkletree.NewMerkleTree(ctx, memory.NewMemoryStorage(), 40)
+	claimsTree, err := merkletree.NewMerkleTree(ctx, memory.NewMemoryStorage(),
+		40)
 	if err != nil {
 		return nil, nil, nil, nil, err, nil, nil
 	}
@@ -51,23 +55,19 @@ func Generate(ctx context.Context, privKHex string) (*core.ID, *merkletree.Merkl
 	}
 
 	// add auth claim to claimsMT
-	entry := authClaim.TreeEntry()
+	hi, hv, err := claimsIndexValueHashes(*authClaim)
 	if err != nil {
 		return nil, nil, nil, nil, err, nil, nil
 	}
 
-	hi, hv, err := entry.HiHv()
-	if err != nil {
-		return nil, nil, nil, nil, err, nil, nil
-	}
-
-	err = claimsTree.Add(ctx, hi.BigInt(), hv.BigInt())
+	err = claimsTree.Add(ctx, hi, hv)
 	if err != nil {
 		return nil, nil, nil, nil, err, nil, nil
 	}
 
 	// create new identity
-	identifier, err := core.CalculateGenesisID(claimsTree.Root())
+	identifier, err := core.CalculateGenesisID(
+		coreElemBytesFromHashPtr(claimsTree.Root()))
 	if err != nil {
 		return nil, nil, nil, nil, err, nil, nil
 	}
@@ -78,7 +78,8 @@ func Generate(ctx context.Context, privKHex string) (*core.ID, *merkletree.Merkl
 	return identifier, claimsTree, revTree, rootsTree, nil, authClaim, &privKey
 }
 
-func CalcStateFromRoots(claimsTree *merkletree.MerkleTree, optTrees ...*merkletree.MerkleTree) (*merkletree.Hash, error) {
+func CalcStateFromRoots(claimsTree *merkletree.MerkleTree,
+	optTrees ...*merkletree.MerkleTree) (*merkletree.Hash, error) {
 	revTreeRoot := merkletree.HashZero.BigInt()
 	rootsTreeRoot := merkletree.HashZero.BigInt()
 	if len(optTrees) > 0 {
@@ -98,24 +99,30 @@ func CalcStateFromRoots(claimsTree *merkletree.MerkleTree, optTrees ...*merkletr
 This method is to generate auth claim, identity, all its trees, state
 and sign a challenge with the claim private key.
 */
-func AuthClaimFullInfo(ctx context.Context, privKeyHex string, challenge *big.Int) (
-	*core.ID, *core.Claim, *merkletree.Hash, *merkletree.MerkleTree, *merkletree.MerkleTree, *merkletree.MerkleTree,
-	*merkletree.Proof, *merkletree.Proof, *babyjub.Signature, error) {
+func AuthClaimFullInfo(ctx context.Context, privKeyHex string,
+	challenge *big.Int) (*core.ID, *core.Claim, *merkletree.Hash,
+	*merkletree.MerkleTree,
+	*merkletree.MerkleTree, *merkletree.MerkleTree, *merkletree.Proof,
+	*merkletree.Proof, *babyjub.Signature, error) {
 
-	identity, claimsTree, revTree, rootsTree, err, claim, privateKey := Generate(ctx, privKeyHex)
+	identity, claimsTree, revTree, rootsTree, err, claim, privateKey :=
+		Generate(ctx, privKeyHex)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, nil, nil, nil, err
 	}
 
 	//Proof claim exists
-	claimEntry := claim.TreeEntry()
-	hIndexAuthClaimEntry, _ := claimEntry.HIndex()
-	claimEntryMTP, _, _ := claimsTree.GenerateProof(ctx, hIndexAuthClaimEntry.BigInt(), claimsTree.Root())
+	hi, _, err := claimsIndexValueHashes(*claim)
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, nil, nil, nil, err
+	}
+	claimEntryMTP, _, _ := claimsTree.GenerateProof(ctx, hi, claimsTree.Root())
 
 	//Proof claim not revoked
 	revNonce := claim.GetRevocationNonce()
 	revNonceInt := new(big.Int).SetUint64(revNonce)
-	claimNonRevMTP, _, _ := revTree.GenerateProof(ctx, revNonceInt, revTree.Root())
+	claimNonRevMTP, _, _ := revTree.GenerateProof(ctx, revNonceInt,
+		revTree.Root())
 
 	//Calculate state
 	state, _ := CalcStateFromRoots(claimsTree, revTree, rootsTree)
@@ -125,4 +132,21 @@ func AuthClaimFullInfo(ctx context.Context, privKeyHex string, challenge *big.In
 	challengeSignature := privateKey.SignPoseidon(message)
 
 	return identity, claim, state, claimsTree, revTree, rootsTree, claimEntryMTP, claimNonRevMTP, challengeSignature, nil
+}
+
+func claimsIndexValueHashes(c core.Claim) (*big.Int, *big.Int, error) {
+	index, value := c.RawSlots()
+	indexHash, err := poseidon.Hash(core.ElemBytesToInts(index[:]))
+	if err != nil {
+		return nil, nil, err
+	}
+	valueHash, err := poseidon.Hash(core.ElemBytesToInts(value[:]))
+	return indexHash, valueHash, err
+}
+
+// coreElemBytesFromHashPtr coverts *merkletree.Hash to core.ElemBytes
+func coreElemBytesFromHashPtr(h *merkletree.Hash) core.ElemBytes {
+	var eb core.ElemBytes
+	copy(eb[:], h[:])
+	return eb
 }

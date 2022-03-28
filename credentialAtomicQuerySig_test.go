@@ -4,15 +4,16 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
-	"github.com/iden3/go-circuits/identity"
 	"math/big"
 	"testing"
 	"time"
 
+	"github.com/iden3/go-circuits/identity"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-merkletree-sql/db/memory"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAttrQuerySig_PrepareInputs(t *testing.T) {
@@ -21,7 +22,8 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
 
-	userIdentity, uClaimsTree, _, _, err, userAuthClaim, userPrivateKey := identity.Generate(ctx, userPrivKHex)
+	userIdentity, uClaimsTree, _, _, err, userAuthClaim, userPrivateKey := identity.Generate(ctx,
+		userPrivKHex)
 	assert.Nil(t, err)
 
 	state, err := merkletree.HashElems(
@@ -37,11 +39,11 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	}
 	assert.Nil(t, err)
 
-	authEntryUser := userAuthClaim.TreeEntry()
-	hIndexAuthEntryUser, err := authEntryUser.HIndex()
+	hIndexAuthEntryUser, _, err := claimsIndexValueHashes(*userAuthClaim)
 	assert.Nil(t, err)
 
-	mtpProofUser, _, err := uClaimsTree.GenerateProof(ctx, hIndexAuthEntryUser.BigInt(), uClaimsTree.Root())
+	mtpProofUser, _, err := uClaimsTree.GenerateProof(ctx,
+		hIndexAuthEntryUser, uClaimsTree.Root())
 	assert.Nil(t, err)
 	var mtpAuthUser Proof
 	mtpAuthUser.Siblings = mtpProofUser.AllSiblings()
@@ -59,7 +61,8 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	challengeSignature := userPrivateKey.SignPoseidon(message)
 
 	// Issuer
-	issuerIdentity, iClaimsTree, _, _, err, issuerAuthClaim, issuerKey := identity.Generate(ctx, issuerPrivKHex)
+	issuerIdentity, iClaimsTree, _, _, err, issuerAuthClaim, issuerKey := identity.Generate(ctx,
+		issuerPrivKHex)
 	assert.Nil(t, err)
 
 	// issuer state
@@ -67,6 +70,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		iClaimsTree.Root().BigInt(),
 		merkletree.HashZero.BigInt(),
 		merkletree.HashZero.BigInt())
+	require.NoError(t, err)
 
 	issuerAuthTreeState := TreeState{
 		State:          issuerGenesisState,
@@ -75,20 +79,19 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		RootOfRoots:    &merkletree.HashZero,
 	}
 
-	authEntryIssuer := issuerAuthClaim.TreeEntry()
-	hIndexAuthEntryIssuer, err := authEntryIssuer.HIndex()
-	assert.Nil(t, err)
-	hValueAuthEntryIssuer, err := authEntryIssuer.HValue()
-	assert.Nil(t, err)
+	hIndexAuthEntryIssuer, hValueAuthEntryIssuer, err :=
+		claimsIndexValueHashes(*issuerAuthClaim)
+	require.NoError(t, err)
 
-	mtpProofIssuer, _, err := iClaimsTree.GenerateProof(ctx, hIndexAuthEntryIssuer.BigInt(), iClaimsTree.Root())
+	mtpProofIssuer, _, err := iClaimsTree.GenerateProof(ctx,
+		hIndexAuthEntryIssuer, iClaimsTree.Root())
 	assert.Nil(t, err)
 	var mtpAuthIssuer Proof
 	mtpAuthIssuer.Siblings = mtpProofIssuer.AllSiblings()
 	mtpAuthIssuer.NodeAux = nil
 
 	// issue claim for user
-	dataSlotA, err := core.NewDataSlotFromInt(big.NewInt(10))
+	dataSlotA, err := core.NewElemBytesFromInt(big.NewInt(10))
 	assert.Nil(t, err)
 
 	nonce := 1
@@ -102,26 +105,25 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	claim, err := core.NewClaim(
 		schemaHash,
 		core.WithIndexID(*userIdentity),
-		core.WithIndexData(dataSlotA, core.DataSlot{}),
-		core.WithExpirationDate(time.Unix(1669884010, 0)), //Thu Dec 01 2022 08:40:10 GMT+0000
+		core.WithIndexData(dataSlotA, core.ElemBytes{}),
+		core.WithExpirationDate(time.Unix(1669884010,
+			0)), //Thu Dec 01 2022 08:40:10 GMT+0000
 		core.WithRevocationNonce(uint64(nonce)))
 	assert.Nil(t, err)
 
-	claimEntry := claim.TreeEntry()
-	hIndexClaimEntry, err := claimEntry.HIndex()
+	hashIndex, hashValue, err := claimsIndexValueHashes(*claim)
 	assert.Nil(t, err)
 
-	hashIndex, hashValue, err := claimEntry.HiHv()
-	assert.Nil(t, err)
-
-	commonHash, err := merkletree.HashElems(hashIndex.BigInt(), hashValue.BigInt())
+	commonHash, err := merkletree.HashElems(hashIndex, hashValue)
+	require.NoError(t, err)
 
 	claimSignature := issuerKey.SignPoseidon(commonHash.BigInt())
 
-	err = iClaimsTree.AddEntry(ctx, &claimEntry)
+	err = iClaimsTree.Add(ctx, hashIndex, hashValue)
 	assert.Nil(t, err)
 
-	proof, _, err := iClaimsTree.GenerateProof(ctx, hIndexClaimEntry.BigInt(), iClaimsTree.Root())
+	proof, _, err := iClaimsTree.GenerateProof(ctx, hashIndex,
+		iClaimsTree.Root())
 	assert.Nil(t, err)
 
 	stateAfterClaimAdd, err := merkletree.HashElems(
@@ -149,10 +151,12 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	}
 
 	issuerRevTreeStorage := memory.NewMemoryStorage()
-	issuerRevTree, err := merkletree.NewMerkleTree(ctx, issuerRevTreeStorage, 40)
+	issuerRevTree, err := merkletree.NewMerkleTree(ctx, issuerRevTreeStorage,
+		40)
 	assert.Nil(t, err)
 
-	proofNotRevoke, _, err := issuerRevTree.GenerateProof(ctx, big.NewInt(int64(nonce)), issuerRevTree.Root())
+	proofNotRevoke, _, err := issuerRevTree.GenerateProof(ctx,
+		big.NewInt(int64(nonce)), issuerRevTree.Root())
 	assert.Nil(t, err)
 
 	var nonRevProof Proof
@@ -208,8 +212,8 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		},
 		IssuerPublicKey: issuerKey.Public(),
 		Signature:       claimSignature,
-		HIndex:          hIndexAuthEntryIssuer,
-		HValue:          hValueAuthEntryIssuer,
+		HIndex:          merkletree.NewHashFromBigInt(hIndexAuthEntryIssuer),
+		HValue:          merkletree.NewHashFromBigInt(hValueAuthEntryIssuer),
 	}
 
 	atomicInputs := AtomicQuerySigInputs{

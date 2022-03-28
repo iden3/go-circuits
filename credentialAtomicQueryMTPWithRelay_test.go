@@ -13,6 +13,7 @@ import (
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-merkletree-sql/db/memory"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
@@ -23,7 +24,8 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	ctx := context.Background()
 
 	//User
-	userIdentity, uClaimsTree, _, _, err, userAuthClaim, userPrivateKey := identity.Generate(ctx, userPrivKHex)
+	userIdentity, uClaimsTree, _, _, err, userAuthClaim, userPrivateKey :=
+		identity.Generate(ctx, userPrivKHex)
 	assert.Nil(t, err)
 
 	userState, err := identity.CalcStateFromRoots(uClaimsTree)
@@ -36,12 +38,12 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	}
 	assert.Nil(t, err)
 
-	authEntryUser := userAuthClaim.TreeEntry()
-	hIndexAuthEntryUser, err := authEntryUser.HIndex()
-	assert.Nil(t, err)
+	hIndexAuthEntryUser, _, err := claimsIndexValueHashes(*userAuthClaim)
+	require.NoError(t, err)
 
-	mtpProofUser, _, err := uClaimsTree.GenerateProof(ctx, hIndexAuthEntryUser.BigInt(), uClaimsTree.Root())
-	assert.Nil(t, err)
+	mtpProofUser, _, err := uClaimsTree.GenerateProof(ctx, hIndexAuthEntryUser,
+		uClaimsTree.Root())
+	require.NoError(t, err)
 	var mtpAuthUser Proof
 	mtpAuthUser.Siblings = mtpProofUser.AllSiblings()
 	mtpAuthUser.NodeAux = nil
@@ -83,11 +85,12 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	}
 
 	// Issuer
-	issuerID, iClaimsTree, _, _, err, _, _ := identity.Generate(ctx, issuerPrivKHex)
+	issuerID, iClaimsTree, _, _, err, _, _ := identity.Generate(ctx,
+		issuerPrivKHex)
 	assert.Nil(t, err)
 
 	// issue claim for user
-	dataSlotA, err := core.NewDataSlotFromInt(big.NewInt(10))
+	dataSlotA, err := core.NewElemBytesFromInt(big.NewInt(10))
 	assert.Nil(t, err)
 
 	nonce := 1
@@ -101,19 +104,20 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	claim, err := core.NewClaim(
 		schemaHash,
 		core.WithIndexID(*userIdentity),
-		core.WithIndexData(dataSlotA, core.DataSlot{}),
-		core.WithExpirationDate(time.Unix(1669884010, 0)), //Thu Dec 01 2022 08:40:10 GMT+0000
+		core.WithIndexData(dataSlotA, core.ElemBytes{}),
+		core.WithExpirationDate(time.Unix(1669884010,
+			0)), //Thu Dec 01 2022 08:40:10 GMT+0000
 		core.WithRevocationNonce(uint64(nonce)))
 	assert.Nil(t, err)
 
-	claimEntry := claim.TreeEntry()
-	hIndexClaimEntry, err := claimEntry.HIndex()
+	hIndexClaimEntry, hValueClaimEntry, err := claimsIndexValueHashes(*claim)
+	require.NoError(t, err)
+
+	err = iClaimsTree.Add(ctx, hIndexClaimEntry, hValueClaimEntry)
 	assert.Nil(t, err)
 
-	err = iClaimsTree.AddEntry(ctx, &claimEntry)
-	assert.Nil(t, err)
-
-	proof, _, err := iClaimsTree.GenerateProof(ctx, hIndexClaimEntry.BigInt(), iClaimsTree.Root())
+	proof, _, err := iClaimsTree.GenerateProof(ctx, hIndexClaimEntry,
+		iClaimsTree.Root())
 	assert.Nil(t, err)
 
 	stateAfterClaimAdd, err := merkletree.HashElems(
@@ -141,10 +145,12 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	}
 
 	issuerRevTreeStorage := memory.NewMemoryStorage()
-	issuerRevTree, err := merkletree.NewMerkleTree(ctx, issuerRevTreeStorage, 40)
+	issuerRevTree, err := merkletree.NewMerkleTree(ctx, issuerRevTreeStorage,
+		40)
 	assert.Nil(t, err)
 
-	proofNotRevoke, _, err := issuerRevTree.GenerateProof(ctx, big.NewInt(int64(nonce)), issuerRevTree.Root())
+	proofNotRevoke, _, err := issuerRevTree.GenerateProof(ctx,
+		big.NewInt(int64(nonce)), issuerRevTree.Root())
 	assert.Nil(t, err)
 
 	var nonRevProof Proof
@@ -243,18 +249,23 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	assert.Equal(t, expectedInputs, actualInputs)
 }
 
-func generateRelayWithIdenStateClaim(relayPrivKeyHex string, identifier *core.ID, identityState *merkletree.Hash) (*core.Claim, *merkletree.Proof, *merkletree.Hash, *merkletree.Hash, *merkletree.Hash, *merkletree.Hash, error) {
+//nolint:unused
+func generateRelayWithIdenStateClaim(relayPrivKeyHex string,
+	identifier *core.ID, identityState *merkletree.Hash) (*core.Claim,
+	*merkletree.Proof, *merkletree.Hash, *merkletree.Hash, *merkletree.Hash,
+	*merkletree.Hash, error) {
+
 	ctx := context.Background()
 	_, relayClaimsTree, _, _, _, _, _ := identity.Generate(ctx, relayPrivKeyHex)
 
 	var schemaHash core.SchemaHash
 	schemaEncodedBytes, _ := hex.DecodeString("e22dd9c0f7aef15788c130d4d86c7156")
 	copy(schemaHash[:], schemaEncodedBytes)
-	valueSlotA, _ := core.NewDataSlotFromInt(identityState.BigInt())
+	valueSlotA, _ := core.NewElemBytesFromInt(identityState.BigInt())
 	claim, err := core.NewClaim(
 		schemaHash,
 		core.WithIndexID(*identifier),
-		core.WithValueData(valueSlotA, core.DataSlot{}),
+		core.WithValueData(valueSlotA, core.ElemBytes{}),
 	)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
@@ -273,16 +284,21 @@ func generateRelayWithIdenStateClaim(relayPrivKeyHex string, identifier *core.ID
 	return claim, proofIdenStateInRelay, relayClaimsTree.Root(), &merkletree.HashZero, &merkletree.HashZero, relayState, nil
 }
 
-func addClaimToTree(tree *merkletree.MerkleTree, claim *core.Claim) (*merkletree.Proof, error) {
-	entry := claim.TreeEntry()
-	index, _ := entry.HIndex()
-
-	err := tree.AddEntry(context.TODO(), &entry)
+//nolint:unused
+func addClaimToTree(tree *merkletree.MerkleTree,
+	claim *core.Claim) (*merkletree.Proof, error) {
+	index, value, err := claimsIndexValueHashes(*claim)
 	if err != nil {
 		return nil, err
 	}
 
-	proof, _, err := tree.GenerateProof(context.TODO(), index.BigInt(), tree.Root())
+	err = tree.Add(context.Background(), index, value)
+	if err != nil {
+		return nil, err
+	}
+
+	proof, _, err := tree.GenerateProof(context.Background(), index,
+		tree.Root())
 
 	return proof, err
 }
