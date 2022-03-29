@@ -6,6 +6,15 @@ import (
 	"github.com/pkg/errors"
 )
 
+// List of available operators.
+const (
+	EQ int = iota
+	LT
+	GT
+	IN
+	NIN
+)
+
 // Query represents basic request to claim slot verification
 type Query struct {
 	SlotIndex int
@@ -15,11 +24,11 @@ type Query struct {
 
 // QueryOperators represents operators for atomic circuits
 var QueryOperators = map[string]int{
-	"$eq":  0,
-	"$lt":  1,
-	"$gt":  2,
-	"$in":  3,
-	"$nin": 4,
+	"$eq":  EQ,
+	"$lt":  LT,
+	"$gt":  GT,
+	"$in":  IN,
+	"$nin": NIN,
 }
 
 // Comparer value.
@@ -41,11 +50,11 @@ func NewScalar(x, y *big.Int) *Scalar {
 // Scalar compare support: $eq, $lt, $gt type.
 func (s *Scalar) Compare(t int) (bool, error) {
 	switch t {
-	case 0: // eq
+	case EQ:
 		return s.x.Cmp(s.y) == 0, nil
-	case 1: // lt
+	case LT:
 		return s.x.Cmp(s.y) == -1, nil
-	case 2: // gt
+	case GT:
 		return s.x.Cmp(s.y) == 1, nil
 	}
 	return false, errors.New("unknown compare type for scalar")
@@ -66,7 +75,7 @@ func NewVector(x *big.Int, y []*big.Int) *Vector {
 // Vector compare support: $in, $nin
 func (v *Vector) Compare(t int) (bool, error) {
 	switch t {
-	case 3: // in
+	case IN:
 		if len(v.y) == 0 {
 			return false, nil
 		}
@@ -76,7 +85,7 @@ func (v *Vector) Compare(t int) (bool, error) {
 			}
 		}
 		return false, nil
-	case 4: // nin
+	case NIN:
 		if len(v.y) == 0 {
 			return true, nil
 		}
@@ -94,14 +103,12 @@ func (v *Vector) Compare(t int) (bool, error) {
 func FactoryComparer(x *big.Int, y []*big.Int, t int) (Comparer, error) {
 	var cmp Comparer
 	switch t {
-	// eq, lh, gh
-	case 0, 1, 2:
+	case EQ, LT, GT:
 		if len(y) != 1 {
 			return nil, errors.New("currently we support only one value for scalar comparison")
 		}
 		cmp = NewScalar(x, y[0])
-	// in, nin.
-	case 3, 4:
+	case IN, NIN:
 		cmp = NewVector(x, y)
 	default:
 		return nil, errors.New("unknown compare type")
