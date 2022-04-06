@@ -48,17 +48,17 @@ func (c *AuthCircuit) PrepareInputs(in TypedInputs) (map[string]interface{}, err
 	}
 	inputs := make(map[string]interface{})
 
-	inputs["id"] = authInputs.ID.BigInt().String()
-	inputs["state"] = authInputs.State.StateStr()
+	inputs["userID"] = authInputs.ID.BigInt().String()
+	inputs["userState"] = authInputs.State.StateStr()
 
-	inputs["authClaim"] = bigIntArrayToStringArray(authInputs.AuthClaim.Slots)
+	inputs["userAuthClaim"] = bigIntArrayToStringArray(authInputs.AuthClaim.Slots)
 
-	inputs["authClaimMtp"] = bigIntArrayToStringArray(PrepareSiblings(authInputs.AuthClaim.Proof.Siblings, AuthenticationLevels))
-	inputs["authClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(authInputs.AuthClaimNonRevocationProof.Siblings, AuthenticationLevels))
+	inputs["userAuthClaimMtp"] = bigIntArrayToStringArray(PrepareSiblings(authInputs.AuthClaim.Proof.Siblings, AuthenticationLevels))
+	inputs["userAuthClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(authInputs.AuthClaimNonRevocationProof.Siblings, AuthenticationLevels))
 
-	inputs["claimsTreeRoot"] = authInputs.State.ClaimsRootStr()
-	inputs["revTreeRoot"] = authInputs.State.RevocationRootStr()
-	inputs["rootsTreeRoot"] = authInputs.State.RootOfRootsRootStr()
+	inputs["userClaimsTreeRoot"] = authInputs.State.ClaimsRootStr()
+	inputs["userRevTreeRoot"] = authInputs.State.RevocationRootStr()
+	inputs["userRootsTreeRoot"] = authInputs.State.RootOfRootsRootStr()
 
 	inputs["challenge"] = authInputs.Challenge.String()
 	inputs["challengeSignatureR8x"] = authInputs.Signature.R8.X.String()
@@ -66,20 +66,20 @@ func (c *AuthCircuit) PrepareInputs(in TypedInputs) (map[string]interface{}, err
 	inputs["challengeSignatureS"] = authInputs.Signature.S.String()
 
 	if authInputs.AuthClaimNonRevocationProof.NodeAux == nil {
-		inputs["authClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
-		inputs["authClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
-		inputs["authClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1)
+		inputs["userAuthClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
+		inputs["userAuthClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
+		inputs["userAuthClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1)
 	} else {
-		inputs["authClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
+		inputs["userAuthClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
 		if authInputs.AuthClaimNonRevocationProof.NodeAux.HIndex == nil {
-			inputs["authClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
+			inputs["userAuthClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
 		} else {
-			inputs["authClaimNonRevMtpAuxHi"] = authInputs.AuthClaimNonRevocationProof.NodeAux.HIndex.BigInt().String()
+			inputs["userAuthClaimNonRevMtpAuxHi"] = authInputs.AuthClaimNonRevocationProof.NodeAux.HIndex.BigInt().String()
 		}
 		if authInputs.AuthClaimNonRevocationProof.NodeAux.HValue == nil {
-			inputs["authClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
+			inputs["userAuthClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
 		} else {
-			inputs["authClaimNonRevMtpAuxHv"] = authInputs.AuthClaimNonRevocationProof.NodeAux.HValue.BigInt().String()
+			inputs["userAuthClaimNonRevMtpAuxHv"] = authInputs.AuthClaimNonRevocationProof.NodeAux.HValue.BigInt().String()
 		}
 	}
 
