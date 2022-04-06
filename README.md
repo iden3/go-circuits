@@ -11,13 +11,6 @@ Repository of circuits implementation:  https://github.com/iden3/circuits
 > Set of functionality for circuits inputs preparation, verification keys, and public signals schema  retrieving
 > 
 
-The current implementation supports the next circuits:
-
-1. IDState and IDOwnership
-2. CredentialAtomicQuery 
-3. Authentication
-4. KYC (Age and CountryCode credential) - custom
-
 ### How to use :
 
 - All circuits implement *InputsPreparer*  and *BaseCircuit* Interfaces
