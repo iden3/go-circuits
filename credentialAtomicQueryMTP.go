@@ -12,7 +12,7 @@ import (
 const (
 
 	// AtomicQueryMTPPublicSignalsSchema is schema to parse json data for additional information
-	AtomicQueryMTPPublicSignalsSchema PublicSchemaJSON = `{"userID":0, "userState":1,"challenge":2,"issuerClaimSchema":3, 
+	AtomicQueryMTPPublicSignalsSchema PublicSchemaJSON = `{"userID":0, "userState":1,"challenge":2,"claimSchema":3, 
 "issuerClaimIdenState":4,"issuerID":5,"slotIndex":6,
 "value_0": 7, "value_1": 8, "value_2": 9, "value_3": 10, "value_4": 11, "value_5": 12, "value_6": 13, "value_7": 14, 
 "value_9": 15, "value_10": 16, "value_11": 17, "value_12": 18, "value_13": 19, "value_14": 20, "value_15": 21,
@@ -131,7 +131,7 @@ func (c *AtomicQueryMTP) prepareRegularClaimInputs(issuerClaim Claim, rs Revocat
 		}
 	}
 
-	inputs["issuerClaimSchema"] = new(big.Int).SetBytes(issuerClaim.Schema[:]).String()
+	inputs["claimSchema"] = new(big.Int).SetBytes(issuerClaim.Schema[:]).String()
 	inputs["timestamp"] = new(big.Int).SetInt64(issuerClaim.CurrentTimeStamp).String()
 
 	return inputs, nil
