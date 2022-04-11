@@ -16,8 +16,8 @@ const (
 	KycBySignaturesCircuitID CircuitID = "kycBySignatures"
 	// KycCircuitCircuitID is a type that must be used for kyc circuit id definition
 	KycCircuitCircuitID CircuitID = "kyc"
-	// IDStateCircuitID is a type that must be used for idState circuit definition
-	IDStateCircuitID CircuitID = "idState"
+	// StateTransitionCircuitID is a type that must be used for idState circuit definition
+	StateTransitionCircuitID CircuitID = "stateTransition"
 	// AtomicQueryMTPCircuitID is a type for credentialAtomicQueryMTP.circom
 	AtomicQueryMTPCircuitID CircuitID = "credentialAtomicQueryMTP"
 	// AtomicQuerySigCircuitID is a type for credentialAttrQuerySig.circom

@@ -12,8 +12,8 @@ import (
 const (
 
 	// AtomicQueryMTPPublicSignalsSchema is schema to parse json data for additional information
-	AtomicQueryMTPPublicSignalsSchema PublicSchemaJSON = `{"user_identifier":0, "user_state":1,"challenge":2,"claimSchema":3, 
-"claimIssuanceIdenState":4,"issuerID":5,"slotIndex":6,
+	AtomicQueryMTPPublicSignalsSchema PublicSchemaJSON = `{"userID":0, "userState":1,"challenge":2,"claimSchema":3, 
+"issuerClaimIdenState":4,"issuerID":5,"slotIndex":6,
 "value_0": 7, "value_1": 8, "value_2": 9, "value_3": 10, "value_4": 11, "value_5": 12, "value_6": 13, "value_7": 14, 
 "value_9": 15, "value_10": 16, "value_11": 17, "value_12": 18, "value_13": 19, "value_14": 20, "value_15": 21,
 "operator":22,"timestamp":23}`
@@ -42,7 +42,7 @@ type AtomicQueryMTPInputs struct {
 
 	CurrentStateTree TreeState
 
-	// claim
+	// issuerClaim
 	Claim
 	RevocationStatus
 
@@ -84,55 +84,55 @@ func (c *AtomicQueryMTP) PrepareInputs(in TypedInputs) (map[string]interface{}, 
 }
 
 // PrepareRegularClaimInputs prepares inputs for regular claims
-func (c *AtomicQueryMTP) prepareRegularClaimInputs(claim Claim, rs RevocationStatus) (map[string]interface{}, error) {
+func (c *AtomicQueryMTP) prepareRegularClaimInputs(issuerClaim Claim, rs RevocationStatus) (map[string]interface{}, error) {
 
 	inputs := map[string]interface{}{
-		"claim": bigIntArrayToStringArray(claim.Slots),
-		"claimIssuanceMtp": bigIntArrayToStringArray(
-			PrepareSiblings(claim.Proof.Siblings, LevelsAtomicQueryMTPCircuit)),
-		"claimIssuanceClaimsTreeRoot": claim.TreeState.
+		"issuerClaim": bigIntArrayToStringArray(issuerClaim.Slots),
+		"issuerClaimMtp": bigIntArrayToStringArray(
+			PrepareSiblings(issuerClaim.Proof.Siblings, LevelsAtomicQueryMTPCircuit)),
+		"issuerClaimClaimsTreeRoot": issuerClaim.TreeState.
 			ClaimsRootStr(),
-		"claimIssuanceRevTreeRoot": claim.TreeState.
+		"issuerClaimRevTreeRoot": issuerClaim.TreeState.
 			RevocationRootStr(),
-		"claimIssuanceRootsTreeRoot": claim.TreeState.
+		"issuerClaimRootsTreeRoot": issuerClaim.TreeState.
 			RootOfRootsRootStr(),
-		"claimIssuanceIdenState": claim.TreeState.StateStr(),
-		"issuerID":               claim.IssuerID.BigInt().String(),
+		"issuerClaimIdenState": issuerClaim.TreeState.StateStr(),
+		"issuerID":             issuerClaim.IssuerID.BigInt().String(),
 	}
 
 	// revocation
-	inputs["claimNonRevIssuerState"] = rs.TreeState.StateStr()
-	inputs["claimNonRevIssuerRootsTreeRoot"] = rs.TreeState.
+	inputs["issuerClaimNonRevState"] = rs.TreeState.StateStr()
+	inputs["issuerClaimNonRevRootsTreeRoot"] = rs.TreeState.
 		RootOfRootsRootStr()
-	inputs["claimNonRevIssuerRevTreeRoot"] = rs.TreeState.
+	inputs["issuerClaimNonRevRevTreeRoot"] = rs.TreeState.
 		RevocationRootStr()
-	inputs["claimNonRevIssuerClaimsTreeRoot"] = rs.TreeState.
+	inputs["issuerClaimNonRevClaimsTreeRoot"] = rs.TreeState.
 		ClaimsRootStr()
 
-	// claim non revocation
+	// issuerClaim non revocation
 
-	inputs["claimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(rs.Proof.Siblings, LevelsAtomicQueryMTPCircuit))
+	inputs["issuerClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(rs.Proof.Siblings, LevelsAtomicQueryMTPCircuit))
 
 	if rs.Proof.NodeAux == nil {
-		inputs["claimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
-		inputs["claimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
-		inputs["claimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1)
+		inputs["issuerClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
+		inputs["issuerClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
+		inputs["issuerClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1)
 	} else {
-		inputs["claimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
+		inputs["issuerClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
 		if rs.Proof.NodeAux.HIndex == nil {
-			inputs["claimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
+			inputs["issuerClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
 		} else {
-			inputs["claimNonRevMtpAuxHi"] = rs.Proof.NodeAux.HIndex.BigInt().String()
+			inputs["issuerClaimNonRevMtpAuxHi"] = rs.Proof.NodeAux.HIndex.BigInt().String()
 		}
 		if rs.Proof.NodeAux.HValue == nil {
-			inputs["claimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
+			inputs["issuerClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
 		} else {
-			inputs["claimNonRevMtpAuxHv"] = rs.Proof.NodeAux.HValue.BigInt().String()
+			inputs["issuerClaimNonRevMtpAuxHv"] = rs.Proof.NodeAux.HValue.BigInt().String()
 		}
 	}
 
-	inputs["claimSchema"] = new(big.Int).SetBytes(claim.Schema[:]).String()
-	inputs["timestamp"] = new(big.Int).SetInt64(claim.CurrentTimeStamp).String()
+	inputs["claimSchema"] = new(big.Int).SetBytes(issuerClaim.Schema[:]).String()
+	inputs["timestamp"] = new(big.Int).SetInt64(issuerClaim.CurrentTimeStamp).String()
 
 	return inputs, nil
 }
@@ -145,35 +145,35 @@ func (c *AtomicQueryMTP) prepareAuthClaimInputs(in *AtomicQueryMTPInputs) (map[s
 	}
 
 	inputs := make(map[string]interface{})
-	inputs["id"] = in.ID.BigInt().String()
+	inputs["userID"] = in.ID.BigInt().String()
 	inputs["challenge"] = in.Challenge.String()
 
-	inputs["authClaim"] = bigIntArrayToStringArray(in.AuthClaim.Slots)
-	inputs["authClaimMtp"] = bigIntArrayToStringArray(
+	inputs["userAuthClaim"] = bigIntArrayToStringArray(in.AuthClaim.Slots)
+	inputs["userAuthClaimMtp"] = bigIntArrayToStringArray(
 		PrepareSiblings(in.AuthClaim.Proof.Siblings, LevelsAtomicQueryMTPCircuit))
 
-	inputs["hoIdenState"] = in.CurrentStateTree.StateStr()
-	inputs["hoClaimsTreeRoot"] = in.CurrentStateTree.ClaimsRootStr()
-	inputs["hoRevTreeRoot"] = in.CurrentStateTree.RevocationRootStr()
-	inputs["hoRootsTreeRoot"] = in.CurrentStateTree.RootOfRootsRootStr()
+	inputs["userState"] = in.CurrentStateTree.StateStr()
+	inputs["userClaimsTreeRoot"] = in.CurrentStateTree.ClaimsRootStr()
+	inputs["userRevTreeRoot"] = in.CurrentStateTree.RevocationRootStr()
+	inputs["userRootsTreeRoot"] = in.CurrentStateTree.RootOfRootsRootStr()
 
-	inputs["authClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(in.AuthClaimRevStatus.Proof.Siblings, LevelsAtomicQueryMTPCircuit))
+	inputs["userAuthClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(in.AuthClaimRevStatus.Proof.Siblings, LevelsAtomicQueryMTPCircuit))
 
 	if in.AuthClaimRevStatus.Proof.NodeAux == nil {
-		inputs["authClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
-		inputs["authClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
-		inputs["authClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1)
+		inputs["userAuthClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
+		inputs["userAuthClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
+		inputs["userAuthClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1)
 	} else {
-		inputs["authClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
+		inputs["userAuthClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
 		if in.AuthClaimRevStatus.Proof.NodeAux.HIndex == nil {
-			inputs["authClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
+			inputs["userAuthClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
 		} else {
-			inputs["authClaimNonRevMtpAuxHi"] = in.AuthClaimRevStatus.Proof.NodeAux.HIndex.BigInt().String()
+			inputs["userAuthClaimNonRevMtpAuxHi"] = in.AuthClaimRevStatus.Proof.NodeAux.HIndex.BigInt().String()
 		}
 		if in.AuthClaimRevStatus.Proof.NodeAux.HValue == nil {
-			inputs["authClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
+			inputs["userAuthClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
 		} else {
-			inputs["authClaimNonRevMtpAuxHv"] = in.AuthClaimRevStatus.Proof.NodeAux.HValue.BigInt().String()
+			inputs["userAuthClaimNonRevMtpAuxHv"] = in.AuthClaimRevStatus.Proof.NodeAux.HValue.BigInt().String()
 		}
 	}
 
