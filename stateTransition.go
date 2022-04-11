@@ -26,7 +26,7 @@ type IDStateCircuit struct {
 
 // nolint // common approach to register default supported circuit
 func init() {
-	RegisterCircuit(IDStateCircuitID, &IDStateCircuit{})
+	RegisterCircuit(StateTransitionCircuitID, &IDStateCircuit{})
 }
 
 // PrepareInputs returns inputs for userID state circuit as map
