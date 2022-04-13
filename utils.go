@@ -3,7 +3,7 @@ package circuits
 import (
 	"math/big"
 
-	"github.com/iden3/go-iden3-core"
+	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/pkg/errors"
 )
@@ -20,6 +20,31 @@ func PrepareSiblings(siblings []*merkletree.Hash, levels int) []*big.Int {
 		siblingsBigInt[i] = sibling.BigInt()
 	}
 	return siblingsBigInt
+}
+
+func PrepareSiblingsStr(siblings []*merkletree.Hash, levels int) []string {
+	// siblings := mtproof.AllSiblings()
+	// Add the rest of empty levels to the siblings
+	for i := len(siblings); i < levels; i++ {
+		siblings = append(siblings, &merkletree.HashZero)
+	}
+	return HashToStr(siblings)
+}
+
+func HashToStr(siblings []*merkletree.Hash) []string {
+	siblingsStr := make([]string, len(siblings))
+	for i, sibling := range siblings {
+		siblingsStr[i] = sibling.BigInt().String()
+	}
+	return siblingsStr
+}
+
+func BigIntToStr(s []*big.Int) []string {
+	siblingsStr := make([]string, len(s))
+	for i, sibling := range s {
+		siblingsStr[i] = sibling.String()
+	}
+	return siblingsStr
 }
 
 // PrepareCircuitArrayValues padding values to size. Validate array size and throw an exception if array is bigger
