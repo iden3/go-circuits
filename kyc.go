@@ -2,10 +2,11 @@ package circuits
 
 import (
 	"errors"
+	"math/big"
+
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
-	"math/big"
 )
 
 const (
@@ -52,25 +53,6 @@ func (c *KYC) PrepareInputs(in TypedInputs) (map[string]interface{}, error) {
 	}
 	inputs := mergeMaps(ageClaimInputs, countryClaimInputs, authClaimInputs, publicInputs)
 	return inputs, nil
-}
-
-type Claim struct {
-	Schema           core.SchemaHash
-	Slots            []*big.Int
-	Proof            Proof
-	TreeState        TreeState
-	CurrentTimeStamp int64
-	IssuerID         *core.ID
-}
-
-type NodeAux struct {
-	HIndex *merkletree.Hash
-	HValue *merkletree.Hash
-}
-
-type Proof struct {
-	Siblings []*merkletree.Hash
-	NodeAux  *NodeAux
 }
 
 // PrepareRegularClaimInputs prepares inputs for regular claims
@@ -205,13 +187,6 @@ func handleMTPInputs(mtp Proof, fieldName string, inputs map[string]interface{})
 	}
 
 	return nil
-}
-
-type TreeState struct {
-	State          *merkletree.Hash
-	ClaimsRoot     *merkletree.Hash
-	RevocationRoot *merkletree.Hash
-	RootOfRoots    *merkletree.Hash
 }
 
 func (ts TreeState) StateStr() string {

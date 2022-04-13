@@ -1,5 +1,12 @@
 package circuits
 
+import (
+	"math/big"
+
+	core "github.com/iden3/go-iden3-core"
+	"github.com/iden3/go-merkletree-sql"
+)
+
 // VerificationKeyJSON describes type verification key in JSON format
 type VerificationKeyJSON string
 
@@ -28,7 +35,42 @@ const (
 	AtomicQuerySigWithRelayCircuitID CircuitID = "credentialAtomicQuerySigWithRelay"
 )
 
+//type CircuitMarshaler interface {
+//	CircuitMarshal
+//}
+
 // TypedInputs is inputs that can be validated in the specific circuit
 type TypedInputs interface {
 	Validate(schema []byte) error
+	//CircuitMarshaler
+}
+
+type Claim struct {
+	Claim            *core.Claim
+	Schema           core.SchemaHash
+	Slots            []*big.Int
+	Proof            Proof
+	TreeState        TreeState
+	CurrentTimeStamp int64
+	IssuerID         *core.ID
+	AProof           *merkletree.Proof
+}
+
+type TreeState struct {
+	State          *merkletree.Hash
+	ClaimsRoot     *merkletree.Hash
+	RevocationRoot *merkletree.Hash
+	RootOfRoots    *merkletree.Hash
+}
+
+// TODO: remove
+type NodeAux struct {
+	HIndex *merkletree.Hash
+	HValue *merkletree.Hash
+}
+
+// TODO: remove
+type Proof struct {
+	Siblings []*merkletree.Hash
+	NodeAux  *NodeAux
 }
