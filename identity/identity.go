@@ -66,8 +66,7 @@ func Generate(ctx context.Context, privKHex string) (*core.ID,
 	}
 
 	// create new identity
-	identifier, err := core.CalculateGenesisID(
-		coreElemBytesFromHashPtr(claimsTree.Root()))
+	identifier, err := core.IdGenesisFromIdenState(core.TypeDefault, claimsTree.Root().BigInt())
 	if err != nil {
 		return nil, nil, nil, nil, err, nil, nil
 	}

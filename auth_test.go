@@ -63,3 +63,23 @@ func TestAuthCircuit_PrepareInputs(t *testing.T) {
 
 	assert.Equal(t, actualInputs, expectedInputs)
 }
+
+func TestAuthCircuit_CircuitUnmarshal (t *testing.T) {
+	// generate mock data.
+	ctx := context.Background()
+	privKeyHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
+	challenge := big.NewInt(1)
+	identifier, _, state, _, _, _, _, _, _, err := identity.AuthClaimFullInfo(ctx, privKeyHex, challenge)
+	assert.NoError(t, err)
+
+	out := []string{challenge.String(), state.BigInt().String(), identifier.BigInt().String()}
+	bytesOut, err := json.Marshal(out)
+	assert.NoError(t, err)
+
+	ao := AuthOutputs{}
+	err = ao.CircuitUnmarshal(bytesOut)
+	assert.NoError(t, err)
+	assert.Equal(t, challenge, ao.Challenge)
+	assert.Equal(t, state, ao.UserState)
+	assert.Equal(t, identifier, ao.UserID)
+}

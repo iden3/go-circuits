@@ -5,6 +5,8 @@ github.com/dchest/blake512 v1.0.0 h1:oDFEQFIqFSeuA34xLtXZ/rWxCXdSjirjzPhey5EUvmA
 github.com/dchest/blake512 v1.0.0/go.mod h1:FV1x7xPPLWukZlpDpWQ88rF/SFwZ5qbskrzhLMB92JI=
 github.com/iden3/go-iden3-core v0.0.13 h1:Bu9JDxxy+P43QAES9SMuBczvtlmRGbXVs0iyYcaMb+0=
 github.com/iden3/go-iden3-core v0.0.13/go.mod h1:wJtcMK/bSazyW/JrQaRrbpUMgSMg79Pke3xgtfPxDnQ=
+github.com/iden3/go-iden3-core v0.0.15-0.20220413140012-a0cb71f65748 h1:696QOXVvTS6Lvqu816DvFzkEKbmRxJ0XbiZLHixzOZU=
+github.com/iden3/go-iden3-core v0.0.15-0.20220413140012-a0cb71f65748/go.mod h1:wJtcMK/bSazyW/JrQaRrbpUMgSMg79Pke3xgtfPxDnQ=
 github.com/iden3/go-iden3-crypto v0.0.11/go.mod h1:yUBWcXgAUDZxa1PvRl0zIT4Q4/rQO5PacE52Z06i8kw=
 github.com/iden3/go-iden3-crypto v0.0.13 h1:ixWRiaqDULNyIDdOWz2QQJG5t4PpNHkQk2P6GV94cok=
 github.com/iden3/go-iden3-crypto v0.0.13/go.mod h1:swXIv0HFbJKobbQBtsB50G7IHr6PbTowutSew/iBEoo=

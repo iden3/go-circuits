@@ -1,10 +1,12 @@
 package circuits
 
 import (
+	"encoding/json"
 	"errors"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
+	"fmt"
 	"math/big"
 )
 
@@ -99,4 +101,37 @@ type AuthInputs struct {
 	Challenge *big.Int
 
 	TypedInputs
+}
+
+type AuthOutputs struct {
+	Challenge *big.Int
+	UserState *merkletree.Hash
+	UserID 	  *core.ID
+}
+
+func (ao *AuthOutputs) CircuitUnmarshal(data []byte) error {
+	var sVals []string
+	err := json.Unmarshal(data, &sVals)
+	if err != nil {
+		return err
+	}
+
+	if len(sVals) != 3 {
+		return fmt.Errorf("invalid number of output values expected {%d} go {%d} ", 3, len(sVals))
+	}
+
+	var ok bool
+	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[0], 10);  !ok {
+		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
+	}
+
+	if ao.UserState, err = merkletree.NewHashFromString(sVals[1]); err != nil {
+		return err
+	}
+
+	if ao.UserID, err = IDFromStr(sVals[2]); err != nil {
+		return err
+	}
+
+	return nil
 }
