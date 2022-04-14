@@ -5,14 +5,8 @@ import (
 	"sync"
 )
 
-// InputsPreparer is an interface for preparaion of inputs for circuits
-type InputsPreparer interface {
-	PrepareInputs(i TypedInputs) (map[string]interface{}, error)
-}
-
 // BaseCircuit is generic circuit interface
 type BaseCircuit interface {
-	InputsPreparer
 	GetVerificationKey() VerificationKeyJSON
 	GetPublicSignalsSchema() PublicSchemaJSON
 }
