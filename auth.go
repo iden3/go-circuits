@@ -2,12 +2,12 @@ package circuits
 
 import (
 	"encoding/json"
-	"errors"
+	"fmt"
+	"math/big"
+
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
-	"fmt"
-	"math/big"
 )
 
 const (
@@ -41,72 +41,67 @@ func (c AuthCircuit) GetPublicSignalsSchema() PublicSchemaJSON {
 	return AuthenticationPublicSignalsSchema
 }
 
-// PrepareInputs returns inputs for id state circuit as map
-func (c *AuthCircuit) PrepareInputs(in TypedInputs) (map[string]interface{}, error) {
-
-	authInputs, ok := in.(AuthInputs)
-	if !ok {
-		return nil, errors.New("wrong type of input arguments")
-	}
-	inputs := make(map[string]interface{})
-
-	inputs["userID"] = authInputs.ID.BigInt().String()
-	inputs["userState"] = authInputs.State.StateStr()
-
-	inputs["userAuthClaim"] = bigIntArrayToStringArray(authInputs.AuthClaim.Slots)
-
-	inputs["userAuthClaimMtp"] = bigIntArrayToStringArray(PrepareSiblings(authInputs.AuthClaim.Proof.Siblings, AuthenticationLevels))
-	inputs["userAuthClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(authInputs.AuthClaimNonRevocationProof.Siblings, AuthenticationLevels))
-
-	inputs["userClaimsTreeRoot"] = authInputs.State.ClaimsRootStr()
-	inputs["userRevTreeRoot"] = authInputs.State.RevocationRootStr()
-	inputs["userRootsTreeRoot"] = authInputs.State.RootOfRootsRootStr()
-
-	inputs["challenge"] = authInputs.Challenge.String()
-	inputs["challengeSignatureR8x"] = authInputs.Signature.R8.X.String()
-	inputs["challengeSignatureR8y"] = authInputs.Signature.R8.Y.String()
-	inputs["challengeSignatureS"] = authInputs.Signature.S.String()
-
-	if authInputs.AuthClaimNonRevocationProof.NodeAux == nil {
-		inputs["userAuthClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
-		inputs["userAuthClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
-		inputs["userAuthClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1)
-	} else {
-		inputs["userAuthClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
-		if authInputs.AuthClaimNonRevocationProof.NodeAux.HIndex == nil {
-			inputs["userAuthClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
-		} else {
-			inputs["userAuthClaimNonRevMtpAuxHi"] = authInputs.AuthClaimNonRevocationProof.NodeAux.HIndex.BigInt().String()
-		}
-		if authInputs.AuthClaimNonRevocationProof.NodeAux.HValue == nil {
-			inputs["userAuthClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
-		} else {
-			inputs["userAuthClaimNonRevMtpAuxHv"] = authInputs.AuthClaimNonRevocationProof.NodeAux.HValue.BigInt().String()
-		}
-	}
-
-	return inputs, nil
-}
-
 // AuthInputs ZK inputs
 type AuthInputs struct {
 	ID *core.ID
 
-	State TreeState
-
-	AuthClaim                   Claim
-	AuthClaimNonRevocationProof Proof
+	AuthClaim Claim
 
 	Signature *babyjub.Signature
 	Challenge *big.Int
 
-	TypedInputs
+	CircuitMarshaller
+}
+
+type authCircuitInputs struct {
+	UserAuthClaim               *core.Claim      `json:"userAuthClaim"`
+	UserAuthClaimMtp            []string         `json:"userAuthClaimMtp"`
+	UserAuthClaimNonRevMtp      []string         `json:"userAuthClaimNonRevMtp"`
+	UserAuthClaimNonRevMtpAuxHi *merkletree.Hash `json:"userAuthClaimNonRevMtpAuxHi"`
+	UserAuthClaimNonRevMtpAuxHv *merkletree.Hash `json:"userAuthClaimNonRevMtpAuxHv"`
+	UserAuthClaimNonRevMtpNoAux string           `json:"userAuthClaimNonRevMtpNoAux"`
+	Challenge                   string           `json:"challenge"`
+	ChallengeSignatureR8X       string           `json:"challengeSignatureR8x"`
+	ChallengeSignatureR8Y       string           `json:"challengeSignatureR8y"`
+	ChallengeSignatureS         string           `json:"challengeSignatureS"`
+	UserClaimsTreeRoot          *merkletree.Hash `json:"userClaimsTreeRoot"`
+	UserID                      string           `json:"userID"`
+	UserRevTreeRoot             *merkletree.Hash `json:"userRevTreeRoot"`
+	UserRootsTreeRoot           *merkletree.Hash `json:"userRootsTreeRoot"`
+	UserState                   *merkletree.Hash `json:"userState"`
+}
+
+func (a AuthInputs) CircuitMarshal() ([]byte, error) {
+
+	s := authCircuitInputs{
+		UserAuthClaim: a.AuthClaim.Claim,
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.AProof.AllSiblings(),
+			AuthenticationLevels),
+		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
+			AuthenticationLevels),
+		Challenge:             a.Challenge.String(),
+		ChallengeSignatureR8X: a.Signature.R8.X.String(),
+		ChallengeSignatureR8Y: a.Signature.R8.Y.String(),
+		ChallengeSignatureS:   a.Signature.S.String(),
+		UserClaimsTreeRoot:    a.AuthClaim.TreeState.ClaimsRoot,
+		UserID:                a.ID.BigInt().String(),
+		UserRevTreeRoot:       a.AuthClaim.TreeState.RevocationRoot,
+		UserRootsTreeRoot:     a.AuthClaim.TreeState.RootOfRoots,
+		UserState:             a.AuthClaim.TreeState.State,
+	}
+
+	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.AProof.NodeAux)
+	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
+	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
+	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
+
+	return json.Marshal(s)
 }
 
 type AuthOutputs struct {
 	Challenge *big.Int
 	UserState *merkletree.Hash
-	UserID 	  *core.ID
+	UserID    *core.ID
 }
 
 func (ao *AuthOutputs) CircuitUnmarshal(data []byte) error {
@@ -117,11 +112,11 @@ func (ao *AuthOutputs) CircuitUnmarshal(data []byte) error {
 	}
 
 	if len(sVals) != 3 {
-		return fmt.Errorf("invalid number of output values expected {%d} go {%d} ", 3, len(sVals))
+		return fmt.Errorf("invalid number of output values expected {%d} got {%d} ", 3, len(sVals))
 	}
 
 	var ok bool
-	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[0], 10);  !ok {
+	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[0], 10); !ok {
 		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
 
