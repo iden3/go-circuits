@@ -4,6 +4,7 @@ import (
 	"math/big"
 
 	core "github.com/iden3/go-iden3-core"
+	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
 )
 
@@ -37,12 +38,6 @@ const (
 
 type CircuitMarshaller interface {
 	CircuitMarshal() ([]byte, error)
-}
-
-// TypedInputs is inputs that can be validated in the specific circuit
-type TypedInputs interface {
-	Validate(schema []byte) error
-	//CircuitMarshaller
 }
 
 type ClaimNonRevStatus struct {
@@ -80,3 +75,28 @@ type Proof struct {
 	Siblings []*merkletree.Hash
 	NodeAux  *NodeAux
 }
+
+type RevocationStatus struct {
+	TreeState TreeState
+	Proof     Proof
+}
+
+type SignatureProof interface {
+	signatureProofMarker()
+}
+
+type BaseSignatureProof struct {
+	IssuerID           *core.ID
+	IssuerTreeState    TreeState
+	AuthClaimIssuerMTP *merkletree.Proof
+}
+
+type BJJSignatureProof struct {
+	BaseSignatureProof
+	IssuerPublicKey *babyjub.PublicKey
+	Signature       *babyjub.Signature
+	HIndex          *merkletree.Hash
+	HValue          *merkletree.Hash
+}
+
+func (BJJSignatureProof) signatureProofMarker() {}
