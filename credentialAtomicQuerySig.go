@@ -1,8 +1,10 @@
 package circuits
 
 import (
-	"errors"
+	"encoding/json"
+	"fmt"
 	"math/big"
+	"strconv"
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
@@ -33,195 +35,141 @@ type AtomicQuerySig struct{}
 // AtomicQuerySigInputs represents input data for kyc and kycBySignatures circuits
 type AtomicQuerySigInputs struct {
 	// auth
-	ID                 *core.ID
-	AuthClaim          Claim
-	AuthClaimRevStatus RevocationStatus
-	Challenge          *big.Int
-	Signature          *babyjub.Signature
+	ID        *core.ID
+	AuthClaim Claim
+	//AuthClaimRevStatus RevocationStatus
+	Challenge *big.Int
+	Signature *babyjub.Signature
 
 	CurrentStateTree TreeState
 
 	// issuerClaim
 	Claim
-	RevocationStatus
+	//RevocationStatus
 
 	//
 	SignatureProof BJJSignatureProof
 	// query
 	Query
 
-	TypedInputs
+	CircuitMarshaller
+}
+
+type atomicQuerySigCircuitInputs struct {
+	UserAuthClaim               *core.Claim      `json:"userAuthClaim"`
+	UserAuthClaimMtp            []string         `json:"userAuthClaimMtp"`
+	UserAuthClaimNonRevMtp      []string         `json:"userAuthClaimNonRevMtp"`
+	UserAuthClaimNonRevMtpAuxHi *merkletree.Hash `json:"userAuthClaimNonRevMtpAuxHi"`
+	UserAuthClaimNonRevMtpAuxHv *merkletree.Hash `json:"userAuthClaimNonRevMtpAuxHv"`
+	UserAuthClaimNonRevMtpNoAux string           `json:"userAuthClaimNonRevMtpNoAux"`
+	UserClaimsTreeRoot          *merkletree.Hash `json:"userClaimsTreeRoot"`
+	UserState                   *merkletree.Hash `json:"userState"`
+	UserRevTreeRoot             *merkletree.Hash `json:"userRevTreeRoot"`
+	UserRootsTreeRoot           *merkletree.Hash `json:"userRootsTreeRoot"`
+	UserID                      string           `json:"userID"`
+
+	Challenge             string `json:"challenge"`
+	ChallengeSignatureR8X string `json:"challengeSignatureR8x"`
+	ChallengeSignatureR8Y string `json:"challengeSignatureR8y"`
+	ChallengeSignatureS   string `json:"challengeSignatureS"`
+
+	IssuerClaim                     *core.Claim      `json:"issuerClaim"`
+	IssuerClaimNonRevClaimsTreeRoot *merkletree.Hash `json:"issuerClaimNonRevClaimsTreeRoot"`
+	IssuerClaimNonRevRevTreeRoot    *merkletree.Hash `json:"issuerClaimNonRevRevTreeRoot"`
+	IssuerClaimNonRevRootsTreeRoot  *merkletree.Hash `json:"issuerClaimNonRevRootsTreeRoot"`
+	IssuerClaimNonRevState          *merkletree.Hash `json:"issuerClaimNonRevState"`
+	IssuerClaimNonRevMtp            []string         `json:"issuerClaimNonRevMtp"`
+	IssuerClaimNonRevMtpAuxHi       *merkletree.Hash `json:"issuerClaimNonRevMtpAuxHi"`
+	IssuerClaimNonRevMtpAuxHv       *merkletree.Hash `json:"issuerClaimNonRevMtpAuxHv"`
+	IssuerClaimNonRevMtpNoAux       string           `json:"issuerClaimNonRevMtpNoAux"`
+	ClaimSchema                     string           `json:"claimSchema"`
+	IssuerID                        string           `json:"issuerID"`
+	Operator                        int              `json:"operator"`
+	SlotIndex                       int              `json:"slotIndex"`
+	Timestamp                       int64            `json:"timestamp,string"`
+	Value                           []string         `json:"value"`
+
+	IssuerClaimSignatureR8X string           `json:"issuerClaimSignatureR8x"`
+	IssuerClaimSignatureR8Y string           `json:"issuerClaimSignatureR8y"`
+	IssuerClaimSignatureS   string           `json:"issuerClaimSignatureS"`
+	IssuerAuthClaimMtp      []string         `json:"issuerAuthClaimMtp"`
+	IssuerAuthHi            string           `json:"issuerAuthHi"`
+	IssuerAuthHv            string           `json:"issuerAuthHv"`
+	IssuerClaimsTreeRoot    *merkletree.Hash `json:"issuerClaimsTreeRoot"`
+	IssuerState             *merkletree.Hash `json:"issuerState"`
+	IssuerPubKeyX           string           `json:"issuerPubKeyX"`
+	IssuerPubKeyY           string           `json:"issuerPubKeyY"`
+	IssuerRevTreeRoot       *merkletree.Hash `json:"issuerRevTreeRoot"`
+	IssuerRootsTreeRoot     *merkletree.Hash `json:"issuerRootsTreeRoot"`
+}
+
+func (a AtomicQuerySigInputs) CircuitMarshal() ([]byte, error) {
+
+	s := atomicQuerySigCircuitInputs{
+		UserAuthClaim: a.AuthClaim.Claim,
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.AProof.AllSiblings(),
+			LevelsAtomicQueryMTPCircuit),
+		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
+			LevelsAtomicQueryMTPCircuit),
+		Challenge:                       a.Challenge.String(),
+		ChallengeSignatureR8X:           a.Signature.R8.X.String(),
+		ChallengeSignatureR8Y:           a.Signature.R8.Y.String(),
+		ChallengeSignatureS:             a.Signature.S.String(),
+		IssuerClaim:                     a.Claim.Claim,
+		IssuerClaimNonRevClaimsTreeRoot: a.Claim.NonRevProof.TreeState.ClaimsRoot,
+		IssuerClaimNonRevRevTreeRoot:    a.Claim.NonRevProof.TreeState.RevocationRoot,
+		IssuerClaimNonRevRootsTreeRoot:  a.Claim.NonRevProof.TreeState.RootOfRoots,
+		IssuerClaimNonRevState:          a.Claim.NonRevProof.TreeState.State,
+		IssuerClaimNonRevMtp: PrepareSiblingsStr(a.Claim.NonRevProof.Proof.AllSiblings(),
+			LevelsAtomicQueryMTPCircuit),
+		ClaimSchema:             new(big.Int).SetBytes(a.Schema[:]).String(),
+		UserClaimsTreeRoot:      a.AuthClaim.TreeState.ClaimsRoot,
+		UserState:               a.AuthClaim.TreeState.State,
+		UserRevTreeRoot:         a.AuthClaim.TreeState.RevocationRoot,
+		UserRootsTreeRoot:       a.AuthClaim.TreeState.RootOfRoots,
+		UserID:                  a.ID.BigInt().String(),
+		IssuerID:                a.IssuerID.BigInt().String(),
+		Operator:                a.Operator,
+		SlotIndex:               a.SlotIndex,
+		Timestamp:               a.CurrentTimeStamp,
+		IssuerClaimSignatureR8X: a.SignatureProof.Signature.R8.X.String(),
+		IssuerClaimSignatureR8Y: a.SignatureProof.Signature.R8.Y.String(),
+		IssuerClaimSignatureS:   a.SignatureProof.Signature.S.String(),
+
+		IssuerAuthClaimMtp: bigIntArrayToStringArray(
+			PrepareSiblings(a.SignatureProof.AuthClaimIssuerMTP.AllSiblings(), LevelsAtomicQuerySigCircuit)),
+		IssuerAuthHi:         a.SignatureProof.HIndex.BigInt().String(),
+		IssuerAuthHv:         a.SignatureProof.HValue.BigInt().String(),
+		IssuerClaimsTreeRoot: a.SignatureProof.IssuerTreeState.ClaimsRoot,
+		IssuerState:          a.SignatureProof.IssuerTreeState.State,
+		IssuerPubKeyX:        a.SignatureProof.IssuerPublicKey.X.String(),
+		IssuerPubKeyY:        a.SignatureProof.IssuerPublicKey.Y.String(),
+		IssuerRevTreeRoot:    a.SignatureProof.IssuerTreeState.RevocationRoot,
+		IssuerRootsTreeRoot:  a.SignatureProof.IssuerTreeState.RootOfRoots,
+	}
+
+	values, err := PrepareCircuitArrayValues(a.Values, ValueArraySizeAtomicQueryMTPCircuit)
+	if err != nil {
+		return nil, err
+	}
+	s.Value = bigIntArrayToStringArray(values)
+
+	nodeAuxAuth := getNodeAuxValue(a.Claim.NonRevProof.Proof.NodeAux)
+	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
+	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
+	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
+
+	nodeAux := getNodeAuxValue(a.Claim.NonRevProof.Proof.NodeAux)
+	s.IssuerClaimNonRevMtpAuxHi = nodeAux.key
+	s.IssuerClaimNonRevMtpAuxHv = nodeAux.value
+	s.IssuerClaimNonRevMtpNoAux = nodeAux.noAux
+
+	return json.Marshal(s)
 }
 
 // nolint // common approach to register default supported circuit
 func init() {
 	RegisterCircuit(AtomicQuerySigCircuitID, &AtomicQuerySig{})
-}
-
-// PrepareInputs returns inputs as a map for credentialAttrQuerySig.circom
-func (c *AtomicQuerySig) PrepareInputs(in TypedInputs) (map[string]interface{}, error) {
-
-	atomicInput, ok := in.(AtomicQuerySigInputs)
-	if !ok {
-		return nil, errors.New("wrong type of input arguments %T")
-	}
-
-	claimInputs, err := c.prepareRegularClaimInputs(atomicInput.Claim, atomicInput.RevocationStatus)
-	if err != nil {
-		return nil, err
-	}
-
-	authClaimInputs, err := c.prepareAuthClaimInputs(&atomicInput)
-	if err != nil {
-		return nil, err
-	}
-
-	queryInputs, err := c.prepareQueryInputs(&atomicInput)
-	if err != nil {
-		return nil, err
-	}
-
-	signatureInput, err := c.prepareClaimIssuerSigInputs(&atomicInput.SignatureProof)
-	if err != nil {
-		return nil, err
-	}
-
-	return mergeMaps(claimInputs, authClaimInputs, queryInputs, signatureInput), nil
-}
-
-// PrepareRegularClaimInputs prepares inputs for regular claims
-func (c *AtomicQuerySig) prepareRegularClaimInputs(issuerClaim Claim, rs RevocationStatus) (map[string]interface{}, error) {
-
-	inputs := map[string]interface{}{
-		"issuerClaim": bigIntArrayToStringArray(issuerClaim.Slots),
-	}
-
-	// revocation
-	inputs["issuerClaimNonRevState"] = rs.TreeState.StateStr()
-	inputs["issuerClaimNonRevRootsTreeRoot"] = rs.TreeState.
-		RootOfRootsRootStr()
-	inputs["issuerClaimNonRevRevTreeRoot"] = rs.TreeState.
-		RevocationRootStr()
-	inputs["issuerClaimNonRevClaimsTreeRoot"] = rs.TreeState.
-		ClaimsRootStr()
-
-	// issuerClaim non revocation
-
-	inputs["issuerClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(rs.Proof.Siblings, LevelsAtomicQuerySigCircuit))
-
-	if rs.Proof.NodeAux == nil {
-		inputs["issuerClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
-		inputs["issuerClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
-		inputs["issuerClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1)
-	} else {
-		inputs["issuerClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
-		if rs.Proof.NodeAux.HIndex == nil {
-			inputs["issuerClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
-		} else {
-			inputs["issuerClaimNonRevMtpAuxHi"] = rs.Proof.NodeAux.HIndex.BigInt().String()
-		}
-		if rs.Proof.NodeAux.HValue == nil {
-			inputs["issuerClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
-		} else {
-			inputs["issuerClaimNonRevMtpAuxHv"] = rs.Proof.NodeAux.HValue.BigInt().String()
-		}
-	}
-
-	inputs["claimSchema"] = new(big.Int).SetBytes(issuerClaim.Schema[:]).String()
-	inputs["timestamp"] = new(big.Int).SetInt64(issuerClaim.CurrentTimeStamp).String()
-
-	return inputs, nil
-}
-
-// PrepareAuthClaimInputs prepare inputs for authorization (ID ownership)
-func (c *AtomicQuerySig) prepareAuthClaimInputs(in *AtomicQuerySigInputs) (map[string]interface{}, error) {
-
-	if in.Signature == nil {
-		return nil, errors.New("signature is null")
-	}
-
-	inputs := make(map[string]interface{})
-	inputs["userID"] = in.ID.BigInt().String()
-	inputs["challenge"] = in.Challenge.String()
-
-	inputs["userAuthClaim"] = bigIntArrayToStringArray(in.AuthClaim.Slots)
-	inputs["userAuthClaimMtp"] = bigIntArrayToStringArray(
-		PrepareSiblings(in.AuthClaim.Proof.Siblings, LevelsAtomicQuerySigCircuit))
-
-	inputs["userState"] = in.CurrentStateTree.StateStr()
-	inputs["userClaimsTreeRoot"] = in.CurrentStateTree.ClaimsRootStr()
-	inputs["userRevTreeRoot"] = in.CurrentStateTree.RevocationRootStr()
-	inputs["userRootsTreeRoot"] = in.CurrentStateTree.RootOfRootsRootStr()
-
-	inputs["userAuthClaimNonRevMtp"] = bigIntArrayToStringArray(PrepareSiblings(in.AuthClaimRevStatus.Proof.Siblings, LevelsAtomicQuerySigCircuit))
-
-	if in.AuthClaimRevStatus.Proof.NodeAux == nil {
-		inputs["userAuthClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
-		inputs["userAuthClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
-		inputs["userAuthClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(1).String() // (yes it's isOld = 1)
-	} else {
-		inputs["userAuthClaimNonRevMtpNoAux"] = new(big.Int).SetInt64(0).String() // (no it's isOld = 0)
-		if in.AuthClaimRevStatus.Proof.NodeAux.HIndex == nil {
-			inputs["userAuthClaimNonRevMtpAuxHi"] = merkletree.HashZero.BigInt().String()
-		} else {
-			inputs["userAuthClaimNonRevMtpAuxHi"] = in.AuthClaimRevStatus.Proof.NodeAux.HIndex.BigInt().String()
-		}
-		if in.AuthClaimRevStatus.Proof.NodeAux.HValue == nil {
-			inputs["userAuthClaimNonRevMtpAuxHv"] = merkletree.HashZero.BigInt().String()
-		} else {
-			inputs["userAuthClaimNonRevMtpAuxHv"] = in.AuthClaimRevStatus.Proof.NodeAux.HValue.BigInt().String()
-		}
-	}
-
-	inputs["challengeSignatureR8x"] = in.Signature.R8.X.String()
-	inputs["challengeSignatureR8y"] = in.Signature.R8.Y.String()
-	inputs["challengeSignatureS"] = in.Signature.S.String()
-
-	return inputs, nil
-}
-
-// prepareClaimIssuerSigInputs prepare inputs for issuerClaim that is signed by issuer
-func (c *AtomicQuerySig) prepareClaimIssuerSigInputs(in *BJJSignatureProof) (map[string]interface{}, error) {
-
-	if in.Signature == nil {
-		return nil, errors.New("signature is null")
-	}
-
-	inputs := make(map[string]interface{})
-	inputs["issuerID"] = in.IssuerID.BigInt().String()
-
-	inputs["issuerAuthClaimMtp"] = bigIntArrayToStringArray(
-		PrepareSiblings(in.AuthClaimIssuerMTP.Siblings, LevelsAtomicQuerySigCircuit))
-
-	inputs["issuerState"] = in.IssuerTreeState.StateStr()
-	inputs["issuerClaimsTreeRoot"] = in.IssuerTreeState.ClaimsRootStr()
-	inputs["issuerRevTreeRoot"] = in.IssuerTreeState.RevocationRootStr()
-	inputs["issuerRootsTreeRoot"] = in.IssuerTreeState.RootOfRootsRootStr()
-
-	inputs["issuerAuthHi"] = in.HIndex.BigInt().String()
-	inputs["issuerAuthHv"] = in.HValue.BigInt().String()
-	inputs["issuerPubKeyX"] = in.IssuerPublicKey.X.String()
-	inputs["issuerPubKeyY"] = in.IssuerPublicKey.Y.String()
-
-	inputs["issuerClaimSignatureR8x"] = in.Signature.R8.X.String()
-	inputs["issuerClaimSignatureR8y"] = in.Signature.R8.Y.String()
-	inputs["issuerClaimSignatureS"] = in.Signature.S.String()
-
-	return inputs, nil
-}
-
-func (c *AtomicQuerySig) prepareQueryInputs(in *AtomicQuerySigInputs) (map[string]interface{}, error) {
-	inputs := make(map[string]interface{})
-	inputs["slotIndex"] = in.Query.SlotIndex
-
-	values, err := PrepareCircuitArrayValues(in.Query.Values, ValueArraySizeAtomicQuerySigCircuit)
-	if err != nil {
-		return nil, err
-	}
-	inputs["value"] = bigIntArrayToStringArray(values)
-	inputs["operator"] = in.Query.Operator
-
-	return inputs, nil
 }
 
 // GetVerificationKey returns verification key for circuit
@@ -232,4 +180,77 @@ func (c *AtomicQuerySig) GetVerificationKey() VerificationKeyJSON {
 // GetPublicSignalsSchema returns schema to parse public inputs
 func (c AtomicQuerySig) GetPublicSignalsSchema() PublicSchemaJSON {
 	return AtomicQuerySigPublicSignalsSchema
+}
+
+type AtomicQuerySigOutputs struct {
+	UserID      *core.ID
+	UserState   *merkletree.Hash
+	Challenge   *big.Int
+	ClaimSchema core.SchemaHash
+	IssuerID    *core.ID
+	IssuerState *merkletree.Hash
+	SlotIndex   int
+	Values      []*big.Int
+	Operator    int
+	TimeStamp   int64
+}
+
+func (ao *AtomicQuerySigOutputs) CircuitUnmarshal(data []byte) error {
+	var sVals []string
+	err := json.Unmarshal(data, &sVals)
+	if err != nil {
+		return err
+	}
+
+	if len(sVals) != 24 {
+		return fmt.Errorf("invalid number of output values expected {%d} go {%d} ", 24, len(sVals))
+	}
+
+	if ao.UserID, err = IDFromStr(sVals[0]); err != nil {
+		return err
+	}
+
+	if ao.UserState, err = merkletree.NewHashFromString(sVals[1]); err != nil {
+		return err
+	}
+
+	var ok bool
+	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
+		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
+	}
+
+	if ao.ClaimSchema, err = core.NewSchemaHashFromHex(sVals[3]); err != nil {
+		return err
+	}
+
+	if ao.IssuerID, err = IDFromStr(sVals[4]); err != nil {
+		return err
+	}
+
+	if ao.IssuerState, err = merkletree.NewHashFromString(sVals[5]); err != nil {
+		return err
+	}
+
+	if ao.SlotIndex, err = strconv.Atoi(sVals[6]); err != nil {
+		return err
+	}
+
+	// 22 doesn't include in final slice.
+	for i, v := range sVals[7:22] {
+		bi, ok := big.NewInt(0).SetString(v, 10)
+		if !ok {
+			return fmt.Errorf("invalid value in index: %d", i)
+		}
+		ao.Values = append(ao.Values, bi)
+	}
+
+	if ao.Operator, err = strconv.Atoi(sVals[22]); err != nil {
+		return err
+	}
+
+	if ao.TimeStamp, err = strconv.ParseInt(sVals[23], 10, 64); err != nil {
+		return err
+	}
+
+	return nil
 }
