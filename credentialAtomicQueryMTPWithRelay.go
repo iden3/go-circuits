@@ -2,7 +2,9 @@ package circuits
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/big"
+	"strconv"
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
@@ -168,4 +170,67 @@ func (c *AtomicQueryMTPWithRelay) GetVerificationKey() VerificationKeyJSON {
 // GetPublicSignalsSchema returns schema to parse public inputs
 func (c AtomicQueryMTPWithRelay) GetPublicSignalsSchema() PublicSchemaJSON {
 	return AtomicQueryMTPWithRelayPublicSignalsSchema
+}
+
+type AtomicQueryMTPWithRelayOutputs struct {
+	UserID      *core.ID
+	RelayState  *merkletree.Hash
+	Challenge   *big.Int
+	ClaimSchema core.SchemaHash
+	SlotIndex   int
+	Operator    int
+	Value       *big.Int
+	TimeStamp   int64
+	IssuerID    *core.ID
+}
+
+func (ao *AtomicQueryMTPWithRelayOutputs) CircuitUnmarshal(data []byte) error {
+	var sVals []string
+	err := json.Unmarshal(data, &sVals)
+	if err != nil {
+		return err
+	}
+
+	if len(sVals) != 9 {
+		return fmt.Errorf("invalid number of output values expected {%d} go {%d} ", 9, len(sVals))
+	}
+
+	if ao.UserID, err = IDFromStr(sVals[0]); err != nil {
+		return err
+	}
+
+	if ao.RelayState, err = merkletree.NewHashFromString(sVals[1]); err != nil {
+		return err
+	}
+
+	var ok bool
+	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
+		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
+	}
+
+	if ao.ClaimSchema, err = core.NewSchemaHashFromHex(sVals[3]); err != nil {
+		return err
+	}
+
+	if ao.SlotIndex, err = strconv.Atoi(sVals[4]); err != nil {
+		return err
+	}
+
+	if ao.Operator, err = strconv.Atoi(sVals[5]); err != nil {
+		return err
+	}
+
+	if ao.Value, ok = big.NewInt(0).SetString(sVals[6], 10); !ok {
+		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
+	}
+
+	if ao.TimeStamp, err = strconv.ParseInt(sVals[7], 10, 64); err != nil {
+		return err
+	}
+
+	if ao.IssuerID, err = IDFromStr(sVals[8]); err != nil {
+		return err
+	}
+
+	return nil
 }

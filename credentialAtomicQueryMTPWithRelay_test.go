@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"math/big"
+	"strconv"
 	"testing"
 	"time"
 
@@ -274,4 +275,57 @@ func addClaimToTree(tree *merkletree.MerkleTree,
 		tree.Root())
 
 	return proof, err
+}
+
+func TestAtomicQueryMTPWithRelayOutputs_CircuitUnmarshal(t *testing.T) {
+	userPrivKHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
+	issuerPrivKHex := "21a5e7321d0e2f3ca1cc6504396e6594a2211544b08c206847cdee96f832421a"
+	challenge := new(big.Int).SetInt64(1)
+	ctx := context.Background()
+
+	userID, uClaimsTree, _, _, err, _, _ := identity.Generate(ctx,
+		userPrivKHex)
+	assert.Nil(t, err)
+
+	relayState, err := merkletree.HashElems(
+		uClaimsTree.Root().BigInt(),
+		merkletree.HashZero.BigInt(),
+		merkletree.HashZero.BigInt())
+
+	// Issuer
+	issuerID, _, _, _, err, _, _ := identity.Generate(ctx,
+		issuerPrivKHex)
+	assert.Nil(t, err)
+
+	claimSchema := "ce6bb12c96bfd1544c02c289c6b4b987" // TODO(illia-korotia): here not big.Int. Is ok?
+	slotIndex := "1"
+	value := "1"
+	operator := "1"
+	timeStamp := strconv.FormatInt(time.Now().Unix(), 10)
+
+	outputsData := []string{
+		userID.BigInt().String(), relayState.BigInt().String(), challenge.String(), claimSchema, slotIndex,
+		operator, value, timeStamp, issuerID.BigInt().String(),
+	}
+
+	data, err := json.Marshal(outputsData)
+	assert.NoError(t, err)
+
+	out := new(AtomicQueryMTPWithRelayOutputs)
+	err = out.CircuitUnmarshal(data)
+	assert.NoError(t, err)
+
+	assert.Equal(t, userID, out.UserID)
+	assert.Equal(t, relayState, out.RelayState)
+	assert.Equal(t, challenge, out.Challenge)
+
+	hexSchema, err := out.ClaimSchema.MarshalText()
+	assert.NoError(t, err)
+	assert.Equal(t, claimSchema, string(hexSchema))
+
+	assert.Equal(t, slotIndex, strconv.Itoa(out.SlotIndex))
+	assert.Equal(t, operator, strconv.Itoa(out.Operator))
+	assert.Equal(t, value, out.Value.String())
+	assert.Equal(t, timeStamp, strconv.FormatInt(out.TimeStamp, 10))
+	assert.Equal(t, issuerID, out.IssuerID)
 }
