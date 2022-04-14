@@ -108,3 +108,26 @@ func convertMTPtoProof(claimEntryMTP *merkletree.Proof) Proof {
 	}
 	return claimEntryProof
 }
+
+type nodeAuxValue struct {
+	key   *merkletree.Hash
+	value *merkletree.Hash
+	noAux string
+}
+
+func getNodeAuxValue(a *merkletree.NodeAux) nodeAuxValue {
+
+	aux := nodeAuxValue{
+		key:   &merkletree.HashZero,
+		value: &merkletree.HashZero,
+		noAux: "1",
+	}
+
+	if a != nil && a.Value != nil && a.Key != nil {
+		aux.key = a.Key
+		aux.value = a.Value
+		aux.noAux = "0"
+	}
+
+	return aux
+}

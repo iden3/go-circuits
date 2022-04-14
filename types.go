@@ -35,14 +35,19 @@ const (
 	AtomicQuerySigWithRelayCircuitID CircuitID = "credentialAtomicQuerySigWithRelay"
 )
 
-//type CircuitMarshaler interface {
-//	CircuitMarshal
-//}
+type CircuitMarshaller interface {
+	CircuitMarshal() ([]byte, error)
+}
 
 // TypedInputs is inputs that can be validated in the specific circuit
 type TypedInputs interface {
 	Validate(schema []byte) error
-	//CircuitMarshaler
+	//CircuitMarshaller
+}
+
+type ClaimNonRevStatus struct {
+	TreeState TreeState
+	Proof     *merkletree.Proof
 }
 
 type Claim struct {
@@ -54,6 +59,7 @@ type Claim struct {
 	CurrentTimeStamp int64
 	IssuerID         *core.ID
 	AProof           *merkletree.Proof
+	NonRevProof      ClaimNonRevStatus // Claim non revocation proof
 }
 
 type TreeState struct {
