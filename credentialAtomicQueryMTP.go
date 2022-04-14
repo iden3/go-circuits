@@ -2,7 +2,9 @@ package circuits
 
 import (
 	"encoding/json"
+	"fmt"
 	"math/big"
+	"strconv"
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
@@ -10,7 +12,7 @@ import (
 )
 
 const (
-
+	// TODO(illia-korotia): value_8 is missed here :)
 	// AtomicQueryMTPPublicSignalsSchema is schema to parse json data for additional information
 	AtomicQueryMTPPublicSignalsSchema PublicSchemaJSON = `{"userID":0, "userState":1,"challenge":2,"claimSchema":3, 
 "issuerClaimIdenState":4,"issuerID":5,"slotIndex":6,
@@ -158,4 +160,77 @@ func (c *AtomicQueryMTP) GetVerificationKey() VerificationKeyJSON {
 // GetPublicSignalsSchema returns schema to parse public inputs
 func (c AtomicQueryMTP) GetPublicSignalsSchema() PublicSchemaJSON {
 	return AtomicQueryMTPPublicSignalsSchema
+}
+
+type AtomicQueryMTPOutputs struct {
+	UserID               *core.ID
+	UserState            *merkletree.Hash
+	Challenge            *big.Int
+	ClaimSchema          core.SchemaHash
+	IssuerClaimIdenState *merkletree.Hash
+	IssuerID             *core.ID
+	SlotIndex            int
+	Values               []*big.Int
+	Operator             int
+	TimeStamp            int64
+}
+
+func (ao *AtomicQueryMTPOutputs) CircuitUnmarshal(data []byte) error {
+	var sVals []string
+	err := json.Unmarshal(data, &sVals)
+	if err != nil {
+		return err
+	}
+
+	if len(sVals) != 24 {
+		return fmt.Errorf("invalid number of output values expected {%d} go {%d} ", 24, len(sVals))
+	}
+
+	if ao.UserID, err = IDFromStr(sVals[0]); err != nil {
+		return err
+	}
+
+	if ao.UserState, err = merkletree.NewHashFromString(sVals[1]); err != nil {
+		return err
+	}
+
+	var ok bool
+	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
+		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
+	}
+
+	if ao.ClaimSchema, err = core.NewSchemaHashFromHex(sVals[3]); err != nil {
+		return err
+	}
+
+	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[4]); err != nil {
+		return err
+	}
+
+	if ao.IssuerID, err = IDFromStr(sVals[5]); err != nil {
+		return err
+	}
+
+	if ao.SlotIndex, err = strconv.Atoi(sVals[6]); err != nil {
+		return err
+	}
+
+	// 22 doesn't include in final slice.
+	for i, v := range sVals[7:22] {
+		bi, ok := big.NewInt(0).SetString(v, 10)
+		if !ok {
+			return fmt.Errorf("invalid value in index: %d", i)
+		}
+		ao.Values = append(ao.Values, bi)
+	}
+
+	if ao.Operator, err = strconv.Atoi(sVals[22]); err != nil {
+		return err
+	}
+
+	if ao.TimeStamp, err = strconv.ParseInt(sVals[23], 10, 64); err != nil {
+		return err
+	}
+
+	return nil
 }
