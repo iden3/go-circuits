@@ -68,7 +68,7 @@ func (c StateTransitionInputs) CircuitMarshal() ([]byte, error) {
 
 	s := stateTransitionInputsInternal{
 		AuthClaim:          *c.AuthClaim.Claim,
-		AuthClaimMtp:       PrepareSiblingsStr(c.AuthClaim.AProof.AllSiblings(), StateTransitionMTPLevels),
+		AuthClaimMtp:       PrepareSiblingsStr(c.AuthClaim.Proof.AllSiblings(), StateTransitionMTPLevels),
 		AuthClaimNonRevMtp: PrepareSiblingsStr(c.AuthClaimNonRevocationProof.AllSiblings(), StateTransitionMTPLevels),
 		UserID:             c.ID.BigInt().String(),
 		NewIdState:         c.NewState,

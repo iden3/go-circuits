@@ -112,17 +112,12 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		big.NewInt(int64(nonce)), issuerRevTree.Root())
 	assert.Nil(t, err)
 
-	var userAuthClaim Claim
-
 	te := time.Unix(1642074362, 0).Unix()
 	fmt.Println(te)
 	inputsAuthClaim := Claim{
-		Schema:           userAuthClaim.Schema,
-		Slots:            getSlots(userAuthCoreClaim),
-		Claim:            userAuthCoreClaim,
-		AProof:           mtpProofUser,
-		TreeState:        userAuthTreeState,
-		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
+		Claim:     userAuthCoreClaim,
+		Proof:     mtpProofUser,
+		TreeState: userAuthTreeState,
 		NonRevProof: ClaimNonRevStatus{
 			TreeState: userAuthTreeState,
 			Proof:     &merkletree.Proof{},
@@ -130,13 +125,10 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	}
 
 	inputsUserClaim := Claim{
-		Schema: issuerCoreClaim.GetSchemaHash(),
-		//Slots:            getSlots(issuerCoreClaim),
-		Claim:            issuerCoreClaim,
-		AProof:           proof,
-		TreeState:        issuerStateAfterClaimAdd,
-		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
-		IssuerID:         issuerID,
+		Claim:     issuerCoreClaim,
+		Proof:     proof,
+		TreeState: issuerStateAfterClaimAdd,
+		IssuerID:  issuerID,
 		NonRevProof: ClaimNonRevStatus{
 			TreeState: issuerStateAfterClaimAdd,
 			Proof:     proofNotRevoke,
@@ -156,6 +148,9 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		Signature: challengeSignature,
 
 		Claim: inputsUserClaim,
+
+		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
+		Schema:           issuerCoreClaim.GetSchemaHash(),
 
 		Query: query,
 	}
@@ -236,7 +231,7 @@ func TestAtomicQueryMTPOutputs_CircuitUnmarshal(t *testing.T) {
 		assert.Equal(t, values[i], v.String())
 	}
 	assert.Equal(t, operator, strconv.Itoa(out.Operator))
-	assert.Equal(t, timeStamp, strconv.FormatInt(out.TimeStamp, 10))
+	assert.Equal(t, timeStamp, strconv.FormatInt(out.Timestamp, 10))
 }
 
 func claimsIndexValueHashes(c core.Claim) (*big.Int, *big.Int, error) {

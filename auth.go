@@ -75,7 +75,7 @@ func (a AuthInputs) CircuitMarshal() ([]byte, error) {
 
 	s := authCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
-		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.AProof.AllSiblings(),
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
 			AuthenticationLevels),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			AuthenticationLevels),
@@ -90,7 +90,7 @@ func (a AuthInputs) CircuitMarshal() ([]byte, error) {
 		UserState:             a.AuthClaim.TreeState.State,
 	}
 
-	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.AProof.NodeAux)
+	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.Proof.NodeAux)
 	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux

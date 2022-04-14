@@ -28,11 +28,10 @@ func TestCircuitMarshal(t *testing.T) {
 	inputs := AuthInputs{
 		ID: identifier,
 		AuthClaim: Claim{
-			Claim:            claim,
-			AProof:           claimEntryMTP,
-			TreeState:        treeState,
-			CurrentTimeStamp: 0,
-			NonRevProof:      ClaimNonRevStatus{treeState, claimNonRevMTP},
+			Claim:       claim,
+			Proof:       claimEntryMTP,
+			TreeState:   treeState,
+			NonRevProof: ClaimNonRevStatus{treeState, claimNonRevMTP},
 		},
 		Signature: signature,
 		Challenge: challenge,

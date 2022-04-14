@@ -52,6 +52,9 @@ type AtomicQuerySigInputs struct {
 	// query
 	Query
 
+	CurrentTimeStamp int64
+	Schema           core.SchemaHash
+
 	CircuitMarshaller
 }
 
@@ -107,7 +110,7 @@ func (a AtomicQuerySigInputs) CircuitMarshal() ([]byte, error) {
 
 	s := atomicQuerySigCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
-		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.AProof.AllSiblings(),
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
 			LevelsAtomicQueryMTPCircuit),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			LevelsAtomicQueryMTPCircuit),

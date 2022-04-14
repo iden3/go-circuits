@@ -136,14 +136,11 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		big.NewInt(int64(nonce)), issuerRevTree.Root())
 	assert.Nil(t, err)
 
-	var authClaim Claim
-
 	inputsAuthClaim := Claim{
-		Schema:           authClaim.Schema,
-		Claim:            userAuthCoreClaim,
-		AProof:           mtpProofUser,
-		TreeState:        userAuthTreeState,
-		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
+		//Schema:    authClaim.Schema,
+		Claim:     userAuthCoreClaim,
+		Proof:     mtpProofUser,
+		TreeState: userAuthTreeState,
 		NonRevProof: ClaimNonRevStatus{
 			TreeState: userAuthTreeState,
 			Proof:     mtpProofUser,
@@ -151,11 +148,10 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	}
 
 	inputsUserClaim := Claim{
-		Schema:           issuerCoreClaim.GetSchemaHash(),
-		Claim:            issuerCoreClaim,
-		AProof:           proof,
-		TreeState:        issuerStateAfterClaimAdd,
-		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
+		//Schema:    issuerCoreClaim.GetSchemaHash(),
+		Claim:     issuerCoreClaim,
+		Proof:     proof,
+		TreeState: issuerStateAfterClaimAdd,
 		NonRevProof: ClaimNonRevStatus{
 			TreeState: issuerStateAfterClaimAdd,
 			Proof:     proofNotRevoke,
@@ -190,6 +186,9 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		CurrentStateTree: userAuthTreeState,
 
 		SignatureProof: claimIssuerSignature,
+
+		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
+		Schema:           issuerCoreClaim.GetSchemaHash(),
 
 		Claim: inputsUserClaim,
 

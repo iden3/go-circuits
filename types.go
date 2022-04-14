@@ -1,8 +1,6 @@
 package circuits
 
 import (
-	"math/big"
-
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
@@ -46,15 +44,11 @@ type ClaimNonRevStatus struct {
 }
 
 type Claim struct {
-	Claim            *core.Claim
-	Schema           core.SchemaHash
-	Slots            []*big.Int
-	Proof            Proof
-	TreeState        TreeState
-	CurrentTimeStamp int64
-	IssuerID         *core.ID
-	AProof           *merkletree.Proof
-	NonRevProof      ClaimNonRevStatus // Claim non revocation proof
+	Claim       *core.Claim
+	TreeState   TreeState
+	IssuerID    *core.ID
+	Proof       *merkletree.Proof
+	NonRevProof ClaimNonRevStatus // Claim non revocation proof
 }
 
 type TreeState struct {
@@ -62,23 +56,6 @@ type TreeState struct {
 	ClaimsRoot     *merkletree.Hash
 	RevocationRoot *merkletree.Hash
 	RootOfRoots    *merkletree.Hash
-}
-
-// TODO: remove
-type NodeAux struct {
-	HIndex *merkletree.Hash
-	HValue *merkletree.Hash
-}
-
-// TODO: remove
-type Proof struct {
-	Siblings []*merkletree.Hash
-	NodeAux  *NodeAux
-}
-
-type RevocationStatus struct {
-	TreeState TreeState
-	Proof     Proof
 }
 
 type SignatureProof interface {

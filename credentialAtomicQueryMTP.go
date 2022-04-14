@@ -46,6 +46,9 @@ type AtomicQueryMTPInputs struct {
 	// issuerClaim
 	Claim
 
+	Schema           core.SchemaHash
+	CurrentTimeStamp int64
+
 	// query
 	Query
 
@@ -96,7 +99,7 @@ func (a AtomicQueryMTPInputs) CircuitMarshal() ([]byte, error) {
 
 	s := atomicQueryMTPCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
-		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.AProof.AllSiblings(),
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
 			LevelsAtomicQueryMTPCircuit),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			LevelsAtomicQueryMTPCircuit),
@@ -107,7 +110,7 @@ func (a AtomicQueryMTPInputs) CircuitMarshal() ([]byte, error) {
 		IssuerClaim:                     a.Claim.Claim,
 		IssuerClaimClaimsTreeRoot:       a.Claim.TreeState.ClaimsRoot,
 		IssuerClaimIdenState:            a.Claim.TreeState.State,
-		IssuerClaimMtp:                  PrepareSiblingsStr(a.Claim.AProof.AllSiblings(), LevelsAtomicQueryMTPCircuit),
+		IssuerClaimMtp:                  PrepareSiblingsStr(a.Claim.Proof.AllSiblings(), LevelsAtomicQueryMTPCircuit),
 		IssuerClaimRevTreeRoot:          a.Claim.TreeState.RevocationRoot,
 		IssuerClaimRootsTreeRoot:        a.Claim.TreeState.RootOfRoots,
 		IssuerClaimNonRevClaimsTreeRoot: a.Claim.NonRevProof.TreeState.ClaimsRoot,

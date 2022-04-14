@@ -113,17 +113,6 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 		RootOfRoots:    &merkletree.HashZero,
 	}
 
-	var mtpClaimProof Proof
-	mtpClaimProof.Siblings = proof.AllSiblings()
-	mtpClaimProof.NodeAux = nil
-
-	if proof.NodeAux != nil {
-		mtpClaimProof.NodeAux = &NodeAux{
-			HIndex: proof.NodeAux.Key,
-			HValue: proof.NodeAux.Key,
-		}
-	}
-
 	issuerRevTreeStorage := memory.NewMemoryStorage()
 	issuerRevTree, err := merkletree.NewMerkleTree(ctx, issuerRevTreeStorage,
 		40)
@@ -133,18 +122,6 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 		big.NewInt(int64(nonce)), issuerRevTree.Root())
 	assert.Nil(t, err)
 
-	var nonRevProof Proof
-	nonRevProof.Siblings = proofNotRevoke.AllSiblings()
-	nonRevProof.NodeAux = nil
-
-	if proofNotRevoke.NodeAux != nil {
-		nonRevProof.NodeAux = &NodeAux{
-			HIndex: proofNotRevoke.NodeAux.Key,
-			HValue: proofNotRevoke.NodeAux.Key,
-		}
-	}
-
-	var userAuthClaim Claim
 	authNonRevProof, _ := merkletree.NewProofFromData(true, []*merkletree.Hash{}, nil)
 
 	userNonRevProof := ClaimNonRevStatus{
@@ -153,32 +130,28 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	}
 
 	inputsAuthClaim := Claim{
-		Schema: userAuthClaim.Schema,
+		//Schema: userAuthClaim.Schema,
 		//Slots:            getSlots(userAuthCoreClaim),
-		Claim:            userAuthCoreClaim,
-		AProof:           mtpAuthUser,
-		TreeState:        userAuthTreeState,
-		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
-		NonRevProof:      userNonRevProof,
+		Claim:       userAuthCoreClaim,
+		Proof:       mtpAuthUser,
+		TreeState:   userAuthTreeState,
+		NonRevProof: userNonRevProof,
 	}
 
 	inputsUserStateInRelayClaim := Claim{
-		Schema: userAuthClaim.Schema,
-		//Slots:            getSlots(claimUserStateInRelay),
-		Claim:            claimUserStateInRelay,
-		AProof:           proofUserStateInRelay,
-		TreeState:        relayTreeState,
-		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
+		//Schema:    userAuthClaim.Schema,
+		Claim:     claimUserStateInRelay,
+		Proof:     proofUserStateInRelay,
+		TreeState: relayTreeState,
 	}
 
 	inputsUserClaim := Claim{
-		Claim:  issuerCoreClaim,
-		Schema: issuerCoreClaim.GetSchemaHash(),
+		Claim: issuerCoreClaim,
+		//Schema: issuerCoreClaim.GetSchemaHash(),
 		//Slots:            getSlots(issuerCoreClaim),
-		AProof:           proof,
-		TreeState:        issuerStateAfterClaimAdd,
-		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
-		IssuerID:         issuerID,
+		Proof:     proof,
+		TreeState: issuerStateAfterClaimAdd,
+		IssuerID:  issuerID,
 		NonRevProof: ClaimNonRevStatus{
 			TreeState: issuerStateAfterClaimAdd,
 			Proof:     proofNotRevoke,
@@ -197,11 +170,12 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 		Challenge: challenge,
 		Signature: challengeSignature,
 
-		//CurrentStateTree: userAuthTreeState,
+		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
 
 		UserStateInRelayClaim: inputsUserStateInRelayClaim,
 
-		Claim: inputsUserClaim,
+		Claim:  inputsUserClaim,
+		Schema: issuerCoreClaim.GetSchemaHash(),
 
 		Query: query,
 	}
