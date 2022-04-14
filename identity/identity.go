@@ -5,7 +5,7 @@ import (
 	"encoding/hex"
 	"math/big"
 
-	"github.com/iden3/go-iden3-core"
+	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/iden3/go-merkletree-sql"
@@ -66,7 +66,8 @@ func Generate(ctx context.Context, privKHex string) (*core.ID,
 	}
 
 	// create new identity
-	identifier, err := core.IdGenesisFromIdenState(core.TypeDefault, claimsTree.Root().BigInt())
+	identifier, err := core.IdGenesisFromIdenState(core.TypeDefault,
+		claimsTree.Root().BigInt())
 	if err != nil {
 		return nil, nil, nil, nil, err, nil, nil
 	}
