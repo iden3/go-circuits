@@ -172,7 +172,7 @@ type AtomicQueryMTPOutputs struct {
 	SlotIndex            int
 	Values               []*big.Int
 	Operator             int
-	TimeStamp            int64
+	Timestamp            int64
 }
 
 func (ao *AtomicQueryMTPOutputs) CircuitUnmarshal(data []byte) error {
@@ -228,7 +228,7 @@ func (ao *AtomicQueryMTPOutputs) CircuitUnmarshal(data []byte) error {
 		return err
 	}
 
-	if ao.TimeStamp, err = strconv.ParseInt(sVals[23], 10, 64); err != nil {
+	if ao.Timestamp, err = strconv.ParseInt(sVals[23], 10, 64); err != nil {
 		return err
 	}
 
