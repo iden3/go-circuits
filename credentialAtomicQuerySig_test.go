@@ -147,24 +147,6 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		},
 	}
 
-	inputsUserClaim := Claim{
-		//Schema:    issuerCoreClaim.GetSchemaHash(),
-		Claim:     issuerCoreClaim,
-		Proof:     proof,
-		TreeState: issuerStateAfterClaimAdd,
-		NonRevProof: ClaimNonRevStatus{
-			TreeState: issuerStateAfterClaimAdd,
-			Proof:     proofNotRevoke,
-		},
-		IssuerID: issuerIdentity,
-	}
-
-	query := Query{
-		SlotIndex: 2,
-		Values:    []*big.Int{new(big.Int).SetInt64(10)},
-		Operator:  0,
-	}
-
 	claimIssuerSignature := BJJSignatureProof{
 		BaseSignatureProof: BaseSignatureProof{
 			IssuerID:           issuerIdentity,
@@ -177,15 +159,30 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		HValue:          merkletree.NewHashFromBigInt(hValueAuthEntryIssuer),
 	}
 
+	inputsUserClaim := Claim{
+		//Schema:    issuerCoreClaim.GetSchemaHash(),
+		Claim:     issuerCoreClaim,
+		Proof:     proof,
+		TreeState: issuerStateAfterClaimAdd,
+		NonRevProof: ClaimNonRevStatus{
+			TreeState: issuerStateAfterClaimAdd,
+			Proof:     proofNotRevoke,
+		},
+		IssuerID:       issuerIdentity,
+		SignatureProof: claimIssuerSignature,
+	}
+
+	query := Query{
+		SlotIndex: 2,
+		Values:    []*big.Int{new(big.Int).SetInt64(10)},
+		Operator:  0,
+	}
+
 	atomicInputs := AtomicQuerySigInputs{
 		ID:        userIdentity,
 		AuthClaim: inputsAuthClaim,
 		Challenge: challenge,
 		Signature: challengeSignature,
-
-		CurrentStateTree: userAuthTreeState,
-
-		SignatureProof: claimIssuerSignature,
 
 		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
 		Schema:           issuerCoreClaim.GetSchemaHash(),

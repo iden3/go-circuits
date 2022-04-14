@@ -44,11 +44,12 @@ type ClaimNonRevStatus struct {
 }
 
 type Claim struct {
-	Claim       *core.Claim
-	TreeState   TreeState
-	IssuerID    *core.ID
-	Proof       *merkletree.Proof
-	NonRevProof ClaimNonRevStatus // Claim non revocation proof
+	Claim          *core.Claim
+	TreeState      TreeState
+	IssuerID       *core.ID
+	Proof          *merkletree.Proof
+	NonRevProof    ClaimNonRevStatus // Claim non revocation proof
+	SignatureProof BJJSignatureProof
 }
 
 type TreeState struct {

@@ -37,18 +37,13 @@ type AtomicQuerySigInputs struct {
 	// auth
 	ID        *core.ID
 	AuthClaim Claim
-	//AuthClaimRevStatus RevocationStatus
 	Challenge *big.Int
 	Signature *babyjub.Signature
-
-	CurrentStateTree TreeState
 
 	// issuerClaim
 	Claim
 	//RevocationStatus
 
-	//
-	SignatureProof BJJSignatureProof
 	// query
 	Query
 
