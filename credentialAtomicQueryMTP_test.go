@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"math/big"
+	"strconv"
 	"testing"
 	"time"
 
@@ -215,6 +216,68 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 
 	assert.Equal(t, expectedInputs, actualInputs)
 
+}
+
+func TestAtomicQueryMTPOutputs_CircuitUnmarshal(t *testing.T) {
+	userPrivKHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
+	issuerPrivKHex := "21a5e7321d0e2f3ca1cc6504396e6594a2211544b08c206847cdee96f832421a"
+	challenge := new(big.Int).SetInt64(1)
+	ctx := context.Background()
+
+	userID, uClaimsTree, _, _, err, _, _ := identity.Generate(ctx,
+		userPrivKHex)
+	assert.Nil(t, err)
+
+	userState, err := merkletree.HashElems(
+		uClaimsTree.Root().BigInt(),
+		merkletree.HashZero.BigInt(),
+		merkletree.HashZero.BigInt())
+
+	// Issuer
+	issuerID, iClaimsTree, _, _, err, _, _ := identity.Generate(ctx,
+		issuerPrivKHex)
+	assert.Nil(t, err)
+
+	issuerState, err := merkletree.HashElems(
+		iClaimsTree.Root().BigInt(),
+		merkletree.HashZero.BigInt(),
+		merkletree.HashZero.BigInt())
+
+	claimSchema := "ce6bb12c96bfd1544c02c289c6b4b987" // TODO(illia-korotia): here not big.Int. Is ok?
+	slotIndex := "1"
+	values := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"}
+	operator := "1"
+	timeStamp := strconv.FormatInt(time.Now().Unix(), 10)
+
+	outputsData := []string{userID.BigInt().String(), userState.BigInt().String(), challenge.String(), claimSchema,
+		issuerState.BigInt().String(), issuerID.BigInt().String(), slotIndex}
+	outputsData = append(outputsData, values...)
+	outputsData = append(outputsData, operator, timeStamp)
+
+	data, err := json.Marshal(outputsData)
+	assert.NoError(t, err)
+
+	out := new(AtomicQueryMTPOutputs)
+	err = out.CircuitUnmarshal(data)
+	assert.NoError(t, err)
+
+	assert.Equal(t, userID, out.UserID)
+	assert.Equal(t, userState, out.UserState)
+	assert.Equal(t, challenge, out.Challenge)
+
+	hex, err := out.ClaimSchema.MarshalText()
+	assert.NoError(t, err)
+	assert.Equal(t, []byte(claimSchema), hex)
+
+	assert.Equal(t, issuerState, out.IssuerClaimIdenState)
+	assert.Equal(t, issuerID, out.IssuerID)
+	assert.Equal(t, slotIndex, strconv.Itoa(out.SlotIndex))
+	assert.Equal(t, len(values), len(out.Values))
+	for i, v := range out.Values {
+		assert.Equal(t, values[i], v.String())
+	}
+	assert.Equal(t, operator, strconv.Itoa(out.Operator))
+	assert.Equal(t, timeStamp, strconv.FormatInt(out.TimeStamp, 10))
 }
 
 func claimsIndexValueHashes(c core.Claim) (*big.Int, *big.Int, error) {
