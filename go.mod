@@ -19,3 +19,10 @@ require (
 	golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e // indirect
 	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
+
+retract (
+	// incorrect versions published too early
+	[v0.12.0, v0.12.1]
+	v0.11.0
+	v0.10.0
+)
