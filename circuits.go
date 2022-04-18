@@ -1,8 +1,11 @@
 package circuits
 
 import (
-	"fmt"
+	"encoding/json"
+	"reflect"
 	"sync"
+
+	"github.com/pkg/errors"
 )
 
 // BaseCircuit is generic circuit interface
@@ -22,7 +25,34 @@ func RegisterCircuit(id CircuitID, c BaseCircuit) {
 	defaultCircuits[id] = c
 }
 
-// GetCircuit Gets a circuit implementation by circuit ID
+// ErrorCircuitIDNotFound returns if CircuitID is not registered
+var ErrorCircuitIDNotFound = errors.New("circuit id not supported")
+
+// UnmarshalCircuitOutput unmarshal bytes to specific circuit output type associated with id
+func UnmarshalCircuitOutput(id CircuitID, b []byte) (map[string]interface{}, error) {
+	circuitsLock.RLock()
+	defer circuitsLock.RUnlock()
+
+	circuitOutputType, exist := defaultCircuits[id]
+	if !exist {
+		return nil, ErrorCircuitIDNotFound
+	}
+
+	typ := reflect.TypeOf(circuitOutputType)
+	val := reflect.New(typ.Elem())
+
+	newPointer := val.Interface()
+
+	if err := json.Unmarshal(b, newPointer); err != nil {
+		return nil, err
+	}
+
+	m := newPointer.(BaseCircuit).GetJSONObjMap()
+
+	return m, nil
+}
+
+// GetCircuit Gets a circuit implementation type by circuit ID
 func GetCircuit(id CircuitID) (circuit BaseCircuit, err error) {
 	circuitsLock.RLock()
 	defer circuitsLock.RUnlock()
