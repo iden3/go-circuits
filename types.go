@@ -9,9 +9,6 @@ import (
 // VerificationKeyJSON describes type verification key in JSON format
 type VerificationKeyJSON string
 
-// PublicSchemaJSON is a schema for public signals of circuit
-type PublicSchemaJSON string
-
 // CircuitID is alias for circuit identifier
 type CircuitID string
 
