@@ -11,7 +11,7 @@ import (
 // BaseCircuit is generic circuit interface
 type BaseCircuit interface {
 	GetVerificationKey() VerificationKeyJSON
-	GetPublicSignalsSchema() PublicSchemaJSON
+	GetJSONObjMap() map[string]interface{}
 }
 
 var defaultCircuits = map[CircuitID]BaseCircuit{}
@@ -59,8 +59,7 @@ func GetCircuit(id CircuitID) (circuit BaseCircuit, err error) {
 
 	circuit, ok := defaultCircuits[id]
 	if !ok {
-		return nil, fmt.Errorf(
-			"circuit with id %s is not supported by library", id)
+		return nil, ErrorCircuitIDNotFound
 	}
 	return circuit, nil
 }
