@@ -223,6 +223,7 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 		uClaimsTree.Root().BigInt(),
 		merkletree.HashZero.BigInt(),
 		merkletree.HashZero.BigInt())
+	assert.Nil(t, err)
 
 	// Issuer
 	issuerID, iClaimsTree, _, _, err, _, _ := it.Generate(ctx,
@@ -233,6 +234,7 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 		iClaimsTree.Root().BigInt(),
 		merkletree.HashZero.BigInt(),
 		merkletree.HashZero.BigInt())
+	assert.Nil(t, err)
 
 	claimSchema := "ce6bb12c96bfd1544c02c289c6b4b987" // TODO(illia-korotia): here not big.Int. Is ok?
 	slotIndex := "1"

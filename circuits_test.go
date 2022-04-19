@@ -28,6 +28,7 @@ func TestUnmarshalCircuitOutput(t *testing.T) {
 	assert.Nil(t, err)
 
 	got, err := UnmarshalCircuitOutput(AuthCircuitID, json)
+	assert.Nil(t, err)
 
 	assert.Equal(t, got["UserID"], &id)
 	assert.Equal(t, got["Challenge"], challenge)

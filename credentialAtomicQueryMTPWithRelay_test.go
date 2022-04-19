@@ -265,6 +265,7 @@ func TestAtomicQueryMTPWithRelayOutputs_CircuitUnmarshal(t *testing.T) {
 		uClaimsTree.Root().BigInt(),
 		merkletree.HashZero.BigInt(),
 		merkletree.HashZero.BigInt())
+	assert.Nil(t, err)
 
 	// Issuer
 	issuerID, _, _, _, err, _, _ := it.Generate(ctx,
