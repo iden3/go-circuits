@@ -3,9 +3,10 @@ module github.com/iden3/go-circuits
 go 1.17
 
 require (
-	github.com/iden3/go-iden3-core v0.0.15-0.20220413140012-a0cb71f65748
+	github.com/fatih/structs v1.1.0
+	github.com/iden3/go-iden3-core v0.0.15
 	github.com/iden3/go-iden3-crypto v0.0.13
-	github.com/iden3/go-merkletree-sql v1.0.0-pre8
+	github.com/iden3/go-merkletree-sql v1.0.0-pre9
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 )
