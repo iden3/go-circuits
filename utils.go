@@ -65,36 +65,12 @@ func PrepareCircuitArrayValues(arr []*big.Int, size int) ([]*big.Int, error) {
 	return arr, nil
 }
 
-func mergeMaps(maps ...map[string]interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
-	for _, m := range maps {
-		for k, v := range m {
-			result[k] = v
-		}
-	}
-	return result
-}
-
 func bigIntArrayToStringArray(array []*big.Int) []string {
 	res := make([]string, 0)
 	for i := range array {
 		res = append(res, array[i].String())
 	}
 	return res
-}
-
-func getSlots(claim *core.Claim) []*big.Int {
-	inputs := make([]*big.Int, 0)
-
-	index, value := claim.RawSlots()
-
-	for i := range index {
-		inputs = append(inputs, index[i].ToInt())
-	}
-	for i := range value {
-		inputs = append(inputs, value[i].ToInt())
-	}
-	return inputs
 }
 
 type nodeAuxValue struct {
@@ -122,7 +98,7 @@ func getNodeAuxValue(a *merkletree.NodeAux) nodeAuxValue {
 
 func IDFromStr(s string) (*core.ID, error) {
 	strID, b := new(big.Int).SetString(s, 10)
-	if b == false {
+	if !b {
 		return nil, fmt.Errorf("can not convert {%s} to ID", s)
 	}
 	id, err := core.IDFromInt(strID)
