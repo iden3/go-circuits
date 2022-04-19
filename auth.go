@@ -11,7 +11,7 @@ import (
 	"github.com/iden3/go-merkletree-sql"
 )
 
-// AuthInputs ZK inputs
+// AuthInputs type represent auth.circom private inputs
 type AuthInputs struct {
 	BaseConfig
 
@@ -23,6 +23,7 @@ type AuthInputs struct {
 	Challenge *big.Int
 }
 
+// authCircuitInputs type reflect auth.circom private inputs required by prover
 type authCircuitInputs struct {
 	UserAuthClaim               *core.Claim      `json:"userAuthClaim"`
 	UserAuthClaimMtp            []string         `json:"userAuthClaimMtp"`
@@ -41,6 +42,7 @@ type authCircuitInputs struct {
 	UserState                   *merkletree.Hash `json:"userState"`
 }
 
+// CircuitInputMarshal returns Circom private inputs for auth.circom
 func (a AuthInputs) CircuitInputMarshal() ([]byte, error) {
 
 	s := authCircuitInputs{
@@ -68,12 +70,14 @@ func (a AuthInputs) CircuitInputMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+// AuthOutputs auth.circom public inputs
 type AuthOutputs struct {
 	Challenge *big.Int         `json:"challenge"`
 	UserState *merkletree.Hash `json:"userState"`
 	UserID    *core.ID         `json:"userID"`
 }
 
+// CircuitOutputUnmarshal unmarshal auth.circom public inputs to AuthOutputs
 func (a *AuthOutputs) CircuitOutputUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -101,6 +105,7 @@ func (a *AuthOutputs) CircuitOutputUnmarshal(data []byte) error {
 	return nil
 }
 
+// GetJSONObjMap returns AuthOutputs as a map
 func (a AuthOutputs) GetJSONObjMap() map[string]interface{} {
 	return structs.Map(a)
 }

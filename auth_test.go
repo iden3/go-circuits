@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/iden3/go-circuits/identity"
+	it "github.com/iden3/go-circuits/testing"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -15,7 +15,7 @@ func TestCircuitMarshal(t *testing.T) {
 	ctx := context.Background()
 	privKeyHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
 	challenge := big.NewInt(1)
-	identifier, claim, state, claimsTree, revTree, rootsTree, claimEntryMTP, claimNonRevMTP, signature, err := identity.AuthClaimFullInfo(ctx, privKeyHex, challenge)
+	identifier, claim, state, claimsTree, revTree, rootsTree, claimEntryMTP, claimNonRevMTP, signature, err := it.AuthClaimFullInfo(ctx, privKeyHex, challenge)
 	assert.Nil(t, err)
 
 	treeState := TreeState{
@@ -58,7 +58,7 @@ func TestAuthCircuit_CircuitUnmarshal(t *testing.T) {
 	ctx := context.Background()
 	privKeyHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
 	challenge := big.NewInt(1)
-	identifier, _, state, _, _, _, _, _, _, err := identity.AuthClaimFullInfo(ctx, privKeyHex, challenge)
+	identifier, _, state, _, _, _, _, _, _, err := it.AuthClaimFullInfo(ctx, privKeyHex, challenge)
 	assert.NoError(t, err)
 
 	out := []string{challenge.String(), state.BigInt().String(), identifier.BigInt().String()}
@@ -71,4 +71,13 @@ func TestAuthCircuit_CircuitUnmarshal(t *testing.T) {
 	assert.Equal(t, challenge, ao.Challenge)
 	assert.Equal(t, state, ao.UserState)
 	assert.Equal(t, identifier, ao.UserID)
+}
+
+func TestAuthCircuit_DefaultValues(t *testing.T) {
+	in := AuthInputs{}
+	in.MTLevel = 4
+	in.ValueArraySize = 2
+
+	assert.Equal(t, 4, in.GetMTLevel())
+	assert.Equal(t, 2, in.GetValueArrSize())
 }
