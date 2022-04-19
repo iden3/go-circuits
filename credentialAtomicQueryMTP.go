@@ -12,7 +12,7 @@ import (
 	"github.com/iden3/go-merkletree-sql"
 )
 
-// AtomicQueryMTPInputs represents Input Data for kyc and kycBySignatures Data
+// AtomicQueryMTPInputs ZK private inputs for credentialAtomicQueryMTP.circom
 type AtomicQueryMTPInputs struct {
 	BaseConfig
 	// auth
@@ -30,6 +30,7 @@ type AtomicQueryMTPInputs struct {
 	Query
 }
 
+// stateTransitionInputsInternal type represents credentialAtomicQueryMTP.circom private inputs required by prover
 type atomicQueryMTPCircuitInputs struct {
 	UserAuthClaim               *core.Claim      `json:"userAuthClaim"`
 	UserAuthClaimMtp            []string         `json:"userAuthClaimMtp"`
@@ -70,6 +71,7 @@ type atomicQueryMTPCircuitInputs struct {
 	Value                           []string         `json:"value"`
 }
 
+// CircuitInputMarshal returns Circom private inputs for credentialAtomicQueryMTP.circom
 func (a AtomicQueryMTPInputs) CircuitInputMarshal() ([]byte, error) {
 
 	s := atomicQueryMTPCircuitInputs{
@@ -125,6 +127,7 @@ func (a AtomicQueryMTPInputs) CircuitInputMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+// AtomicQueryMTPOutputs public inputs
 type AtomicQueryMTPOutputs struct {
 	UserID               *core.ID         `json:"userID"`
 	UserState            *merkletree.Hash `json:"userState"`
@@ -138,6 +141,7 @@ type AtomicQueryMTPOutputs struct {
 	Timestamp            int64            `json:"timestamp"`
 }
 
+// CircuitOutputUnmarshal unmarshal credentialAtomicQueryMTP.circom public inputs
 func (ao *AtomicQueryMTPOutputs) CircuitOutputUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -198,6 +202,7 @@ func (ao *AtomicQueryMTPOutputs) CircuitOutputUnmarshal(data []byte) error {
 	return nil
 }
 
+// GetJSONObjMap returns struct field as a map
 func (ao AtomicQueryMTPOutputs) GetJSONObjMap() map[string]interface{} {
 	return structs.Map(ao)
 }
