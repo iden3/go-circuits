@@ -11,7 +11,7 @@ import (
 
 var (
 	//go:embed verificationKeys
-	res embed.FS
+	verificationKeysRes embed.FS
 )
 
 // CircuitID is alias for circuit identifier
@@ -40,7 +40,7 @@ const (
 	defaultValueArraySize = 16 // max value array size, default value for identity circuits
 )
 
-var defaultCircuits = map[CircuitID]Data{}
+var circuitsRegistry = map[CircuitID]Data{}
 var circuitsLock = new(sync.RWMutex)
 
 // RegisterCircuit is factory for circuit init.
@@ -49,7 +49,7 @@ func RegisterCircuit(id CircuitID, c Data) {
 	circuitsLock.Lock()
 	defer circuitsLock.Unlock()
 
-	defaultCircuits[id] = c
+	circuitsRegistry[id] = c
 }
 
 // nolint // register supported circuit
@@ -90,8 +90,7 @@ func init() {
 	})
 }
 
-// BaseConfig base circuit's config, all default circuits use default configuration
-// If need it can be changed
+// BaseConfig base circuit's config, provides default configuration for default circuits
 type BaseConfig struct {
 	MTLevel        int // Max levels of MT
 	ValueArraySize int // Size if value array in identity circuits
@@ -128,6 +127,7 @@ type JSONOutputMapper interface {
 	GetJSONObjMap() map[string]interface{}
 }
 
+// CircuitOutput interface implemented by types that can be registered in circuit registry
 type CircuitOutput interface {
 	OutputUnmarshaller
 	JSONOutputMapper
@@ -139,22 +139,22 @@ type KeyLoader interface {
 	Load() ([]byte, error)
 }
 
-// Data base circuit
+// Data circuit type
 type Data struct {
-	Input           InputMarshaller
-	Output          CircuitOutput
+	Input           InputMarshaller // input values type
+	Output          CircuitOutput   // output values type
 	VerificationKey KeyLoader
 	ProvingKey      KeyLoader
 }
 
-// embedFSLoader read verification keys from embedded FS
+// embedFSLoader read keys from embedded FS
 type embedFSLoader struct {
 	path string
 }
 
 // Load keys from embedded FS
 func (m embedFSLoader) Load() ([]byte, error) {
-	return res.ReadFile(m.path)
+	return verificationKeysRes.ReadFile(m.path)
 }
 
 // UnmarshalCircuitOutput unmarshal bytes to specific circuit Output type associated with id
@@ -162,7 +162,7 @@ func UnmarshalCircuitOutput(id CircuitID, b []byte) (map[string]interface{}, err
 	circuitsLock.RLock()
 	defer circuitsLock.RUnlock()
 
-	circuitOutputType, exist := defaultCircuits[id]
+	circuitOutputType, exist := circuitsRegistry[id]
 	if !exist {
 		return nil, ErrorCircuitIDNotFound
 	}
@@ -186,7 +186,7 @@ func GetVerificationKey(id CircuitID) ([]byte, error) {
 	circuitsLock.RLock()
 	defer circuitsLock.RUnlock()
 
-	circuit, ok := defaultCircuits[id]
+	circuit, ok := circuitsRegistry[id]
 	if !ok {
 		return nil, ErrorCircuitIDNotFound
 	}
@@ -199,7 +199,7 @@ func GetCircuit(id CircuitID) (*Data, error) {
 	circuitsLock.RLock()
 	defer circuitsLock.RUnlock()
 
-	circuit, ok := defaultCircuits[id]
+	circuit, ok := circuitsRegistry[id]
 	if !ok {
 		return nil, ErrorCircuitIDNotFound
 	}
