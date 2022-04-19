@@ -144,10 +144,3 @@ func claimsIndexValueHashes(c core.Claim) (*big.Int, *big.Int, error) {
 	valueHash, err := poseidon.Hash(core.ElemBytesToInts(value[:]))
 	return indexHash, valueHash, err
 }
-
-// coreElemBytesFromHashPtr coverts *merkletree.Hash to core.ElemBytes
-func coreElemBytesFromHashPtr(h *merkletree.Hash) core.ElemBytes {
-	var eb core.ElemBytes
-	copy(eb[:], h[:])
-	return eb
-}
