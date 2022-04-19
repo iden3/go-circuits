@@ -10,7 +10,7 @@ import (
 	"github.com/iden3/go-merkletree-sql"
 )
 
-// StateTransitionInputs ZK inputs
+// StateTransitionInputs ZK private inputs for stateTransition.circom
 type StateTransitionInputs struct {
 	BaseConfig
 
@@ -24,6 +24,7 @@ type StateTransitionInputs struct {
 	Signature                   *babyjub.Signature
 }
 
+// stateTransitionInputsInternal type represents stateTransition.circom private inputs required by prover
 type stateTransitionInputsInternal struct {
 	AuthClaim               core.Claim       `json:"authClaim"`
 	AuthClaimMtp            []string         `json:"authClaimMtp"`
@@ -42,6 +43,7 @@ type stateTransitionInputsInternal struct {
 	SignatureS              string           `json:"signatureS"`
 }
 
+// CircuitInputMarshal returns Circom private inputs for stateTransition.circom
 func (c StateTransitionInputs) CircuitInputMarshal() ([]byte, error) {
 
 	s := stateTransitionInputsInternal{
@@ -72,13 +74,14 @@ func (c StateTransitionInputs) CircuitInputMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// StateTransitionOutput `{"userID":0,"oldUserState":1,"newUserState":2}`
+// StateTransitionOutput stateTransition.circom public inputs
 type StateTransitionOutput struct {
 	UserID       *core.ID         `json:"userID"`
 	OldUserState *merkletree.Hash `json:"oldUserState"`
 	NewUserState *merkletree.Hash `json:"newUserState"`
 }
 
+// CircuitOutputUnmarshal unmarshal stateTransition.circom public inputs
 func (s *StateTransitionOutput) CircuitOutputUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -102,6 +105,7 @@ func (s *StateTransitionOutput) CircuitOutputUnmarshal(data []byte) error {
 	return nil
 }
 
+// GetJSONObjMap returns struct field as a map
 func (s StateTransitionOutput) GetJSONObjMap() map[string]interface{} {
 	return structs.Map(s)
 }
