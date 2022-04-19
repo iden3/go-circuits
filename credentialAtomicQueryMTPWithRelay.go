@@ -12,7 +12,7 @@ import (
 	"github.com/iden3/go-merkletree-sql"
 )
 
-// AtomicQueryMTPWithRelayInputs represents Input Data for kyc and kycBySignatures Data
+// AtomicQueryMTPWithRelayInputs ZK private inputs for credentialAtomicQueryMTPWithRelay.circom
 type AtomicQueryMTPWithRelayInputs struct {
 	BaseConfig
 
@@ -35,6 +35,7 @@ type AtomicQueryMTPWithRelayInputs struct {
 	Query
 }
 
+// atomicQueryMTPWithRelayCircuitInputs type represents credentialAtomicQueryMTPWithRelay.circom
 type atomicQueryMTPWithRelayCircuitInputs struct {
 	UserAuthClaim               *core.Claim      `json:"userAuthClaim"`
 	UserAuthClaimMtp            []string         `json:"userAuthClaimMtp"`
@@ -82,6 +83,7 @@ type atomicQueryMTPWithRelayCircuitInputs struct {
 	UserStateInRelayClaimMtp      []string         `json:"userStateInRelayClaimMtp"`
 }
 
+// CircuitInputMarshal returns Circom private inputs for credentialAtomicQueryMTPWithRelay.circom
 func (a AtomicQueryMTPWithRelayInputs) CircuitInputMarshal() ([]byte, error) {
 
 	s := atomicQueryMTPWithRelayCircuitInputs{
@@ -145,6 +147,7 @@ func (a AtomicQueryMTPWithRelayInputs) CircuitInputMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+// AtomicQueryMTPWithRelayOutputs public inputs
 type AtomicQueryMTPWithRelayOutputs struct {
 	UserID      *core.ID         `json:"userID"`
 	RelayState  *merkletree.Hash `json:"relayState"`
@@ -157,6 +160,7 @@ type AtomicQueryMTPWithRelayOutputs struct {
 	IssuerID    *core.ID         `json:"issuerID"`
 }
 
+// CircuitOutputUnmarshal unmarshal credentialAtomicQueryMTPWithRelay.circom public inputs
 func (ao *AtomicQueryMTPWithRelayOutputs) CircuitOutputUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -208,6 +212,7 @@ func (ao *AtomicQueryMTPWithRelayOutputs) CircuitOutputUnmarshal(data []byte) er
 	return nil
 }
 
+// GetJSONObjMap returns struct field as a map
 func (ao AtomicQueryMTPWithRelayOutputs) GetJSONObjMap() map[string]interface{} {
 	return structs.Map(ao)
 }

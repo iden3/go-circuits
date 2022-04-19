@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iden3/go-circuits/identity"
+	it "github.com/iden3/go-circuits/testing"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-merkletree-sql/db/memory"
@@ -26,10 +26,10 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 
 	//User
 	userIdentity, uClaimsTree, _, _, err, userAuthCoreClaim, userPrivateKey :=
-		identity.Generate(ctx, userPrivKHex)
+		it.Generate(ctx, userPrivKHex)
 	assert.Nil(t, err)
 
-	userState, err := identity.CalcStateFromRoots(uClaimsTree)
+	userState, err := it.CalcStateFromRoots(uClaimsTree)
 
 	userAuthTreeState := TreeState{
 		State:          userState, // Note: userState is not going as an Input into the circuit
@@ -65,7 +65,7 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	}
 
 	// Issuer
-	issuerID, iClaimsTree, _, _, err, _, _ := identity.Generate(ctx,
+	issuerID, iClaimsTree, _, _, err, _, _ := it.Generate(ctx,
 		issuerPrivKHex)
 	assert.Nil(t, err)
 
@@ -204,7 +204,7 @@ func generateRelayWithIdenStateClaim(relayPrivKeyHex string,
 	*merkletree.Hash, error) {
 
 	ctx := context.Background()
-	_, relayClaimsTree, _, _, _, _, _ := identity.Generate(ctx, relayPrivKeyHex)
+	_, relayClaimsTree, _, _, _, _, _ := it.Generate(ctx, relayPrivKeyHex)
 
 	var schemaHash core.SchemaHash
 	schemaEncodedBytes, _ := hex.DecodeString("e22dd9c0f7aef15788c130d4d86c7156")
@@ -224,7 +224,7 @@ func generateRelayWithIdenStateClaim(relayPrivKeyHex string,
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	relayState, err := identity.CalcStateFromRoots(relayClaimsTree)
+	relayState, err := it.CalcStateFromRoots(relayClaimsTree)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, err
 	}
@@ -257,7 +257,7 @@ func TestAtomicQueryMTPWithRelayOutputs_CircuitUnmarshal(t *testing.T) {
 	challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
 
-	userID, uClaimsTree, _, _, err, _, _ := identity.Generate(ctx,
+	userID, uClaimsTree, _, _, err, _, _ := it.Generate(ctx,
 		userPrivKHex)
 	assert.Nil(t, err)
 
@@ -267,7 +267,7 @@ func TestAtomicQueryMTPWithRelayOutputs_CircuitUnmarshal(t *testing.T) {
 		merkletree.HashZero.BigInt())
 
 	// Issuer
-	issuerID, _, _, _, err, _, _ := identity.Generate(ctx,
+	issuerID, _, _, _, err, _, _ := it.Generate(ctx,
 		issuerPrivKHex)
 	assert.Nil(t, err)
 
