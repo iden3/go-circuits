@@ -9,7 +9,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/iden3/go-circuits/identity"
+	it "github.com/iden3/go-circuits/testing"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-merkletree-sql/db/memory"
@@ -23,7 +23,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
 
-	userIdentity, uClaimsTree, _, _, err, userAuthCoreClaim, userPrivateKey := identity.Generate(ctx,
+	userIdentity, uClaimsTree, _, _, err, userAuthCoreClaim, userPrivateKey := it.Generate(ctx,
 		userPrivKHex)
 	assert.Nil(t, err)
 
@@ -52,7 +52,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	challengeSignature := userPrivateKey.SignPoseidon(message)
 
 	// Issuer
-	issuerIdentity, iClaimsTree, _, _, err, issuerAuthClaim, issuerKey := identity.Generate(ctx,
+	issuerIdentity, iClaimsTree, _, _, err, issuerAuthClaim, issuerKey := it.Generate(ctx,
 		issuerPrivKHex)
 	assert.Nil(t, err)
 
@@ -215,7 +215,7 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 	challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
 
-	userID, uClaimsTree, _, _, err, _, _ := identity.Generate(ctx,
+	userID, uClaimsTree, _, _, err, _, _ := it.Generate(ctx,
 		userPrivKHex)
 	assert.Nil(t, err)
 
@@ -225,7 +225,7 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 		merkletree.HashZero.BigInt())
 
 	// Issuer
-	issuerID, iClaimsTree, _, _, err, _, _ := identity.Generate(ctx,
+	issuerID, iClaimsTree, _, _, err, _, _ := it.Generate(ctx,
 		issuerPrivKHex)
 	assert.Nil(t, err)
 
