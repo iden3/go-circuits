@@ -12,14 +12,7 @@ import (
 	"github.com/iden3/go-merkletree-sql"
 )
 
-//const (
-//	// AtomicQueryMTPWithRelayVerificationKey is verification key to verify credentialAtomicQuery.circom
-//	AtomicQueryMTPWithRelayVerificationKey VerificationKeyJSON = ``
-//)
-
-//type AtomicQueryMTPWithRelay struct{}
-
-// AtomicQueryMTPWithRelayInputs represents input Data for kyc and kycBySignatures Data
+// AtomicQueryMTPWithRelayInputs represents Input Data for kyc and kycBySignatures Data
 type AtomicQueryMTPWithRelayInputs struct {
 	BaseConfig
 
@@ -40,8 +33,6 @@ type AtomicQueryMTPWithRelayInputs struct {
 
 	// query
 	Query
-
-	InputMarshaller
 }
 
 type atomicQueryMTPWithRelayCircuitInputs struct {
@@ -154,16 +145,6 @@ func (a AtomicQueryMTPWithRelayInputs) CircuitInputMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// nolint // common approach to register default supported circuit
-func init() {
-	//RegisterCircuit(AtomicQueryMTPWithRelayCircuitID, &AtomicQueryMTPWithRelayOutputs{})
-}
-
-//// GetVerificationKey returns verification key for circuit
-//func (ao *AtomicQueryMTPWithRelayOutputs) GetVerificationKey() VerificationKeyJSON {
-//	return AtomicQueryMTPWithRelayVerificationKey
-//}
-
 type AtomicQueryMTPWithRelayOutputs struct {
 	UserID      *core.ID         `json:"userID"`
 	RelayState  *merkletree.Hash `json:"relayState"`
@@ -184,7 +165,7 @@ func (ao *AtomicQueryMTPWithRelayOutputs) CircuitOutputUnmarshal(data []byte) er
 	}
 
 	if len(sVals) != 9 {
-		return fmt.Errorf("invalid number of output values expected {%d} go {%d} ", 9, len(sVals))
+		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 9, len(sVals))
 	}
 
 	if ao.UserID, err = IDFromStr(sVals[0]); err != nil {

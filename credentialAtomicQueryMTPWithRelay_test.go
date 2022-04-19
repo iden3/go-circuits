@@ -32,7 +32,7 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 	userState, err := identity.CalcStateFromRoots(uClaimsTree)
 
 	userAuthTreeState := TreeState{
-		State:          userState, // Note: userState is not going as an input into the circuit
+		State:          userState, // Note: userState is not going as an Input into the circuit
 		ClaimsRoot:     uClaimsTree.Root(),
 		RevocationRoot: &merkletree.HashZero,
 		RootOfRoots:    &merkletree.HashZero,

@@ -21,8 +21,6 @@ type AuthInputs struct {
 
 	Signature *babyjub.Signature
 	Challenge *big.Int
-
-	InputMarshaller
 }
 
 type authCircuitInputs struct {
@@ -84,7 +82,7 @@ func (a *AuthOutputs) CircuitOutputUnmarshal(data []byte) error {
 	}
 
 	if len(sVals) != 3 {
-		return fmt.Errorf("invalid number of output values expected {%d} got {%d} ", 3, len(sVals))
+		return fmt.Errorf("invalid number of Output values expected {%d} got {%d} ", 3, len(sVals))
 	}
 
 	var ok bool

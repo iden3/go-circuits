@@ -56,37 +56,37 @@ func RegisterCircuit(id CircuitID, c Data) {
 func init() {
 
 	RegisterCircuit(AuthCircuitID, Data{
-		input:           AuthInputs{},
-		output:          &AuthOutputs{},
-		verificationKey: embedFSLoader{"verificationKeys/auth.json"},
-		provingKey:      nil,
+		Input:           AuthInputs{},
+		Output:          &AuthOutputs{},
+		VerificationKey: embedFSLoader{"verificationKeys/auth.json"},
+		ProvingKey:      nil,
 	})
 
 	RegisterCircuit(StateTransitionCircuitID, Data{
-		input:           StateTransitionInputs{},
-		output:          &StateTransitionOutput{},
-		verificationKey: embedFSLoader{"verificationKeys/stateTransition.json"},
-		provingKey:      nil,
+		Input:           StateTransitionInputs{},
+		Output:          &StateTransitionOutput{},
+		VerificationKey: embedFSLoader{"verificationKeys/stateTransition.json"},
+		ProvingKey:      nil,
 	})
 
 	RegisterCircuit(AtomicQueryMTPCircuitID, Data{
-		input:           AtomicQueryMTPInputs{},
-		output:          &AtomicQueryMTPOutputs{},
-		verificationKey: embedFSLoader{"verificationKeys/credentialAtomicQueryMTP.json"},
-		provingKey:      nil,
+		Input:           AtomicQueryMTPInputs{},
+		Output:          &AtomicQueryMTPOutputs{},
+		VerificationKey: embedFSLoader{"verificationKeys/credentialAtomicQueryMTP.json"},
+		ProvingKey:      nil,
 	})
 
 	RegisterCircuit(AtomicQueryMTPWithRelayCircuitID, Data{
-		input:           AtomicQueryMTPWithRelayInputs{},
-		output:          &AtomicQueryMTPWithRelayOutputs{},
-		verificationKey: embedFSLoader{"verificationKeys/credentialAtomicQueryMTPWithRelay.json"},
-		provingKey:      nil,
+		Input:           AtomicQueryMTPWithRelayInputs{},
+		Output:          &AtomicQueryMTPWithRelayOutputs{},
+		VerificationKey: embedFSLoader{"verificationKeys/credentialAtomicQueryMTPWithRelay.json"},
+		ProvingKey:      nil,
 	})
 	RegisterCircuit(AtomicQuerySigCircuitID, Data{
-		input:           AtomicQuerySigInputs{},
-		output:          &AtomicQuerySigOutputs{},
-		verificationKey: embedFSLoader{"verificationKeys/credentialAtomicQuerySig.json"},
-		provingKey:      nil,
+		Input:           AtomicQuerySigInputs{},
+		Output:          &AtomicQuerySigOutputs{},
+		VerificationKey: embedFSLoader{"verificationKeys/credentialAtomicQuerySig.json"},
+		ProvingKey:      nil,
 	})
 }
 
@@ -97,7 +97,7 @@ type BaseConfig struct {
 	ValueArraySize int // Size if value array in identity circuits
 }
 
-// GetMTLevel max MT levels
+// GetMTLevel max circuit MT levels
 func (c BaseConfig) GetMTLevel() int {
 	if c.MTLevel == 0 {
 		return defaultMTLevels
@@ -113,17 +113,24 @@ func (c BaseConfig) GetValueArrSize() int {
 	return c.ValueArraySize
 }
 
+// InputMarshaller interface implemented by types that can marshal circuit `input` structures
 type InputMarshaller interface {
 	CircuitInputMarshal() ([]byte, error)
 }
 
+// OutputUnmarshaller interface implemented by types that can unmarshal circuit `output` structures
 type OutputUnmarshaller interface {
 	CircuitOutputUnmarshal(data []byte) error
 }
 
-// BaseCircuit is generic circuit interface
-type BaseCircuit interface {
+// JSONOutputMapper interface implemented by types that can unmarshal circuit `output` to map
+type JSONOutputMapper interface {
 	GetJSONObjMap() map[string]interface{}
+}
+
+type CircuitOutput interface {
+	OutputUnmarshaller
+	JSONOutputMapper
 }
 
 // KeyLoader interface, if key should be fetched from file system, CDN, IPFS etc,
@@ -134,10 +141,10 @@ type KeyLoader interface {
 
 // Data base circuit
 type Data struct {
-	input           InputMarshaller
-	output          OutputUnmarshaller
-	verificationKey KeyLoader
-	provingKey      KeyLoader
+	Input           InputMarshaller
+	Output          CircuitOutput
+	VerificationKey KeyLoader
+	ProvingKey      KeyLoader
 }
 
 // embedFSLoader read verification keys from embedded FS
@@ -150,7 +157,7 @@ func (m embedFSLoader) Load() ([]byte, error) {
 	return res.ReadFile(m.path)
 }
 
-// UnmarshalCircuitOutput unmarshal bytes to specific circuit output type associated with id
+// UnmarshalCircuitOutput unmarshal bytes to specific circuit Output type associated with id
 func UnmarshalCircuitOutput(id CircuitID, b []byte) (map[string]interface{}, error) {
 	circuitsLock.RLock()
 	defer circuitsLock.RUnlock()
@@ -160,7 +167,7 @@ func UnmarshalCircuitOutput(id CircuitID, b []byte) (map[string]interface{}, err
 		return nil, ErrorCircuitIDNotFound
 	}
 
-	typ := reflect.TypeOf(circuitOutputType.output)
+	typ := reflect.TypeOf(circuitOutputType.Output)
 	val := reflect.New(typ.Elem())
 
 	newPointer := val.Interface()
@@ -169,7 +176,7 @@ func UnmarshalCircuitOutput(id CircuitID, b []byte) (map[string]interface{}, err
 		return nil, err
 	}
 
-	m := newPointer.(BaseCircuit).GetJSONObjMap()
+	m := newPointer.(JSONOutputMapper).GetJSONObjMap()
 
 	return m, nil
 }
@@ -184,7 +191,7 @@ func GetVerificationKey(id CircuitID) ([]byte, error) {
 		return nil, ErrorCircuitIDNotFound
 	}
 
-	return circuit.verificationKey.Load()
+	return circuit.VerificationKey.Load()
 }
 
 // GetCircuit return circuit Data

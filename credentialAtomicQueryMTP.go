@@ -12,15 +12,7 @@ import (
 	"github.com/iden3/go-merkletree-sql"
 )
 
-//const (
-//	// AtomicQueryMTPVerificationKey is verification key to verify credentialAtomicQuery.circom
-//	AtomicQueryMTPVerificationKey VerificationKeyJSON = ``
-//)
-
-//// AtomicQueryMTP represents credentialAtomicQuery.circom
-//type AtomicQueryMTP struct{}
-
-// AtomicQueryMTPInputs represents input Data for kyc and kycBySignatures Data
+// AtomicQueryMTPInputs represents Input Data for kyc and kycBySignatures Data
 type AtomicQueryMTPInputs struct {
 	BaseConfig
 	// auth
@@ -29,18 +21,13 @@ type AtomicQueryMTPInputs struct {
 	Challenge *big.Int
 	Signature *babyjub.Signature
 
-	//CurrentStateTree TreeState
-
-	// issuerClaim
-	Claim
+	Claim // claim issued for user
 
 	Schema           core.SchemaHash
 	CurrentTimeStamp int64
 
 	// query
 	Query
-
-	InputMarshaller
 }
 
 type atomicQueryMTPCircuitInputs struct {
@@ -138,16 +125,6 @@ func (a AtomicQueryMTPInputs) CircuitInputMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// nolint // common approach to register default supported circuit
-//func init() {
-//	//RegisterCircuit(AtomicQueryMTPCircuitID, &AtomicQueryMTPOutputs{})
-//}
-
-//// GetVerificationKey returns verification key for circuit
-//func (ao *AtomicQueryMTPOutputs) GetVerificationKey() VerificationKeyJSON {
-//	return AtomicQueryMTPVerificationKey
-//}
-
 type AtomicQueryMTPOutputs struct {
 	UserID               *core.ID         `json:"userID"`
 	UserState            *merkletree.Hash `json:"userState"`
@@ -169,7 +146,7 @@ func (ao *AtomicQueryMTPOutputs) CircuitOutputUnmarshal(data []byte) error {
 	}
 
 	if len(sVals) != 24 {
-		return fmt.Errorf("invalid number of output values expected {%d} go {%d} ", 24, len(sVals))
+		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 24, len(sVals))
 	}
 
 	if ao.UserID, err = IDFromStr(sVals[0]); err != nil {

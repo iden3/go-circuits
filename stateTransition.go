@@ -22,8 +22,6 @@ type StateTransitionInputs struct {
 	AuthClaim                   Claim
 	AuthClaimNonRevocationProof *merkletree.Proof
 	Signature                   *babyjub.Signature
-
-	InputMarshaller
 }
 
 type stateTransitionInputsInternal struct {
@@ -89,7 +87,7 @@ func (s *StateTransitionOutput) CircuitOutputUnmarshal(data []byte) error {
 	}
 
 	if len(sVals) != 3 {
-		return fmt.Errorf("invalid number of output values expected {%d} got {%d} ", 3, len(sVals))
+		return fmt.Errorf("invalid number of Output values expected {%d} got {%d} ", 3, len(sVals))
 	}
 
 	if s.UserID, err = IDFromStr(sVals[0]); err != nil {
