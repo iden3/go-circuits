@@ -160,7 +160,7 @@ type AtomicQueryMTPWithRelayPubSignals struct {
 	IssuerID    *core.ID         `json:"issuerID"`
 }
 
-// CircuitOutputUnmarshal unmarshal credentialAtomicQueryMTPWithRelay.circom public inputs
+// PubSignalsUnmarshal unmarshal credentialAtomicQueryMTPWithRelay.circom public signals
 func (ao *AtomicQueryMTPWithRelayPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)

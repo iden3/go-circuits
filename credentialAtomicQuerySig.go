@@ -158,7 +158,7 @@ type AtomicQuerySigPubSignals struct {
 	Timestamp   int64            `json:"timestamp"`
 }
 
-// CircuitOutputUnmarshal unmarshal credentialAtomicQuerySig.circom public inputs
+// PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
 func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)

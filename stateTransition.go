@@ -81,7 +81,7 @@ type StateTransitionPubSignals struct {
 	NewUserState *merkletree.Hash `json:"newUserState"`
 }
 
-// CircuitOutputUnmarshal unmarshal stateTransition.circom public inputs
+// PubSignalsUnmarshal unmarshal stateTransition.circom public signals
 func (s *StateTransitionPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)

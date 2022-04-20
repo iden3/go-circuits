@@ -141,7 +141,7 @@ type AtomicQueryMTPPubSignals struct {
 	Timestamp            int64            `json:"timestamp"`
 }
 
-// CircuitOutputUnmarshal unmarshal credentialAtomicQueryMTP.circom public inputs
+// PubSignalsUnmarshal unmarshal credentialAtomicQueryMTP.circom public signals
 func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
