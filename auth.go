@@ -43,7 +43,7 @@ type authCircuitInputs struct {
 }
 
 // CircuitInputMarshal returns Circom private inputs for auth.circom
-func (a AuthInputs) CircuitInputMarshal() ([]byte, error) {
+func (a AuthInputs) InputsMarshal() ([]byte, error) {
 
 	s := authCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
@@ -105,7 +105,7 @@ func (a *AuthPubSignals) PubSignalsUnmarshal(data []byte) error {
 	return nil
 }
 
-// GetJSONObjMap returns AuthPubSignals as a map
-func (a AuthPubSignals) GetJSONObjMap() map[string]interface{} {
+// GetObjMap returns AuthPubSignals as a map
+func (a AuthPubSignals) GetObjMap() map[string]interface{} {
 	return structs.Map(a)
 }

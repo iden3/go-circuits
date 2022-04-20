@@ -84,7 +84,7 @@ type atomicQueryMTPWithRelayCircuitInputs struct {
 }
 
 // CircuitInputMarshal returns Circom private inputs for credentialAtomicQueryMTPWithRelay.circom
-func (a AtomicQueryMTPWithRelayInputs) CircuitInputMarshal() ([]byte, error) {
+func (a AtomicQueryMTPWithRelayInputs) InputsMarshal() ([]byte, error) {
 
 	s := atomicQueryMTPWithRelayCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
@@ -212,7 +212,7 @@ func (ao *AtomicQueryMTPWithRelayPubSignals) PubSignalsUnmarshal(data []byte) er
 	return nil
 }
 
-// GetJSONObjMap returns struct field as a map
-func (ao AtomicQueryMTPWithRelayPubSignals) GetJSONObjMap() map[string]interface{} {
+// GetObjMap returns struct field as a map
+func (ao AtomicQueryMTPWithRelayPubSignals) GetObjMap() map[string]interface{} {
 	return structs.Map(ao)
 }

@@ -22,7 +22,7 @@ func TestStateTransitionOutput_GetJSONObj(t *testing.T) {
 		NewUserState: newState,
 	}
 
-	m := sto.GetJSONObjMap()
+	m := sto.GetObjMap()
 	assert.Equal(t, &id, m["UserID"])
 	assert.Equal(t, oldState, m["OldUserState"])
 	assert.Equal(t, newState, m["NewUserState"])

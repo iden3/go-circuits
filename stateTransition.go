@@ -44,7 +44,7 @@ type stateTransitionInputsInternal struct {
 }
 
 // CircuitInputMarshal returns Circom private inputs for stateTransition.circom
-func (c StateTransitionInputs) CircuitInputMarshal() ([]byte, error) {
+func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 
 	s := stateTransitionInputsInternal{
 		AuthClaim:          *c.AuthClaim.Claim,
@@ -105,7 +105,7 @@ func (s *StateTransitionPubSignals) PubSignalsUnmarshal(data []byte) error {
 	return nil
 }
 
-// GetJSONObjMap returns struct field as a map
-func (s StateTransitionPubSignals) GetJSONObjMap() map[string]interface{} {
+// GetObjMap returns struct field as a map
+func (s StateTransitionPubSignals) GetObjMap() map[string]interface{} {
 	return structs.Map(s)
 }

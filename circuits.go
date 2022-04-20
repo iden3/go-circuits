@@ -112,9 +112,9 @@ func (c BaseConfig) GetValueArrSize() int {
 	return c.ValueArraySize
 }
 
-// InputMarshaller interface implemented by types that can marshal circuit `input` structures
-type InputMarshaller interface {
-	CircuitInputMarshal() ([]byte, error)
+// InputsMarshaller interface implemented by types that can marshal circuit `input` structures
+type InputsMarshaller interface {
+	InputsMarshal() ([]byte, error)
 }
 
 // PubSignalsUnmarshaller interface implemented by types that can unmarshal circuit `output` structures
@@ -122,15 +122,15 @@ type PubSignalsUnmarshaller interface {
 	PubSignalsUnmarshal(data []byte) error
 }
 
-// JSONPubSignalsMapper interface implemented by types that can unmarshal circuit `output` to map
-type JSONPubSignalsMapper interface {
-	GetJSONObjMap() map[string]interface{}
+// PubSignalsMapper interface implemented by types that can unmarshal circuit `output` to map
+type PubSignalsMapper interface {
+	GetObjMap() map[string]interface{}
 }
 
 // PubSignals interface implemented by types that can be registered in circuit registry
 type PubSignals interface {
 	PubSignalsUnmarshaller
-	JSONPubSignalsMapper
+	PubSignalsMapper
 }
 
 // KeyLoader interface, if key should be fetched from file system, CDN, IPFS etc,
@@ -141,8 +141,8 @@ type KeyLoader interface {
 
 // Data circuit type
 type Data struct {
-	Input           InputMarshaller // input values type
-	Output          PubSignals      // output values type
+	Input           InputsMarshaller // input values type
+	Output          PubSignals       // output values type
 	VerificationKey KeyLoader
 	ProvingKey      KeyLoader
 }
@@ -176,7 +176,7 @@ func UnmarshalCircuitOutput(id CircuitID, b []byte) (map[string]interface{}, err
 		return nil, err
 	}
 
-	m := newPointer.(JSONPubSignalsMapper).GetJSONObjMap()
+	m := newPointer.(PubSignalsMapper).GetObjMap()
 
 	return m, nil
 }

@@ -80,7 +80,7 @@ type atomicQuerySigCircuitInputs struct {
 }
 
 // CircuitInputMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
-func (a AtomicQuerySigInputs) CircuitInputMarshal() ([]byte, error) {
+func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 
 	s := atomicQuerySigCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
@@ -219,7 +219,7 @@ func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	return nil
 }
 
-// GetJSONObjMap returns struct field as a map
-func (ao AtomicQuerySigPubSignals) GetJSONObjMap() map[string]interface{} {
+// GetObjMap returns struct field as a map
+func (ao AtomicQuerySigPubSignals) GetObjMap() map[string]interface{} {
 	return structs.Map(ao)
 }
