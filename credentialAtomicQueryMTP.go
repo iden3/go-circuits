@@ -153,7 +153,7 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 24, len(sVals))
 	}
 
-	if ao.UserID, err = IDFromStr(sVals[0]); err != nil {
+	if ao.UserID, err = idFromIntStr(sVals[0]); err != nil {
 		return err
 	}
 
@@ -174,7 +174,7 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	if ao.IssuerID, err = IDFromStr(sVals[5]); err != nil {
+	if ao.IssuerID, err = idFromIntStr(sVals[5]); err != nil {
 		return err
 	}
 

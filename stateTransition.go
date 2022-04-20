@@ -93,7 +93,7 @@ func (s *StateTransitionPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid number of Output values expected {%d} got {%d} ", 3, len(sVals))
 	}
 
-	if s.UserID, err = IDFromStr(sVals[0]); err != nil {
+	if s.UserID, err = idFromIntStr(sVals[0]); err != nil {
 		return err
 	}
 	if s.OldUserState, err = merkletree.NewHashFromString(sVals[1]); err != nil {

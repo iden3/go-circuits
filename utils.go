@@ -96,7 +96,7 @@ func getNodeAuxValue(a *merkletree.NodeAux) nodeAuxValue {
 	return aux
 }
 
-func IDFromStr(s string) (*core.ID, error) {
+func idFromIntStr(s string) (*core.ID, error) {
 	strID, b := new(big.Int).SetString(s, 10)
 	if !b {
 		return nil, fmt.Errorf("can not convert {%s} to ID", s)

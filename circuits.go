@@ -122,15 +122,15 @@ type PubSignalsUnmarshaller interface {
 	PubSignalsUnmarshal(data []byte) error
 }
 
-// JSONOutputMapper interface implemented by types that can unmarshal circuit `output` to map
-type JSONOutputMapper interface {
+// JSONPubSignalsMapper interface implemented by types that can unmarshal circuit `output` to map
+type JSONPubSignalsMapper interface {
 	GetJSONObjMap() map[string]interface{}
 }
 
 // PubSignals interface implemented by types that can be registered in circuit registry
 type PubSignals interface {
 	PubSignalsUnmarshaller
-	JSONOutputMapper
+	JSONPubSignalsMapper
 }
 
 // KeyLoader interface, if key should be fetched from file system, CDN, IPFS etc,
@@ -176,7 +176,7 @@ func UnmarshalCircuitOutput(id CircuitID, b []byte) (map[string]interface{}, err
 		return nil, err
 	}
 
-	m := newPointer.(JSONOutputMapper).GetJSONObjMap()
+	m := newPointer.(JSONPubSignalsMapper).GetJSONObjMap()
 
 	return m, nil
 }

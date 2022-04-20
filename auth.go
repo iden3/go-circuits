@@ -77,7 +77,7 @@ type AuthPubSignals struct {
 	UserID    *core.ID         `json:"userID"`
 }
 
-// CircuitOutputUnmarshal unmarshal auth.circom public inputs to AuthPubSignals
+// PubSignalsUnmarshal unmarshal auth.circom public inputs to AuthPubSignals
 func (a *AuthPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -98,7 +98,7 @@ func (a *AuthPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	if a.UserID, err = IDFromStr(sVals[2]); err != nil {
+	if a.UserID, err = idFromIntStr(sVals[2]); err != nil {
 		return err
 	}
 

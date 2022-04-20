@@ -172,7 +172,7 @@ func (ao *AtomicQueryMTPWithRelayPubSignals) PubSignalsUnmarshal(data []byte) er
 		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 9, len(sVals))
 	}
 
-	if ao.UserID, err = IDFromStr(sVals[0]); err != nil {
+	if ao.UserID, err = idFromIntStr(sVals[0]); err != nil {
 		return err
 	}
 
@@ -205,7 +205,7 @@ func (ao *AtomicQueryMTPWithRelayPubSignals) PubSignalsUnmarshal(data []byte) er
 		return err
 	}
 
-	if ao.IssuerID, err = IDFromStr(sVals[8]); err != nil {
+	if ao.IssuerID, err = idFromIntStr(sVals[8]); err != nil {
 		return err
 	}
 
