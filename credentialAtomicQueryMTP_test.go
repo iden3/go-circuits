@@ -213,7 +213,7 @@ func TestAtomicQueryMTPOutputs_CircuitUnmarshal(t *testing.T) {
 	data, err := json.Marshal(outputsData)
 	assert.NoError(t, err)
 
-	out := new(AtomicQueryMTPOutputs)
+	out := new(AtomicQueryMTPPubSignals)
 	err = out.CircuitOutputUnmarshal(data)
 	assert.NoError(t, err)
 

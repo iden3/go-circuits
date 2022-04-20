@@ -71,7 +71,7 @@ func init() {
 
 	RegisterCircuit(AtomicQueryMTPCircuitID, Data{
 		Input:           AtomicQueryMTPInputs{},
-		Output:          &AtomicQueryMTPOutputs{},
+		Output:          &AtomicQueryMTPPubSignals{},
 		VerificationKey: embedFSLoader{"verificationKeys/credentialAtomicQueryMTP.json"},
 		ProvingKey:      nil,
 	})
