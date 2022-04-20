@@ -127,8 +127,8 @@ type JSONOutputMapper interface {
 	GetJSONObjMap() map[string]interface{}
 }
 
-// CircuitOutput interface implemented by types that can be registered in circuit registry
-type CircuitOutput interface {
+// PubSignals interface implemented by types that can be registered in circuit registry
+type PubSignals interface {
 	PubSignalsUnmarshaller
 	JSONOutputMapper
 }
@@ -142,7 +142,7 @@ type KeyLoader interface {
 // Data circuit type
 type Data struct {
 	Input           InputMarshaller // input values type
-	Output          CircuitOutput   // output values type
+	Output          PubSignals      // output values type
 	VerificationKey KeyLoader
 	ProvingKey      KeyLoader
 }
