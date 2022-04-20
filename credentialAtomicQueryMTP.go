@@ -23,7 +23,6 @@ type AtomicQueryMTPInputs struct {
 
 	Claim // claim issued for user
 
-	Schema           core.SchemaHash
 	CurrentTimeStamp int64
 
 	// query
@@ -96,7 +95,7 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimNonRevState:          a.Claim.NonRevProof.TreeState.State,
 		IssuerClaimNonRevMtp: PrepareSiblingsStr(a.Claim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
-		ClaimSchema:        new(big.Int).SetBytes(a.Schema[:]).String(),
+		ClaimSchema:        a.Claim.Claim.GetSchemaHash().BigInt().String(),
 		UserClaimsTreeRoot: a.AuthClaim.TreeState.ClaimsRoot,
 		UserState:          a.AuthClaim.TreeState.State,
 		UserRevTreeRoot:    a.AuthClaim.TreeState.RevocationRoot,
@@ -166,9 +165,11 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
 
-	if ao.ClaimSchema, err = core.NewSchemaHashFromHex(sVals[3]); err != nil {
-		return err
+	var schemaInt *big.Int
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
+		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
+	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
 	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[4]); err != nil {
 		return err
