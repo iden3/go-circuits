@@ -74,15 +74,15 @@ func (c StateTransitionInputs) CircuitInputMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// StateTransitionOutput stateTransition.circom public inputs
-type StateTransitionOutput struct {
+// StateTransitionPubSignals stateTransition.circom public inputs
+type StateTransitionPubSignals struct {
 	UserID       *core.ID         `json:"userID"`
 	OldUserState *merkletree.Hash `json:"oldUserState"`
 	NewUserState *merkletree.Hash `json:"newUserState"`
 }
 
 // CircuitOutputUnmarshal unmarshal stateTransition.circom public inputs
-func (s *StateTransitionOutput) PubSignalsUnmarshal(data []byte) error {
+func (s *StateTransitionPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
@@ -106,6 +106,6 @@ func (s *StateTransitionOutput) PubSignalsUnmarshal(data []byte) error {
 }
 
 // GetJSONObjMap returns struct field as a map
-func (s StateTransitionOutput) GetJSONObjMap() map[string]interface{} {
+func (s StateTransitionPubSignals) GetJSONObjMap() map[string]interface{} {
 	return structs.Map(s)
 }

@@ -64,7 +64,7 @@ func init() {
 
 	RegisterCircuit(StateTransitionCircuitID, Data{
 		Input:           StateTransitionInputs{},
-		Output:          &StateTransitionOutput{},
+		Output:          &StateTransitionPubSignals{},
 		VerificationKey: embedFSLoader{"verificationKeys/stateTransition.json"},
 		ProvingKey:      nil,
 	})

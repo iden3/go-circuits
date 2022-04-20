@@ -16,7 +16,7 @@ func TestStateTransitionOutput_GetJSONObj(t *testing.T) {
 	newState := merkletree.NewHashFromBigInt(big.NewInt(1))
 	oldState := merkletree.NewHashFromBigInt(big.NewInt(2))
 
-	sto := StateTransitionOutput{
+	sto := StateTransitionPubSignals{
 		UserID:       &id,
 		OldUserState: oldState,
 		NewUserState: newState,
