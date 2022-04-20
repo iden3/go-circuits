@@ -18,17 +18,17 @@ var (
 type CircuitID string
 
 const (
-	// AuthCircuitID is a type that must be used for auth circuit id definition
+	// AuthCircuitID is a type that must be used for auth.circom
 	AuthCircuitID CircuitID = "auth"
-	// StateTransitionCircuitID is a type that must be used for idState circuit definition
+	// StateTransitionCircuitID is a type that must be used for stateTransition.circom
 	StateTransitionCircuitID CircuitID = "stateTransition"
 	// AtomicQueryMTPCircuitID is a type for credentialAtomicQueryMTP.circom
 	AtomicQueryMTPCircuitID CircuitID = "credentialAtomicQueryMTP"
 	// AtomicQuerySigCircuitID is a type for credentialAttrQuerySig.circom
 	AtomicQuerySigCircuitID CircuitID = "credentialAtomicQuerySig"
-	// AtomicQueryMTPCircuitID is a type for credentialAtomicQueryMTPWithRelay.circom
+	// AtomicQueryMTPWithRelayCircuitID is a type for credentialAtomicQueryMTPWithRelay.circom
 	AtomicQueryMTPWithRelayCircuitID CircuitID = "credentialAtomicQueryMTPWithRelay"
-	// AtomicQuerySigCircuitID is a type for credentialAttrQuerySigWithRelay.circom
+	// AtomicQuerySigWithRelayCircuitID is a type for credentialAttrQuerySigWithRelay.circom
 	AtomicQuerySigWithRelayCircuitID CircuitID = "credentialAtomicQuerySigWithRelay"
 )
 
