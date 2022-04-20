@@ -286,7 +286,7 @@ func TestAtomicQueryMTPWithRelayOutputs_CircuitUnmarshal(t *testing.T) {
 	data, err := json.Marshal(outputsData)
 	assert.NoError(t, err)
 
-	out := new(AtomicQueryMTPWithRelayOutputs)
+	out := new(AtomicQueryMTPWithRelayPubSignals)
 	err = out.CircuitOutputUnmarshal(data)
 	assert.NoError(t, err)
 

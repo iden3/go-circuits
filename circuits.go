@@ -78,7 +78,7 @@ func init() {
 
 	RegisterCircuit(AtomicQueryMTPWithRelayCircuitID, Data{
 		Input:           AtomicQueryMTPWithRelayInputs{},
-		Output:          &AtomicQueryMTPWithRelayOutputs{},
+		Output:          &AtomicQueryMTPWithRelayPubSignals{},
 		VerificationKey: embedFSLoader{"verificationKeys/credentialAtomicQueryMTPWithRelay.json"},
 		ProvingKey:      nil,
 	})

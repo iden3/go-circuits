@@ -127,7 +127,7 @@ func (a AtomicQueryMTPInputs) CircuitInputMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// AtomicQueryMTPPubSignals public inputs
+// AtomicQueryMTPPubSignals public signals
 type AtomicQueryMTPPubSignals struct {
 	UserID               *core.ID         `json:"userID"`
 	UserState            *merkletree.Hash `json:"userState"`

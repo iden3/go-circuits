@@ -147,8 +147,8 @@ func (a AtomicQueryMTPWithRelayInputs) CircuitInputMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// AtomicQueryMTPWithRelayOutputs public inputs
-type AtomicQueryMTPWithRelayOutputs struct {
+// AtomicQueryMTPWithRelayPubSignals public signals
+type AtomicQueryMTPWithRelayPubSignals struct {
 	UserID      *core.ID         `json:"userID"`
 	RelayState  *merkletree.Hash `json:"relayState"`
 	Challenge   *big.Int         `json:"challenge"`
@@ -161,7 +161,7 @@ type AtomicQueryMTPWithRelayOutputs struct {
 }
 
 // CircuitOutputUnmarshal unmarshal credentialAtomicQueryMTPWithRelay.circom public inputs
-func (ao *AtomicQueryMTPWithRelayOutputs) CircuitOutputUnmarshal(data []byte) error {
+func (ao *AtomicQueryMTPWithRelayPubSignals) CircuitOutputUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
@@ -213,6 +213,6 @@ func (ao *AtomicQueryMTPWithRelayOutputs) CircuitOutputUnmarshal(data []byte) er
 }
 
 // GetJSONObjMap returns struct field as a map
-func (ao AtomicQueryMTPWithRelayOutputs) GetJSONObjMap() map[string]interface{} {
+func (ao AtomicQueryMTPWithRelayPubSignals) GetJSONObjMap() map[string]interface{} {
 	return structs.Map(ao)
 }
