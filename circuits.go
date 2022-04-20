@@ -84,7 +84,7 @@ func init() {
 	})
 	RegisterCircuit(AtomicQuerySigCircuitID, Data{
 		Input:           AtomicQuerySigInputs{},
-		Output:          &AtomicQuerySigOutputs{},
+		Output:          &AtomicQuerySigPubSignals{},
 		VerificationKey: embedFSLoader{"verificationKeys/credentialAtomicQuerySig.json"},
 		ProvingKey:      nil,
 	})

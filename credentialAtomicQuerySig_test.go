@@ -250,7 +250,7 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 	data, err := json.Marshal(outputsData)
 	assert.NoError(t, err)
 
-	out := new(AtomicQuerySigOutputs)
+	out := new(AtomicQuerySigPubSignals)
 	err = out.CircuitOutputUnmarshal(data)
 	assert.NoError(t, err)
 
