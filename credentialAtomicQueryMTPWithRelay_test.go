@@ -272,14 +272,16 @@ func TestAtomicQueryMTPWithRelayOutputs_CircuitUnmarshal(t *testing.T) {
 		issuerPrivKHex)
 	assert.Nil(t, err)
 
-	claimSchema := "ce6bb12c96bfd1544c02c289c6b4b987" // TODO(illia-korotia): here not big.Int. Is ok?
+	claimSchema, err := core.NewSchemaHashFromHex("ce6bb12c96bfd1544c02c289c6b4b987")
+	assert.Nil(t, err)
+
 	slotIndex := "1"
 	value := "1"
 	operator := "1"
 	timeStamp := strconv.FormatInt(time.Now().Unix(), 10)
 
 	outputsData := []string{
-		userID.BigInt().String(), relayState.BigInt().String(), challenge.String(), claimSchema, slotIndex,
+		userID.BigInt().String(), relayState.BigInt().String(), challenge.String(), claimSchema.BigInt().String(), slotIndex,
 		operator, value, timeStamp, issuerID.BigInt().String(),
 	}
 

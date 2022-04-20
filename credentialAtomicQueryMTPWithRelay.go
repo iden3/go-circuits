@@ -29,7 +29,6 @@ type AtomicQueryMTPWithRelayInputs struct {
 	Claim
 
 	CurrentTimeStamp int64
-	Schema           core.SchemaHash
 
 	// query
 	Query
@@ -44,10 +43,9 @@ type atomicQueryMTPWithRelayCircuitInputs struct {
 	UserAuthClaimNonRevMtpAuxHv *merkletree.Hash `json:"userAuthClaimNonRevMtpAuxHv"`
 	UserAuthClaimNonRevMtpNoAux string           `json:"userAuthClaimNonRevMtpNoAux"`
 	UserClaimsTreeRoot          *merkletree.Hash `json:"userClaimsTreeRoot"`
-	//UserState                   *merkletree.Hash `json:"userState"`
-	UserRevTreeRoot   *merkletree.Hash `json:"userRevTreeRoot"`
-	UserRootsTreeRoot *merkletree.Hash `json:"userRootsTreeRoot"`
-	UserID            string           `json:"userID"`
+	UserRevTreeRoot             *merkletree.Hash `json:"userRevTreeRoot"`
+	UserRootsTreeRoot           *merkletree.Hash `json:"userRootsTreeRoot"`
+	UserID                      string           `json:"userID"`
 
 	Challenge             string `json:"challenge"`
 	ChallengeSignatureR8X string `json:"challengeSignatureR8x"`
@@ -83,7 +81,7 @@ type atomicQueryMTPWithRelayCircuitInputs struct {
 	UserStateInRelayClaimMtp      []string         `json:"userStateInRelayClaimMtp"`
 }
 
-// CircuitInputMarshal returns Circom private inputs for credentialAtomicQueryMTPWithRelay.circom
+// InputsMarshal returns Circom private inputs for credentialAtomicQueryMTPWithRelay.circom
 func (a AtomicQueryMTPWithRelayInputs) InputsMarshal() ([]byte, error) {
 
 	s := atomicQueryMTPWithRelayCircuitInputs{
@@ -108,16 +106,15 @@ func (a AtomicQueryMTPWithRelayInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimNonRevState:          a.Claim.NonRevProof.TreeState.State,
 		IssuerClaimNonRevMtp: PrepareSiblingsStr(a.Claim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
-		ClaimSchema:        new(big.Int).SetBytes(a.Schema[:]).String(),
+		ClaimSchema:        a.Claim.Claim.GetSchemaHash().BigInt().String(),
 		UserClaimsTreeRoot: a.AuthClaim.TreeState.ClaimsRoot,
-		//UserState:          a.AuthClaim.TreeState.State,
-		UserRevTreeRoot:   a.AuthClaim.TreeState.RevocationRoot,
-		UserRootsTreeRoot: a.AuthClaim.TreeState.RootOfRoots,
-		UserID:            a.ID.BigInt().String(),
-		IssuerID:          a.IssuerID.BigInt().String(),
-		Operator:          a.Operator,
-		SlotIndex:         a.SlotIndex,
-		Timestamp:         a.CurrentTimeStamp,
+		UserRevTreeRoot:    a.AuthClaim.TreeState.RevocationRoot,
+		UserRootsTreeRoot:  a.AuthClaim.TreeState.RootOfRoots,
+		UserID:             a.ID.BigInt().String(),
+		IssuerID:           a.IssuerID.BigInt().String(),
+		Operator:           a.Operator,
+		SlotIndex:          a.SlotIndex,
+		Timestamp:          a.CurrentTimeStamp,
 
 		RelayProofValidClaimsTreeRoot: a.UserStateInRelayClaim.TreeState.ClaimsRoot,
 		RelayProofValidRevTreeRoot:    a.UserStateInRelayClaim.TreeState.RevocationRoot,
@@ -185,9 +182,11 @@ func (ao *AtomicQueryMTPWithRelayPubSignals) PubSignalsUnmarshal(data []byte) er
 		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
 
-	if ao.ClaimSchema, err = core.NewSchemaHashFromHex(sVals[3]); err != nil {
+	var schemaInt *big.Int
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
 		return err
 	}
+	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
 	if ao.SlotIndex, err = strconv.Atoi(sVals[4]); err != nil {
 		return err

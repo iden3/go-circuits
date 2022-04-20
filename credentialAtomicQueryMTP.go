@@ -167,7 +167,7 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 
 	var schemaInt *big.Int
 	if schemaInt, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
-		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
+		return fmt.Errorf("invalid schema value: '%s'", sVals[0])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
