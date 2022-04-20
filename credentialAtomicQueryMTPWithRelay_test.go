@@ -174,8 +174,7 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 
 		UserStateInRelayClaim: inputsUserStateInRelayClaim,
 
-		Claim:  inputsUserClaim,
-		Schema: issuerCoreClaim.GetSchemaHash(),
+		Claim: inputsUserClaim,
 
 		Query: query,
 	}
