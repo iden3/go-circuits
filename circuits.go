@@ -117,9 +117,9 @@ type InputMarshaller interface {
 	CircuitInputMarshal() ([]byte, error)
 }
 
-// OutputUnmarshaller interface implemented by types that can unmarshal circuit `output` structures
-type OutputUnmarshaller interface {
-	CircuitOutputUnmarshal(data []byte) error
+// PubSignalsUnmarshaller interface implemented by types that can unmarshal circuit `output` structures
+type PubSignalsUnmarshaller interface {
+	PubSignalsUnmarshal(data []byte) error
 }
 
 // JSONOutputMapper interface implemented by types that can unmarshal circuit `output` to map
@@ -129,7 +129,7 @@ type JSONOutputMapper interface {
 
 // CircuitOutput interface implemented by types that can be registered in circuit registry
 type CircuitOutput interface {
-	OutputUnmarshaller
+	PubSignalsUnmarshaller
 	JSONOutputMapper
 }
 

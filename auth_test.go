@@ -66,7 +66,7 @@ func TestAuthCircuit_CircuitUnmarshal(t *testing.T) {
 	assert.NoError(t, err)
 
 	ao := AuthPubSignals{}
-	err = ao.CircuitOutputUnmarshal(bytesOut)
+	err = ao.PubSignalsUnmarshal(bytesOut)
 	assert.NoError(t, err)
 	assert.Equal(t, challenge, ao.Challenge)
 	assert.Equal(t, state, ao.UserState)

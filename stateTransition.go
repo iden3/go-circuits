@@ -82,7 +82,7 @@ type StateTransitionOutput struct {
 }
 
 // CircuitOutputUnmarshal unmarshal stateTransition.circom public inputs
-func (s *StateTransitionOutput) CircuitOutputUnmarshal(data []byte) error {
+func (s *StateTransitionOutput) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {

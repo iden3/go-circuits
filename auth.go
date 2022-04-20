@@ -78,7 +78,7 @@ type AuthPubSignals struct {
 }
 
 // CircuitOutputUnmarshal unmarshal auth.circom public inputs to AuthPubSignals
-func (a *AuthPubSignals) CircuitOutputUnmarshal(data []byte) error {
+func (a *AuthPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {

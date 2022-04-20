@@ -214,7 +214,7 @@ func TestAtomicQueryMTPOutputs_CircuitUnmarshal(t *testing.T) {
 	assert.NoError(t, err)
 
 	out := new(AtomicQueryMTPPubSignals)
-	err = out.CircuitOutputUnmarshal(data)
+	err = out.PubSignalsUnmarshal(data)
 	assert.NoError(t, err)
 
 	assert.Equal(t, userID, out.UserID)

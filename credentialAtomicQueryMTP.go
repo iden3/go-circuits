@@ -142,7 +142,7 @@ type AtomicQueryMTPPubSignals struct {
 }
 
 // CircuitOutputUnmarshal unmarshal credentialAtomicQueryMTP.circom public inputs
-func (ao *AtomicQueryMTPPubSignals) CircuitOutputUnmarshal(data []byte) error {
+func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {

@@ -287,7 +287,7 @@ func TestAtomicQueryMTPWithRelayOutputs_CircuitUnmarshal(t *testing.T) {
 	assert.NoError(t, err)
 
 	out := new(AtomicQueryMTPWithRelayPubSignals)
-	err = out.CircuitOutputUnmarshal(data)
+	err = out.PubSignalsUnmarshal(data)
 	assert.NoError(t, err)
 
 	assert.Equal(t, userID, out.UserID)

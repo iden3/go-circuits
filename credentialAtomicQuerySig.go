@@ -159,7 +159,7 @@ type AtomicQuerySigPubSignals struct {
 }
 
 // CircuitOutputUnmarshal unmarshal credentialAtomicQuerySig.circom public inputs
-func (ao *AtomicQuerySigPubSignals) CircuitOutputUnmarshal(data []byte) error {
+func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {

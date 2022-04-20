@@ -161,7 +161,7 @@ type AtomicQueryMTPWithRelayPubSignals struct {
 }
 
 // CircuitOutputUnmarshal unmarshal credentialAtomicQueryMTPWithRelay.circom public inputs
-func (ao *AtomicQueryMTPWithRelayPubSignals) CircuitOutputUnmarshal(data []byte) error {
+func (ao *AtomicQueryMTPWithRelayPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
