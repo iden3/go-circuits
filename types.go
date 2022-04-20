@@ -6,9 +6,6 @@ import (
 	"github.com/iden3/go-merkletree-sql"
 )
 
-// VerificationKeyJSON describes type verification key in JSON format
-type VerificationKeyJSON string
-
 type ClaimNonRevStatus struct {
 	TreeState TreeState
 	Proof     *merkletree.Proof
@@ -30,10 +27,6 @@ type TreeState struct {
 	RootOfRoots    *merkletree.Hash
 }
 
-type SignatureProof interface {
-	signatureProofMarker()
-}
-
 type BaseSignatureProof struct {
 	IssuerID           *core.ID
 	IssuerTreeState    TreeState
@@ -47,5 +40,3 @@ type BJJSignatureProof struct {
 	HIndex          *merkletree.Hash
 	HValue          *merkletree.Hash
 }
-
-func (BJJSignatureProof) signatureProofMarker() {}

@@ -40,14 +40,6 @@ func HashToStr(siblings []*merkletree.Hash) []string {
 	return siblingsStr
 }
 
-func BigIntToStr(s []*big.Int) []string {
-	siblingsStr := make([]string, len(s))
-	for i, sibling := range s {
-		siblingsStr[i] = sibling.String()
-	}
-	return siblingsStr
-}
-
 // PrepareCircuitArrayValues padding values to size. Validate array size and throw an exception if array is bigger
 // than size
 // if array is bigger circuit cannot compile because number of inputs does not match
