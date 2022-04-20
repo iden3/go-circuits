@@ -295,9 +295,7 @@ func TestAtomicQueryMTPWithRelayOutputs_CircuitUnmarshal(t *testing.T) {
 	assert.Equal(t, relayState, out.RelayState)
 	assert.Equal(t, challenge, out.Challenge)
 
-	hexSchema, err := out.ClaimSchema.MarshalText()
-	assert.NoError(t, err)
-	assert.Equal(t, claimSchema, string(hexSchema))
+	assert.Equal(t, claimSchema, out.ClaimSchema)
 
 	assert.Equal(t, slotIndex, strconv.Itoa(out.SlotIndex))
 	assert.Equal(t, operator, strconv.Itoa(out.Operator))

@@ -27,7 +27,6 @@ type AtomicQuerySigInputs struct {
 	Query
 
 	CurrentTimeStamp int64
-	Schema           core.SchemaHash
 }
 
 // atomicQuerySigCircuitInputs type represents credentialAtomicQuerySig.circom private inputs required by prover
@@ -79,7 +78,7 @@ type atomicQuerySigCircuitInputs struct {
 	IssuerRootsTreeRoot     *merkletree.Hash `json:"issuerRootsTreeRoot"`
 }
 
-// CircuitInputMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
+// InputsMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
 func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 
 	s := atomicQuerySigCircuitInputs{
@@ -99,7 +98,7 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimNonRevState:          a.Claim.NonRevProof.TreeState.State,
 		IssuerClaimNonRevMtp: PrepareSiblingsStr(a.Claim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
-		ClaimSchema:             new(big.Int).SetBytes(a.Schema[:]).String(),
+		ClaimSchema:             a.Claim.Claim.GetSchemaHash().BigInt().String(),
 		UserClaimsTreeRoot:      a.AuthClaim.TreeState.ClaimsRoot,
 		UserState:               a.AuthClaim.TreeState.State,
 		UserRevTreeRoot:         a.AuthClaim.TreeState.RevocationRoot,
@@ -183,9 +182,11 @@ func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
 
-	if ao.ClaimSchema, err = core.NewSchemaHashFromHex(sVals[3]); err != nil {
-		return err
+	var schemaInt *big.Int
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
+		return fmt.Errorf("invalid schema value: '%s'", sVals[3])
 	}
+	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
 	if ao.IssuerID, err = idFromIntStr(sVals[4]); err != nil {
 		return err

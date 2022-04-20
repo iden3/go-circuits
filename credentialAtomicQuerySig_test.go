@@ -185,7 +185,6 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		Signature: challengeSignature,
 
 		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
-		Schema:           issuerCoreClaim.GetSchemaHash(),
 
 		Claim: inputsUserClaim,
 
@@ -236,13 +235,16 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 		merkletree.HashZero.BigInt())
 	assert.Nil(t, err)
 
-	claimSchema := "ce6bb12c96bfd1544c02c289c6b4b987" // TODO(illia-korotia): here not big.Int. Is ok?
+	claimSchema, err := core.NewSchemaHashFromHex("ce6bb12c96bfd1544c02c289c6b4b987")
+	assert.Nil(t, err)
+
 	slotIndex := "1"
 	values := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"}
 	operator := "1"
 	timeStamp := strconv.FormatInt(time.Now().Unix(), 10)
 
-	outputsData := []string{userID.BigInt().String(), userState.BigInt().String(), challenge.String(), claimSchema,
+	outputsData := []string{userID.BigInt().String(), userState.BigInt().String(), challenge.String(),
+		claimSchema.BigInt().String(),
 		issuerID.BigInt().String(), issuerState.BigInt().String(), slotIndex}
 	outputsData = append(outputsData, values...)
 	outputsData = append(outputsData, operator, timeStamp)
@@ -258,9 +260,7 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 	assert.Equal(t, userState, out.UserState)
 	assert.Equal(t, challenge, out.Challenge)
 
-	hex, err := out.ClaimSchema.MarshalText()
-	assert.NoError(t, err)
-	assert.Equal(t, []byte(claimSchema), hex)
+	assert.Equal(t, claimSchema, out.ClaimSchema)
 
 	assert.Equal(t, issuerID, out.IssuerID)
 	assert.Equal(t, issuerState, out.IssuerState)
