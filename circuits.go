@@ -57,7 +57,7 @@ func init() {
 
 	RegisterCircuit(AuthCircuitID, Data{
 		Input:           AuthInputs{},
-		Output:          &AuthOutputs{},
+		Output:          &AuthPubSignals{},
 		VerificationKey: embedFSLoader{"verificationKeys/auth.json"},
 		ProvingKey:      nil,
 	})

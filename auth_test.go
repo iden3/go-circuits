@@ -65,7 +65,7 @@ func TestAuthCircuit_CircuitUnmarshal(t *testing.T) {
 	bytesOut, err := json.Marshal(out)
 	assert.NoError(t, err)
 
-	ao := AuthOutputs{}
+	ao := AuthPubSignals{}
 	err = ao.CircuitOutputUnmarshal(bytesOut)
 	assert.NoError(t, err)
 	assert.Equal(t, challenge, ao.Challenge)

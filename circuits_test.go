@@ -18,7 +18,7 @@ func TestUnmarshalCircuitOutput(t *testing.T) {
 
 	challenge := big.NewInt(11)
 	userState := merkletree.NewHashFromBigInt(big.NewInt(12))
-	out := AuthOutputs{
+	out := AuthPubSignals{
 		Challenge: challenge,
 		UserState: userState,
 		UserID:    &id,

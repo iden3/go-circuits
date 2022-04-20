@@ -70,15 +70,15 @@ func (a AuthInputs) CircuitInputMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// AuthOutputs auth.circom public inputs
-type AuthOutputs struct {
+// AuthPubSignals auth.circom public signals
+type AuthPubSignals struct {
 	Challenge *big.Int         `json:"challenge"`
 	UserState *merkletree.Hash `json:"userState"`
 	UserID    *core.ID         `json:"userID"`
 }
 
-// CircuitOutputUnmarshal unmarshal auth.circom public inputs to AuthOutputs
-func (a *AuthOutputs) CircuitOutputUnmarshal(data []byte) error {
+// CircuitOutputUnmarshal unmarshal auth.circom public inputs to AuthPubSignals
+func (a *AuthPubSignals) CircuitOutputUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
@@ -105,7 +105,7 @@ func (a *AuthOutputs) CircuitOutputUnmarshal(data []byte) error {
 	return nil
 }
 
-// GetJSONObjMap returns AuthOutputs as a map
-func (a AuthOutputs) GetJSONObjMap() map[string]interface{} {
+// GetJSONObjMap returns AuthPubSignals as a map
+func (a AuthPubSignals) GetJSONObjMap() map[string]interface{} {
 	return structs.Map(a)
 }
