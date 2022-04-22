@@ -1,9 +1,10 @@
 package circuits
 
 import (
+	"fmt"
 	"math/big"
 
-	"github.com/iden3/go-iden3-core"
+	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/pkg/errors"
 )
@@ -20,6 +21,23 @@ func PrepareSiblings(siblings []*merkletree.Hash, levels int) []*big.Int {
 		siblingsBigInt[i] = sibling.BigInt()
 	}
 	return siblingsBigInt
+}
+
+func PrepareSiblingsStr(siblings []*merkletree.Hash, levels int) []string {
+	// siblings := mtproof.AllSiblings()
+	// Add the rest of empty levels to the siblings
+	for i := len(siblings); i < levels; i++ {
+		siblings = append(siblings, &merkletree.HashZero)
+	}
+	return HashToStr(siblings)
+}
+
+func HashToStr(siblings []*merkletree.Hash) []string {
+	siblingsStr := make([]string, len(siblings))
+	for i, sibling := range siblings {
+		siblingsStr[i] = sibling.BigInt().String()
+	}
+	return siblingsStr
 }
 
 // PrepareCircuitArrayValues padding values to size. Validate array size and throw an exception if array is bigger
@@ -39,16 +57,6 @@ func PrepareCircuitArrayValues(arr []*big.Int, size int) ([]*big.Int, error) {
 	return arr, nil
 }
 
-func mergeMaps(maps ...map[string]interface{}) map[string]interface{} {
-	result := make(map[string]interface{})
-	for _, m := range maps {
-		for k, v := range m {
-			result[k] = v
-		}
-	}
-	return result
-}
-
 func bigIntArrayToStringArray(array []*big.Int) []string {
 	res := make([]string, 0)
 	for i := range array {
@@ -57,29 +65,38 @@ func bigIntArrayToStringArray(array []*big.Int) []string {
 	return res
 }
 
-func getSlots(claim *core.Claim) []*big.Int {
-	inputs := make([]*big.Int, 0)
-
-	index, value := claim.RawSlots()
-
-	for i := range index {
-		inputs = append(inputs, index[i].ToInt())
-	}
-	for i := range value {
-		inputs = append(inputs, value[i].ToInt())
-	}
-	return inputs
+type nodeAuxValue struct {
+	key   *merkletree.Hash
+	value *merkletree.Hash
+	noAux string
 }
 
-func convertMTPtoProof(claimEntryMTP *merkletree.Proof) Proof {
-	var claimEntryProof Proof
-	claimEntryProof.Siblings = claimEntryMTP.AllSiblings()
+func getNodeAuxValue(a *merkletree.NodeAux) nodeAuxValue {
 
-	if claimEntryMTP.NodeAux != nil {
-		claimEntryProof.NodeAux = &NodeAux{
-			HIndex: claimEntryMTP.NodeAux.Key,
-			HValue: claimEntryMTP.NodeAux.Key,
-		}
+	aux := nodeAuxValue{
+		key:   &merkletree.HashZero,
+		value: &merkletree.HashZero,
+		noAux: "1",
 	}
-	return claimEntryProof
+
+	if a != nil && a.Value != nil && a.Key != nil {
+		aux.key = a.Key
+		aux.value = a.Value
+		aux.noAux = "0"
+	}
+
+	return aux
+}
+
+func idFromIntStr(s string) (*core.ID, error) {
+	strID, b := new(big.Int).SetString(s, 10)
+	if !b {
+		return nil, fmt.Errorf("can not convert {%s} to ID", s)
+	}
+	id, err := core.IDFromInt(strID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &id, nil
 }

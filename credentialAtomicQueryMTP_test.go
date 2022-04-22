@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math/big"
+	"strconv"
 	"testing"
 	"time"
 
-	"github.com/iden3/go-circuits/identity"
+	it "github.com/iden3/go-circuits/testing"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/stretchr/testify/require"
 
@@ -24,7 +26,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
 
-	userIdentity, uClaimsTree, _, _, err, userAuthCoreClaim, userPrivateKey := identity.Generate(ctx,
+	userIdentity, uClaimsTree, _, _, err, userAuthCoreClaim, userPrivateKey := it.Generate(ctx,
 		userPrivKHex)
 	assert.Nil(t, err)
 
@@ -47,23 +49,13 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	mtpProofUser, _, err := uClaimsTree.GenerateProof(ctx,
 		hIndexAuthEntryUser, uClaimsTree.Root())
 	assert.Nil(t, err)
-	var mtpAuthUser Proof
-	mtpAuthUser.Siblings = mtpProofUser.AllSiblings()
-	mtpAuthUser.NodeAux = nil
-
-	if mtpProofUser.NodeAux != nil {
-		mtpAuthUser.NodeAux = &NodeAux{
-			HIndex: mtpProofUser.NodeAux.Key,
-			HValue: mtpProofUser.NodeAux.Key,
-		}
-	}
 
 	message := big.NewInt(0).SetBytes(challenge.Bytes())
 
 	challengeSignature := userPrivateKey.SignPoseidon(message)
 
 	// Issuer
-	issuerID, iClaimsTree, _, _, err, _, _ := identity.Generate(ctx,
+	issuerID, iClaimsTree, _, _, err, _, _ := it.Generate(ctx,
 		issuerPrivKHex)
 	assert.Nil(t, err)
 
@@ -111,17 +103,6 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		RootOfRoots:    &merkletree.HashZero,
 	}
 
-	var mtpClaimProof Proof
-	mtpClaimProof.Siblings = proof.AllSiblings()
-	mtpClaimProof.NodeAux = nil
-
-	if proof.NodeAux != nil {
-		mtpClaimProof.NodeAux = &NodeAux{
-			HIndex: proof.NodeAux.Key,
-			HValue: proof.NodeAux.Key,
-		}
-	}
-
 	issuerRevTreeStorage := memory.NewMemoryStorage()
 	issuerRevTree, err := merkletree.NewMerkleTree(ctx, issuerRevTreeStorage,
 		40)
@@ -131,39 +112,27 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		big.NewInt(int64(nonce)), issuerRevTree.Root())
 	assert.Nil(t, err)
 
-	var nonRevProof Proof
-	nonRevProof.Siblings = proofNotRevoke.AllSiblings()
-	nonRevProof.NodeAux = nil
-
-	if proofNotRevoke.NodeAux != nil {
-		nonRevProof.NodeAux = &NodeAux{
-			HIndex: proofNotRevoke.NodeAux.Key,
-			HValue: proofNotRevoke.NodeAux.Key,
-		}
-	}
-
-	var userAuthClaim Claim
-
+	te := time.Unix(1642074362, 0).Unix()
+	fmt.Println(te)
 	inputsAuthClaim := Claim{
-		Schema:           userAuthClaim.Schema,
-		Slots:            getSlots(userAuthCoreClaim),
-		Proof:            mtpAuthUser,
-		TreeState:        userAuthTreeState,
-		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
+		Claim:     userAuthCoreClaim,
+		Proof:     mtpProofUser,
+		TreeState: userAuthTreeState,
+		NonRevProof: ClaimNonRevStatus{
+			TreeState: userAuthTreeState,
+			Proof:     &merkletree.Proof{},
+		},
 	}
 
 	inputsUserClaim := Claim{
-		Schema:           issuerCoreClaim.GetSchemaHash(),
-		Slots:            getSlots(issuerCoreClaim),
-		Proof:            mtpClaimProof,
-		TreeState:        issuerStateAfterClaimAdd,
-		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
-		IssuerID:         issuerID,
-	}
-
-	revocationStatus := RevocationStatus{
+		Claim:     issuerCoreClaim,
+		Proof:     proof,
 		TreeState: issuerStateAfterClaimAdd,
-		Proof:     nonRevProof,
+		IssuerID:  issuerID,
+		NonRevProof: ClaimNonRevStatus{
+			TreeState: issuerStateAfterClaimAdd,
+			Proof:     proofNotRevoke,
+		},
 	}
 
 	query := Query{
@@ -172,42 +141,27 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		Operator:  0,
 	}
 
-	userAuthClaimNonRevProof := Proof{
-		Siblings: nil,
-		NodeAux:  nil,
-	}
 	atomicInputs := AtomicQueryMTPInputs{
 		ID:        userIdentity,
 		AuthClaim: inputsAuthClaim,
 		Challenge: challenge,
 		Signature: challengeSignature,
 
-		CurrentStateTree: userAuthTreeState,
+		Claim: inputsUserClaim,
 
-		Claim:            inputsUserClaim,
-		RevocationStatus: revocationStatus,
+		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
 
-		AuthClaimRevStatus: RevocationStatus{
-			TreeState: userAuthTreeState,
-			Proof:     userAuthClaimNonRevProof,
-		},
 		Query: query,
 	}
 
-	c, err := GetCircuit(AtomicQueryMTPCircuitID)
+	bytesInputs, err := atomicInputs.InputsMarshal()
 	assert.Nil(t, err)
 
-	inputs, err := c.PrepareInputs(atomicInputs)
-	assert.Nil(t, err)
-
-	bytesInputs, err := json.Marshal(inputs)
-	assert.Nil(t, err)
-
-	expectedJSONInputs := `{"userAuthClaim":["269270088098491255471307608775043319525","0","17640206035128972995519606214765283372613874593503528180869261482403155458945","20634138280259599560273310290025659992320584624461316485434108770067472477956","15930428023331155902","0","0","0"],"userAuthClaimMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"userAuthClaimNonRevMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"userAuthClaimNonRevMtpAuxHi":"0","userAuthClaimNonRevMtpAuxHv":"0","userAuthClaimNonRevMtpNoAux":"1","challenge":"1","challengeSignatureR8x":"8553678144208642175027223770335048072652078621216414881653012537434846327449","challengeSignatureR8y":"5507837342589329113352496188906367161790372084365285966741761856353367255709","challengeSignatureS":"2093461910575977345603199789919760192811763972089699387324401771367839603655","issuerClaim":["3677203805624134172815825715044445108615","286312392162647260160287083374160163061246635086990474403590223113720496128","10","0","30803922965249841627828060161","0","0","0"],"issuerClaimClaimsTreeRoot":"12781049434766209895790529815771921100011665835724745028505992240548230711728","issuerClaimIdenState":"20606705619830543359176597576564222044873771515109680973150322899613614552596","issuerClaimMtp":["0","3007906543589053223183609977424583669571967498470079791401931468580200755448","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"issuerClaimRevTreeRoot":"0","issuerClaimRootsTreeRoot":"0","issuerClaimNonRevClaimsTreeRoot":"12781049434766209895790529815771921100011665835724745028505992240548230711728","issuerClaimNonRevRevTreeRoot":"0","issuerClaimNonRevRootsTreeRoot":"0","issuerClaimNonRevState":"20606705619830543359176597576564222044873771515109680973150322899613614552596","issuerClaimNonRevMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"issuerClaimNonRevMtpAuxHi":"0","issuerClaimNonRevMtpAuxHv":"0","issuerClaimNonRevMtpNoAux":"1","claimSchema":"274380136414749538182079640726762994055","userClaimsTreeRoot":"8033159210005724351649063848617878571712113104821846241291681963936214187701","userState":"5816868615164565912277677884704888703982258184820398645933682814085602171910","userRevTreeRoot":"0","userRootsTreeRoot":"0","userID":"286312392162647260160287083374160163061246635086990474403590223113720496128","issuerID":"296941560404583387587196218166209608454370683337298127000644446413747191808","operator":0,"slotIndex":2,"timestamp":"1642074362","value":["10","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]}
-   `
+	expectedJSONInputs := `{"userAuthClaim":["304427537360709784173770334266246861770","0","17640206035128972995519606214765283372613874593503528180869261482403155458945","20634138280259599560273310290025659992320584624461316485434108770067472477956","15930428023331155902","0","0","0"],"userAuthClaimMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"userAuthClaimNonRevMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"userAuthClaimNonRevMtpAuxHi":"0","userAuthClaimNonRevMtpAuxHv":"0","userAuthClaimNonRevMtpNoAux":"1","userClaimsTreeRoot":"9763429684850732628215303952870004997159843236039795272605841029866455670219","userState":"18656147546666944484453899241916469544090258810192803949522794490493271005313","userRevTreeRoot":"0","userRootsTreeRoot":"0","userID":"379949150130214723420589610911161895495647789006649785264738141299135414272","challenge":"1","challengeSignatureR8x":"8553678144208642175027223770335048072652078621216414881653012537434846327449","challengeSignatureR8y":"5507837342589329113352496188906367161790372084365285966741761856353367255709","challengeSignatureS":"2093461910575977345603199789919760192811763972089699387324401771367839603655","issuerClaim":["3583233690122716044519380227940806650830","379949150130214723420589610911161895495647789006649785264738141299135414272","10","0","30803922965249841627828060161","0","0","0"],"issuerClaimClaimsTreeRoot":"3077200351284676204723270374054827783313480677490603169533924119235084704890","issuerClaimIdenState":"18605292738057394742004097311192572049290380262377486632479765119429313092475","issuerClaimMtp":["0","0","18337129644116656308842422695567930755039142442806278977230099338026575870840","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"issuerClaimRevTreeRoot":"0","issuerClaimRootsTreeRoot":"0","issuerClaimNonRevClaimsTreeRoot":"3077200351284676204723270374054827783313480677490603169533924119235084704890","issuerClaimNonRevRevTreeRoot":"0","issuerClaimNonRevRootsTreeRoot":"0","issuerClaimNonRevState":"18605292738057394742004097311192572049290380262377486632479765119429313092475","issuerClaimNonRevMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"issuerClaimNonRevMtpAuxHi":"0","issuerClaimNonRevMtpAuxHv":"0","issuerClaimNonRevMtpNoAux":"1","claimSchema":"180410020913331409885634153623124536270","issuerID":"26599707002460144379092755370384635496563807452878989192352627271768342528","operator":0,"slotIndex":2,"timestamp":"1642074362","value":["10","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"]}`
 	var actualInputs map[string]interface{}
 	err = json.Unmarshal(bytesInputs, &actualInputs)
 	assert.Nil(t, err)
+	t.Log(string(bytesInputs))
 
 	var expectedInputs map[string]interface{}
 	err = json.Unmarshal([]byte(expectedJSONInputs), &expectedInputs)
@@ -215,6 +169,70 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 
 	assert.Equal(t, expectedInputs, actualInputs)
 
+}
+
+func TestAtomicQueryMTPOutputs_CircuitUnmarshal(t *testing.T) {
+	userPrivKHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
+	issuerPrivKHex := "21a5e7321d0e2f3ca1cc6504396e6594a2211544b08c206847cdee96f832421a"
+	challenge := new(big.Int).SetInt64(1)
+	ctx := context.Background()
+
+	userID, uClaimsTree, _, _, err, _, _ := it.Generate(ctx,
+		userPrivKHex)
+	assert.Nil(t, err)
+
+	userState, err := merkletree.HashElems(
+		uClaimsTree.Root().BigInt(),
+		merkletree.HashZero.BigInt(),
+		merkletree.HashZero.BigInt())
+	assert.Nil(t, err)
+
+	// Issuer
+	issuerID, iClaimsTree, _, _, err, _, _ := it.Generate(ctx,
+		issuerPrivKHex)
+	assert.Nil(t, err)
+
+	issuerState, err := merkletree.HashElems(
+		iClaimsTree.Root().BigInt(),
+		merkletree.HashZero.BigInt(),
+		merkletree.HashZero.BigInt())
+	assert.Nil(t, err)
+
+	claimSchema, err := core.NewSchemaHashFromHex("ce6bb12c96bfd1544c02c289c6b4b987")
+	assert.NoError(t, err)
+
+	slotIndex := "1"
+	values := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"}
+	operator := "1"
+	timeStamp := strconv.FormatInt(time.Now().Unix(), 10)
+
+	outputsData := []string{userID.BigInt().String(), userState.BigInt().String(), challenge.String(),
+		claimSchema.BigInt().String(),
+		issuerState.BigInt().String(), issuerID.BigInt().String(), slotIndex}
+	outputsData = append(outputsData, values...)
+	outputsData = append(outputsData, operator, timeStamp)
+
+	data, err := json.Marshal(outputsData)
+	assert.NoError(t, err)
+
+	out := new(AtomicQueryMTPPubSignals)
+	err = out.PubSignalsUnmarshal(data)
+	assert.NoError(t, err)
+
+	assert.Equal(t, userID, out.UserID)
+	assert.Equal(t, userState, out.UserState)
+	assert.Equal(t, challenge, out.Challenge)
+	assert.Equal(t, claimSchema, out.ClaimSchema)
+
+	assert.Equal(t, issuerState, out.IssuerClaimIdenState)
+	assert.Equal(t, issuerID, out.IssuerID)
+	assert.Equal(t, slotIndex, strconv.Itoa(out.SlotIndex))
+	assert.Equal(t, len(values), len(out.Values))
+	for i, v := range out.Values {
+		assert.Equal(t, values[i], v.String())
+	}
+	assert.Equal(t, operator, strconv.Itoa(out.Operator))
+	assert.Equal(t, timeStamp, strconv.FormatInt(out.Timestamp, 10))
 }
 
 func claimsIndexValueHashes(c core.Claim) (*big.Int, *big.Int, error) {

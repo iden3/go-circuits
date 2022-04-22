@@ -1,11 +1,11 @@
-package identity
+package testing
 
 import (
 	"context"
 	"encoding/hex"
 	"math/big"
 
-	"github.com/iden3/go-iden3-core"
+	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/iden3/go-merkletree-sql"
@@ -65,9 +65,10 @@ func Generate(ctx context.Context, privKHex string) (*core.ID,
 		return nil, nil, nil, nil, err, nil, nil
 	}
 
+	state, _ := poseidon.Hash([]*big.Int{claimsTree.Root().BigInt(), big.NewInt(0), big.NewInt(0)})
 	// create new identity
-	identifier, err := core.CalculateGenesisID(
-		coreElemBytesFromHashPtr(claimsTree.Root()))
+	identifier, err := core.IdGenesisFromIdenState(core.TypeDefault,
+		state)
 	if err != nil {
 		return nil, nil, nil, nil, err, nil, nil
 	}
@@ -142,11 +143,4 @@ func claimsIndexValueHashes(c core.Claim) (*big.Int, *big.Int, error) {
 	}
 	valueHash, err := poseidon.Hash(core.ElemBytesToInts(value[:]))
 	return indexHash, valueHash, err
-}
-
-// coreElemBytesFromHashPtr coverts *merkletree.Hash to core.ElemBytes
-func coreElemBytesFromHashPtr(h *merkletree.Hash) core.ElemBytes {
-	var eb core.ElemBytes
-	copy(eb[:], h[:])
-	return eb
 }
