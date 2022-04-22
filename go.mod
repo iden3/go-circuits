@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/fatih/structs v1.1.0
-	github.com/iden3/go-iden3-core v0.0.15
+	github.com/iden3/go-iden3-core v0.0.16
 	github.com/iden3/go-iden3-crypto v0.0.13
 	github.com/iden3/go-merkletree-sql v1.0.0-pre9
 	github.com/pkg/errors v0.9.1
