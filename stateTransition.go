@@ -19,9 +19,9 @@ type StateTransitionInputs struct {
 	OldTreeState TreeState
 	NewState     *merkletree.Hash
 
-	AuthClaim                   Claim
-	AuthClaimNonRevocationProof *merkletree.Proof
-	Signature                   *babyjub.Signature
+	AuthClaim Claim
+
+	Signature *babyjub.Signature
 }
 
 // stateTransitionInputsInternal type represents stateTransition.circom private inputs required by prover
@@ -49,7 +49,7 @@ func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 	s := stateTransitionInputsInternal{
 		AuthClaim:          *c.AuthClaim.Claim,
 		AuthClaimMtp:       PrepareSiblingsStr(c.AuthClaim.Proof.AllSiblings(), c.GetMTLevel()),
-		AuthClaimNonRevMtp: PrepareSiblingsStr(c.AuthClaimNonRevocationProof.AllSiblings(), c.GetMTLevel()),
+		AuthClaimNonRevMtp: PrepareSiblingsStr(c.AuthClaim.NonRevProof.Proof.AllSiblings(), c.GetMTLevel()),
 		UserID:             c.ID.BigInt().String(),
 		NewIdState:         c.NewState,
 		ClaimsTreeRoot:     c.OldTreeState.ClaimsRoot,
@@ -61,15 +61,10 @@ func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 		SignatureS:         c.Signature.S.String(),
 	}
 
-	if c.AuthClaimNonRevocationProof.NodeAux == nil {
-		s.AuthClaimNonRevMtpAuxHi = &merkletree.HashZero
-		s.AuthClaimNonRevMtpAuxHv = &merkletree.HashZero
-		s.AuthClaimNonRevMtpNoAux = "1"
-	} else {
-		s.AuthClaimNonRevMtpAuxHi = c.AuthClaimNonRevocationProof.NodeAux.Key
-		s.AuthClaimNonRevMtpAuxHv = c.AuthClaimNonRevocationProof.NodeAux.Value
-		s.AuthClaimNonRevMtpNoAux = "0"
-	}
+	nodeAuxAuth := getNodeAuxValue(c.AuthClaim.NonRevProof.Proof.NodeAux)
+	s.AuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
+	s.AuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
+	s.AuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
 	return json.Marshal(s)
 }
