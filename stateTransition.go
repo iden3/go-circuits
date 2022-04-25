@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/fatih/structs"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
@@ -102,5 +101,5 @@ func (s *StateTransitionPubSignals) PubSignalsUnmarshal(data []byte) error {
 
 // GetObjMap returns struct field as a map
 func (s StateTransitionPubSignals) GetObjMap() map[string]interface{} {
-	return structs.Map(s)
+	return toMap(s)
 }

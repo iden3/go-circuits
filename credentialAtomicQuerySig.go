@@ -6,7 +6,6 @@ import (
 	"math/big"
 	"strconv"
 
-	"github.com/fatih/structs"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
@@ -222,5 +221,5 @@ func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 
 // GetObjMap returns struct field as a map
 func (ao AtomicQuerySigPubSignals) GetObjMap() map[string]interface{} {
-	return structs.Map(ao)
+	return toMap(ao)
 }
