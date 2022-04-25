@@ -62,7 +62,7 @@ func (a AuthInputs) InputsMarshal() ([]byte, error) {
 		UserState:             a.AuthClaim.TreeState.State,
 	}
 
-	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.Proof.NodeAux)
+	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.NonRevProof.Proof.NodeAux)
 	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux

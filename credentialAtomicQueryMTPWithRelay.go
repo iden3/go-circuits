@@ -131,7 +131,7 @@ func (a AtomicQueryMTPWithRelayInputs) InputsMarshal() ([]byte, error) {
 	}
 	s.Value = bigIntArrayToStringArray(values)
 
-	nodeAuxAuth := getNodeAuxValue(a.Claim.NonRevProof.Proof.NodeAux)
+	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.NonRevProof.Proof.NodeAux)
 	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
