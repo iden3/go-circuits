@@ -26,9 +26,9 @@ func TestStateTransitionOutput_GetJSONObj(t *testing.T) {
 	}
 
 	m := sto.GetObjMap()
-	assert.Equal(t, &id, m["UserID"])
-	assert.Equal(t, oldState, m["OldUserState"])
-	assert.Equal(t, newState, m["NewUserState"])
+	assert.Equal(t, &id, m["userID"])
+	assert.Equal(t, oldState, m["oldUserState"])
+	assert.Equal(t, newState, m["newUserState"])
 
 }
 
