@@ -3,6 +3,7 @@ package circuits
 import (
 	"fmt"
 	"math/big"
+	"reflect"
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql"
@@ -99,4 +100,22 @@ func idFromIntStr(s string) (*core.ID, error) {
 	}
 
 	return &id, nil
+}
+
+func toMap(in interface{}) map[string]interface{} {
+	out := make(map[string]interface{})
+
+	value := reflect.ValueOf(in)
+	if value.Kind() == reflect.Ptr {
+		value = value.Elem()
+	}
+
+	typ := value.Type()
+	for i := 0; i < value.NumField(); i++ {
+		fi := typ.Field(i)
+		if jsonTag := fi.Tag.Get("json"); jsonTag != "" {
+			out[jsonTag] = value.Field(i).Interface()
+		}
+	}
+	return out
 }

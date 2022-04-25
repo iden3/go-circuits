@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/fatih/structs"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
@@ -107,5 +106,5 @@ func (a *AuthPubSignals) PubSignalsUnmarshal(data []byte) error {
 
 // GetObjMap returns AuthPubSignals as a map
 func (a AuthPubSignals) GetObjMap() map[string]interface{} {
-	return structs.Map(a)
+	return toMap(a)
 }

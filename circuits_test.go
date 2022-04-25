@@ -18,11 +18,8 @@ func TestUnmarshalCircuitOutput(t *testing.T) {
 
 	challenge := big.NewInt(11)
 	userState := merkletree.NewHashFromBigInt(big.NewInt(12))
-	out := AuthPubSignals{
-		Challenge: challenge,
-		UserState: userState,
-		UserID:    &id,
-	}
+
+	out := []string{challenge.String(), userState.BigInt().String(), id.BigInt().String()}
 
 	json, err := json.Marshal(out)
 	assert.Nil(t, err)
@@ -30,9 +27,9 @@ func TestUnmarshalCircuitOutput(t *testing.T) {
 	got, err := UnmarshalCircuitOutput(AuthCircuitID, json)
 	assert.Nil(t, err)
 
-	assert.Equal(t, got["UserID"], &id)
-	assert.Equal(t, got["Challenge"], challenge)
-	assert.Equal(t, got["UserState"], userState)
+	assert.Equal(t, got["userID"], &id)
+	assert.Equal(t, got["challenge"], challenge)
+	assert.Equal(t, got["userState"], userState)
 }
 
 func TestUnmarshalCircuitOutput_Err(t *testing.T) {

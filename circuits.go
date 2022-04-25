@@ -2,7 +2,6 @@ package circuits
 
 import (
 	"embed"
-	"encoding/json"
 	"reflect"
 	"sync"
 
@@ -172,7 +171,8 @@ func UnmarshalCircuitOutput(id CircuitID, b []byte) (map[string]interface{}, err
 
 	newPointer := val.Interface()
 
-	if err := json.Unmarshal(b, newPointer); err != nil {
+	err := newPointer.(PubSignalsUnmarshaller).PubSignalsUnmarshal(b)
+	if err != nil {
 		return nil, err
 	}
 
