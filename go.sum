@@ -7,8 +7,8 @@ github.com/iden3/go-iden3-core v0.0.16 h1:BHNcRA+3Jbz0ur9VhQePP9u9o6cGvLBLB3Qs9O
 github.com/iden3/go-iden3-core v0.0.16/go.mod h1:wJtcMK/bSazyW/JrQaRrbpUMgSMg79Pke3xgtfPxDnQ=
 github.com/iden3/go-iden3-crypto v0.0.13 h1:ixWRiaqDULNyIDdOWz2QQJG5t4PpNHkQk2P6GV94cok=
 github.com/iden3/go-iden3-crypto v0.0.13/go.mod h1:swXIv0HFbJKobbQBtsB50G7IHr6PbTowutSew/iBEoo=
-github.com/iden3/go-merkletree-sql v1.0.0-pre9 h1:TySvFYUwC01oxIPfs2u40FSFYEoGthNXFg/0ds17lYg=
-github.com/iden3/go-merkletree-sql v1.0.0-pre9/go.mod h1:NhLFvX01F/3QqS0FUkC6T2BXPksz+9EbRhKQ7abaBSE=
+github.com/iden3/go-merkletree-sql v1.0.1 h1:zZMhhyV6FLoLL+pHQiiPoAI3ORSCTKOL32/n7Sb/+R4=
+github.com/iden3/go-merkletree-sql v1.0.1/go.mod h1:NhLFvX01F/3QqS0FUkC6T2BXPksz+9EbRhKQ7abaBSE=
 github.com/leanovate/gopter v0.2.9 h1:fQjYxZaynp97ozCzfOyOuAGOU4aU/z37zf/tOujFk7c=
 github.com/leanovate/gopter v0.2.9/go.mod h1:U2L/78B+KVFIx2VmW6onHJQzXtFb+p5y3y2Sh+Jxxv8=
 github.com/mr-tron/base58 v1.2.0 h1:T/HDJBh4ZCPbU39/+c3rRvE0uKBQlU27+QI8LJ4t64o=

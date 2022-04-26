@@ -155,8 +155,8 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		},
 		IssuerPublicKey: issuerKey.Public(),
 		Signature:       claimSignature,
-		HIndex:          merkletree.NewHashFromBigInt(hIndexAuthEntryIssuer),
-		HValue:          merkletree.NewHashFromBigInt(hValueAuthEntryIssuer),
+		HIndex:          hashFromInt(hIndexAuthEntryIssuer),
+		HValue:          hashFromInt(hValueAuthEntryIssuer),
 	}
 
 	inputsUserClaim := Claim{
@@ -238,11 +238,13 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 	assert.Nil(t, err)
 
 	slotIndex := "1"
-	values := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"}
+	values := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+		"11", "12", "13", "14"}
 	operator := "1"
 	timeStamp := strconv.FormatInt(time.Now().Unix(), 10)
 
-	outputsData := []string{userID.BigInt().String(), userState.BigInt().String(), challenge.String(),
+	outputsData := []string{userID.BigInt().String(),
+		userState.BigInt().String(), challenge.String(),
 		claimSchema.BigInt().String(),
 		issuerID.BigInt().String(), issuerState.BigInt().String(), slotIndex}
 	outputsData = append(outputsData, values...)
@@ -270,4 +272,12 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 	}
 	assert.Equal(t, operator, strconv.Itoa(out.Operator))
 	assert.Equal(t, timeStamp, strconv.FormatInt(out.Timestamp, 10))
+}
+
+func hashFromInt(i *big.Int) *merkletree.Hash {
+	h, err := merkletree.NewHashFromBigInt(i)
+	if err != nil {
+		panic(err)
+	}
+	return h
 }

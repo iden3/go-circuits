@@ -16,8 +16,8 @@ func TestStateTransitionOutput_GetJSONObj(t *testing.T) {
 	id, err := core.IDFromString("11AVZrKNJVqDJoyKrdyaAgEynyBEjksV5z2NjZoPxf")
 	assert.Nil(t, err)
 
-	newState := merkletree.NewHashFromBigInt(big.NewInt(1))
-	oldState := merkletree.NewHashFromBigInt(big.NewInt(2))
+	newState := hashFromInt(big.NewInt(1))
+	oldState := hashFromInt(big.NewInt(2))
 
 	sto := StateTransitionPubSignals{
 		UserID:       &id,
@@ -56,11 +56,13 @@ func TestStateTransitionInputs_InputsMarshal(t *testing.T) {
 
 	index, err := authClaim.HIndex()
 	assert.Nil(t, err)
-	authMTPProof, _, err := claimsTree.GenerateProof(ctx, index, claimsTree.Root())
+	authMTPProof, _, err := claimsTree.GenerateProof(ctx, index,
+		claimsTree.Root())
 	assert.Nil(t, err)
 
 	nonce := new(big.Int).SetUint64(authClaim.GetRevocationNonce())
-	authNonRevMTPProof, _, err := revTree.GenerateProof(ctx, nonce, revTree.Root())
+	authNonRevMTPProof, _, err := revTree.GenerateProof(ctx, nonce,
+		revTree.Root())
 	assert.Nil(t, err)
 
 	// update rev tree
