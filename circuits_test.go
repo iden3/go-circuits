@@ -17,9 +17,11 @@ func TestUnmarshalCircuitOutput(t *testing.T) {
 	assert.Nil(t, err)
 
 	challenge := big.NewInt(11)
-	userState := merkletree.NewHashFromBigInt(big.NewInt(12))
+	userState, err := merkletree.NewHashFromBigInt(big.NewInt(12))
+	assert.NoError(t, err)
 
-	out := []string{challenge.String(), userState.BigInt().String(), id.BigInt().String()}
+	out := []string{challenge.String(), userState.BigInt().String(),
+		id.BigInt().String()}
 
 	json, err := json.Marshal(out)
 	assert.Nil(t, err)
