@@ -26,7 +26,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
 
-	userIdentity, uClaimsTree, _, _, err, userAuthCoreClaim, userPrivateKey := it.Generate(ctx,
+	userIdentity, uClaimsTree, uRevsTree, _, err, userAuthCoreClaim, userPrivateKey := it.Generate(ctx,
 		userPrivKHex)
 	assert.Nil(t, err)
 
@@ -112,6 +112,11 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		big.NewInt(int64(nonce)), issuerRevTree.Root())
 	assert.Nil(t, err)
 
+	authClaimRevNonce := new(big.Int).
+		SetUint64(userAuthCoreClaim.GetRevocationNonce())
+	proofAuthClaimNotRevoked, _, err :=
+		uRevsTree.GenerateProof(ctx, authClaimRevNonce, nil)
+
 	te := time.Unix(1642074362, 0).Unix()
 	fmt.Println(te)
 	inputsAuthClaim := Claim{
@@ -120,7 +125,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		TreeState: userAuthTreeState,
 		NonRevProof: ClaimNonRevStatus{
 			TreeState: userAuthTreeState,
-			Proof:     &merkletree.Proof{},
+			Proof:     proofAuthClaimNotRevoked,
 		},
 	}
 
@@ -202,11 +207,13 @@ func TestAtomicQueryMTPOutputs_CircuitUnmarshal(t *testing.T) {
 	assert.NoError(t, err)
 
 	slotIndex := "1"
-	values := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14"}
+	values := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
+		"11", "12", "13", "14"}
 	operator := "1"
 	timeStamp := strconv.FormatInt(time.Now().Unix(), 10)
 
-	outputsData := []string{userID.BigInt().String(), userState.BigInt().String(), challenge.String(),
+	outputsData := []string{userID.BigInt().String(),
+		userState.BigInt().String(), challenge.String(),
 		claimSchema.BigInt().String(),
 		issuerState.BigInt().String(), issuerID.BigInt().String(), slotIndex}
 	outputsData = append(outputsData, values...)
