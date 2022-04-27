@@ -15,8 +15,9 @@ type StateTransitionInputs struct {
 
 	ID *core.ID
 
-	OldTreeState TreeState
-	NewState     *merkletree.Hash
+	OldTreeState      TreeState
+	NewState          *merkletree.Hash
+	IsOldStateGenesis bool
 
 	AuthClaim Claim
 
@@ -34,6 +35,7 @@ type stateTransitionInputsInternal struct {
 	UserID                  string           `json:"userID"`
 	NewIdState              *merkletree.Hash `json:"newUserState"`
 	OldIdState              *merkletree.Hash `json:"oldUserState"`
+	IsOldStateGenesis       string           `json:"isOldStateGenesis"`
 	ClaimsTreeRoot          *merkletree.Hash `json:"claimsTreeRoot"`
 	RevTreeRoot             *merkletree.Hash `json:"revTreeRoot"`
 	RootsTreeRoot           *merkletree.Hash `json:"rootsTreeRoot"`
@@ -58,6 +60,12 @@ func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 		SignatureR8X:       c.Signature.R8.X.String(),
 		SignatureR8Y:       c.Signature.R8.Y.String(),
 		SignatureS:         c.Signature.S.String(),
+	}
+
+	if c.IsOldStateGenesis {
+		s.IsOldStateGenesis = "1"
+	} else {
+		s.IsOldStateGenesis = "0"
 	}
 
 	nodeAuxAuth := getNodeAuxValue(c.AuthClaim.NonRevProof.Proof.NodeAux)
