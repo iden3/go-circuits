@@ -116,6 +116,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		SetUint64(userAuthCoreClaim.GetRevocationNonce())
 	proofAuthClaimNotRevoked, _, err :=
 		uRevsTree.GenerateProof(ctx, authClaimRevNonce, nil)
+	require.NoError(t, err)
 
 	te := time.Unix(1642074362, 0).Unix()
 	fmt.Println(te)
