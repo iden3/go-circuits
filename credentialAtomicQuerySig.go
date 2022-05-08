@@ -63,18 +63,29 @@ type atomicQuerySigCircuitInputs struct {
 	Timestamp                       int64            `json:"timestamp,string"`
 	Value                           []string         `json:"value"`
 
-	IssuerClaimSignatureR8X string           `json:"issuerClaimSignatureR8x"`
-	IssuerClaimSignatureR8Y string           `json:"issuerClaimSignatureR8y"`
-	IssuerClaimSignatureS   string           `json:"issuerClaimSignatureS"`
-	IssuerAuthClaimMtp      []string         `json:"issuerAuthClaimMtp"`
-	IssuerAuthHi            string           `json:"issuerAuthHi"`
-	IssuerAuthHv            string           `json:"issuerAuthHv"`
-	IssuerClaimsTreeRoot    *merkletree.Hash `json:"issuerClaimsTreeRoot"`
-	IssuerState             *merkletree.Hash `json:"issuerState"`
-	IssuerPubKeyX           string           `json:"issuerPubKeyX"`
-	IssuerPubKeyY           string           `json:"issuerPubKeyY"`
-	IssuerRevTreeRoot       *merkletree.Hash `json:"issuerRevTreeRoot"`
-	IssuerRootsTreeRoot     *merkletree.Hash `json:"issuerRootsTreeRoot"`
+	IssuerClaimSignatureR8X string `json:"issuerClaimSignatureR8x"`
+	IssuerClaimSignatureR8Y string `json:"issuerClaimSignatureR8y"`
+	IssuerClaimSignatureS   string `json:"issuerClaimSignatureS"`
+	//IssuerAuthHi            string           `json:"issuerAuthHi"`
+	//IssuerAuthHv            string           `json:"issuerAuthHv"`
+	IssuerAuthClaim    *core.Claim `json:"issuerAuthClaim"`
+	IssuerAuthClaimMtp []string    `json:"issuerAuthClaimMtp"`
+
+	IssuerAuthClaimNonRevMtp      []string         `json:"issuerAuthClaimNonRevMtp"`
+	IssuerAuthClaimNonRevMtpAuxHi *merkletree.Hash `json:"issuerAuthClaimNonRevMtpAuxHi"`
+	IssuerAuthClaimNonRevMtpAuxHv *merkletree.Hash `json:"issuerAuthClaimNonRevMtpAuxHv"`
+	IssuerAuthClaimNonRevMtpNoAux string           `json:"issuerAuthClaimNonRevMtpNoAux"`
+
+	IssuerAuthClaimsTreeRoot *merkletree.Hash `json:"issuerAuthClaimsTreeRoot"`
+	IssuerAuthRevTreeRoot    *merkletree.Hash `json:"issuerAuthRevTreeRoot"`
+	IssuerAuthRootsTreeRoot  *merkletree.Hash `json:"issuerAuthRootsTreeRoot"`
+
+	IssuerClaimsTreeRoot *merkletree.Hash `json:"issuerClaimsTreeRoot"`
+	IssuerState          *merkletree.Hash `json:"issuerState"`
+	//IssuerPubKeyX        string           `json:"issuerPubKeyX"`
+	//IssuerPubKeyY        string           `json:"issuerPubKeyY"`
+	IssuerRevTreeRoot   *merkletree.Hash `json:"issuerRevTreeRoot"`
+	IssuerRootsTreeRoot *merkletree.Hash `json:"issuerRootsTreeRoot"`
 }
 
 // InputsMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
@@ -112,15 +123,25 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimSignatureS:   a.SignatureProof.Signature.S.String(),
 
 		IssuerAuthClaimMtp: bigIntArrayToStringArray(
-			PrepareSiblings(a.SignatureProof.AuthClaimIssuerMTP.AllSiblings(), a.GetMTLevel())),
-		IssuerAuthHi:         a.SignatureProof.HIndex.BigInt().String(),
-		IssuerAuthHv:         a.SignatureProof.HValue.BigInt().String(),
+			PrepareSiblings(a.SignatureProof.IssuerAuthClaimMTP.AllSiblings(), a.GetMTLevel())),
+
+		IssuerAuthClaimsTreeRoot: a.SignatureProof.IssuerTreeState.ClaimsRoot,
+		IssuerAuthRevTreeRoot:    a.SignatureProof.IssuerTreeState.RevocationRoot,
+		IssuerAuthRootsTreeRoot:  a.SignatureProof.IssuerTreeState.RootOfRoots,
+
+		//IssuerAuthHi:         a.SignatureProof.HIndex.BigInt().String(),
+		//IssuerAuthHv:         a.SignatureProof.HValue.BigInt().String(),
+		IssuerAuthClaim: a.SignatureProof.IssuerAuthClaim,
+
+		IssuerAuthClaimNonRevMtp: bigIntArrayToStringArray(
+			PrepareSiblings(a.SignatureProof.IssuerAuthNonRevProof.Proof.AllSiblings(), a.GetMTLevel())),
+
 		IssuerClaimsTreeRoot: a.SignatureProof.IssuerTreeState.ClaimsRoot,
 		IssuerState:          a.SignatureProof.IssuerTreeState.State,
-		IssuerPubKeyX:        a.SignatureProof.IssuerPublicKey.X.String(),
-		IssuerPubKeyY:        a.SignatureProof.IssuerPublicKey.Y.String(),
-		IssuerRevTreeRoot:    a.SignatureProof.IssuerTreeState.RevocationRoot,
-		IssuerRootsTreeRoot:  a.SignatureProof.IssuerTreeState.RootOfRoots,
+		//IssuerPubKeyX:        a.SignatureProof.IssuerPublicKey.X.String(),
+		//IssuerPubKeyY:        a.SignatureProof.IssuerPublicKey.Y.String(),
+		IssuerRevTreeRoot:   a.SignatureProof.IssuerTreeState.RevocationRoot,
+		IssuerRootsTreeRoot: a.SignatureProof.IssuerTreeState.RootOfRoots,
 	}
 
 	values, err := PrepareCircuitArrayValues(a.Values, a.GetValueArrSize())
@@ -138,6 +159,11 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 	s.IssuerClaimNonRevMtpAuxHi = nodeAux.key
 	s.IssuerClaimNonRevMtpAuxHv = nodeAux.value
 	s.IssuerClaimNonRevMtpNoAux = nodeAux.noAux
+
+	issuerAuthNodeAux := getNodeAuxValue(a.SignatureProof.IssuerAuthNonRevProof.Proof.NodeAux)
+	s.IssuerAuthClaimNonRevMtpAuxHi = issuerAuthNodeAux.key
+	s.IssuerAuthClaimNonRevMtpAuxHv = issuerAuthNodeAux.value
+	s.IssuerAuthClaimNonRevMtpNoAux = issuerAuthNodeAux.noAux
 
 	return json.Marshal(s)
 }
