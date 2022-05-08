@@ -63,13 +63,11 @@ type atomicQuerySigCircuitInputs struct {
 	Timestamp                       int64            `json:"timestamp,string"`
 	Value                           []string         `json:"value"`
 
-	IssuerClaimSignatureR8X string `json:"issuerClaimSignatureR8x"`
-	IssuerClaimSignatureR8Y string `json:"issuerClaimSignatureR8y"`
-	IssuerClaimSignatureS   string `json:"issuerClaimSignatureS"`
-	//IssuerAuthHi            string           `json:"issuerAuthHi"`
-	//IssuerAuthHv            string           `json:"issuerAuthHv"`
-	IssuerAuthClaim    *core.Claim `json:"issuerAuthClaim"`
-	IssuerAuthClaimMtp []string    `json:"issuerAuthClaimMtp"`
+	IssuerClaimSignatureR8X string      `json:"issuerClaimSignatureR8x"`
+	IssuerClaimSignatureR8Y string      `json:"issuerClaimSignatureR8y"`
+	IssuerClaimSignatureS   string      `json:"issuerClaimSignatureS"`
+	IssuerAuthClaim         *core.Claim `json:"issuerAuthClaim"`
+	IssuerAuthClaimMtp      []string    `json:"issuerAuthClaimMtp"`
 
 	IssuerAuthClaimNonRevMtp      []string         `json:"issuerAuthClaimNonRevMtp"`
 	IssuerAuthClaimNonRevMtpAuxHi *merkletree.Hash `json:"issuerAuthClaimNonRevMtpAuxHi"`
@@ -82,10 +80,8 @@ type atomicQuerySigCircuitInputs struct {
 
 	IssuerClaimsTreeRoot *merkletree.Hash `json:"issuerClaimsTreeRoot"`
 	IssuerState          *merkletree.Hash `json:"issuerState"`
-	//IssuerPubKeyX        string           `json:"issuerPubKeyX"`
-	//IssuerPubKeyY        string           `json:"issuerPubKeyY"`
-	IssuerRevTreeRoot   *merkletree.Hash `json:"issuerRevTreeRoot"`
-	IssuerRootsTreeRoot *merkletree.Hash `json:"issuerRootsTreeRoot"`
+	IssuerRevTreeRoot    *merkletree.Hash `json:"issuerRevTreeRoot"`
+	IssuerRootsTreeRoot  *merkletree.Hash `json:"issuerRootsTreeRoot"`
 }
 
 // InputsMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
@@ -129,8 +125,6 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 		IssuerAuthRevTreeRoot:    a.SignatureProof.IssuerTreeState.RevocationRoot,
 		IssuerAuthRootsTreeRoot:  a.SignatureProof.IssuerTreeState.RootOfRoots,
 
-		//IssuerAuthHi:         a.SignatureProof.HIndex.BigInt().String(),
-		//IssuerAuthHv:         a.SignatureProof.HValue.BigInt().String(),
 		IssuerAuthClaim: a.SignatureProof.IssuerAuthClaim,
 
 		IssuerAuthClaimNonRevMtp: bigIntArrayToStringArray(
