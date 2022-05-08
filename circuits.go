@@ -35,8 +35,8 @@ const (
 var ErrorCircuitIDNotFound = errors.New("circuit id not supported")
 
 const (
-	defaultMTLevels       = 40 // max MT levels, default value for identity circuits
-	defaultValueArraySize = 16 // max value array size, default value for identity circuits
+	defaultMTLevels       = 32 // max MT levels, default value for identity circuits
+	defaultValueArraySize = 64 // max value array size, default value for identity circuits
 )
 
 var circuitsRegistry = map[CircuitID]Data{}
