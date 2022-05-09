@@ -63,18 +63,25 @@ type atomicQuerySigCircuitInputs struct {
 	Timestamp                       int64            `json:"timestamp,string"`
 	Value                           []string         `json:"value"`
 
-	IssuerClaimSignatureR8X string           `json:"issuerClaimSignatureR8x"`
-	IssuerClaimSignatureR8Y string           `json:"issuerClaimSignatureR8y"`
-	IssuerClaimSignatureS   string           `json:"issuerClaimSignatureS"`
-	IssuerAuthClaimMtp      []string         `json:"issuerAuthClaimMtp"`
-	IssuerAuthHi            string           `json:"issuerAuthHi"`
-	IssuerAuthHv            string           `json:"issuerAuthHv"`
-	IssuerClaimsTreeRoot    *merkletree.Hash `json:"issuerClaimsTreeRoot"`
-	IssuerState             *merkletree.Hash `json:"issuerState"`
-	IssuerPubKeyX           string           `json:"issuerPubKeyX"`
-	IssuerPubKeyY           string           `json:"issuerPubKeyY"`
-	IssuerRevTreeRoot       *merkletree.Hash `json:"issuerRevTreeRoot"`
-	IssuerRootsTreeRoot     *merkletree.Hash `json:"issuerRootsTreeRoot"`
+	IssuerClaimSignatureR8X string      `json:"issuerClaimSignatureR8x"`
+	IssuerClaimSignatureR8Y string      `json:"issuerClaimSignatureR8y"`
+	IssuerClaimSignatureS   string      `json:"issuerClaimSignatureS"`
+	IssuerAuthClaim         *core.Claim `json:"issuerAuthClaim"`
+	IssuerAuthClaimMtp      []string    `json:"issuerAuthClaimMtp"`
+
+	IssuerAuthClaimNonRevMtp      []string         `json:"issuerAuthClaimNonRevMtp"`
+	IssuerAuthClaimNonRevMtpAuxHi *merkletree.Hash `json:"issuerAuthClaimNonRevMtpAuxHi"`
+	IssuerAuthClaimNonRevMtpAuxHv *merkletree.Hash `json:"issuerAuthClaimNonRevMtpAuxHv"`
+	IssuerAuthClaimNonRevMtpNoAux string           `json:"issuerAuthClaimNonRevMtpNoAux"`
+
+	IssuerAuthClaimsTreeRoot *merkletree.Hash `json:"issuerAuthClaimsTreeRoot"`
+	IssuerAuthRevTreeRoot    *merkletree.Hash `json:"issuerAuthRevTreeRoot"`
+	IssuerAuthRootsTreeRoot  *merkletree.Hash `json:"issuerAuthRootsTreeRoot"`
+
+	IssuerClaimsTreeRoot *merkletree.Hash `json:"issuerClaimsTreeRoot"`
+	IssuerState          *merkletree.Hash `json:"issuerState"`
+	IssuerRevTreeRoot    *merkletree.Hash `json:"issuerRevTreeRoot"`
+	IssuerRootsTreeRoot  *merkletree.Hash `json:"issuerRootsTreeRoot"`
 }
 
 // InputsMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
@@ -112,15 +119,23 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimSignatureS:   a.SignatureProof.Signature.S.String(),
 
 		IssuerAuthClaimMtp: bigIntArrayToStringArray(
-			PrepareSiblings(a.SignatureProof.AuthClaimIssuerMTP.AllSiblings(), a.GetMTLevel())),
-		IssuerAuthHi:         a.SignatureProof.HIndex.BigInt().String(),
-		IssuerAuthHv:         a.SignatureProof.HValue.BigInt().String(),
+			PrepareSiblings(a.SignatureProof.IssuerAuthClaimMTP.AllSiblings(), a.GetMTLevel())),
+
+		IssuerAuthClaimsTreeRoot: a.SignatureProof.IssuerTreeState.ClaimsRoot,
+		IssuerAuthRevTreeRoot:    a.SignatureProof.IssuerTreeState.RevocationRoot,
+		IssuerAuthRootsTreeRoot:  a.SignatureProof.IssuerTreeState.RootOfRoots,
+
+		IssuerAuthClaim: a.SignatureProof.IssuerAuthClaim,
+
+		IssuerAuthClaimNonRevMtp: bigIntArrayToStringArray(
+			PrepareSiblings(a.SignatureProof.IssuerAuthNonRevProof.Proof.AllSiblings(), a.GetMTLevel())),
+
 		IssuerClaimsTreeRoot: a.SignatureProof.IssuerTreeState.ClaimsRoot,
 		IssuerState:          a.SignatureProof.IssuerTreeState.State,
-		IssuerPubKeyX:        a.SignatureProof.IssuerPublicKey.X.String(),
-		IssuerPubKeyY:        a.SignatureProof.IssuerPublicKey.Y.String(),
-		IssuerRevTreeRoot:    a.SignatureProof.IssuerTreeState.RevocationRoot,
-		IssuerRootsTreeRoot:  a.SignatureProof.IssuerTreeState.RootOfRoots,
+		//IssuerPubKeyX:        a.SignatureProof.IssuerPublicKey.X.String(),
+		//IssuerPubKeyY:        a.SignatureProof.IssuerPublicKey.Y.String(),
+		IssuerRevTreeRoot:   a.SignatureProof.IssuerTreeState.RevocationRoot,
+		IssuerRootsTreeRoot: a.SignatureProof.IssuerTreeState.RootOfRoots,
 	}
 
 	values, err := PrepareCircuitArrayValues(a.Values, a.GetValueArrSize())
@@ -139,53 +154,64 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 	s.IssuerClaimNonRevMtpAuxHv = nodeAux.value
 	s.IssuerClaimNonRevMtpNoAux = nodeAux.noAux
 
+	issuerAuthNodeAux := getNodeAuxValue(a.SignatureProof.IssuerAuthNonRevProof.Proof.NodeAux)
+	s.IssuerAuthClaimNonRevMtpAuxHi = issuerAuthNodeAux.key
+	s.IssuerAuthClaimNonRevMtpAuxHv = issuerAuthNodeAux.value
+	s.IssuerAuthClaimNonRevMtpNoAux = issuerAuthNodeAux.noAux
+
 	return json.Marshal(s)
 }
 
 // AtomicQuerySigPubSignals public inputs
 type AtomicQuerySigPubSignals struct {
-	UserID      *core.ID         `json:"userID"`
-	UserState   *merkletree.Hash `json:"userState"`
-	Challenge   *big.Int         `json:"challenge"`
-	ClaimSchema core.SchemaHash  `json:"claimSchema"`
-	IssuerID    *core.ID         `json:"issuerID"`
-	IssuerState *merkletree.Hash `json:"issuerState"`
-	SlotIndex   int              `json:"slotIndex"`
-	Values      []*big.Int       `json:"values"`
-	Operator    int              `json:"operator"`
-	Timestamp   int64            `json:"timestamp"`
+	BaseConfig
+	UserID                 *core.ID         `json:"userID"`
+	UserState              *merkletree.Hash `json:"userState"`
+	Challenge              *big.Int         `json:"challenge"`
+	ClaimSchema            core.SchemaHash  `json:"claimSchema"`
+	IssuerID               *core.ID         `json:"issuerID"`
+	IssuerState            *merkletree.Hash `json:"issuerState"`
+	IssuerAuthState        *merkletree.Hash `json:"IssuerAuthState"`
+	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
+	SlotIndex              int              `json:"slotIndex"`
+	Values                 []*big.Int       `json:"values"`
+	Operator               int              `json:"operator"`
+	Timestamp              int64            `json:"timestamp"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
 func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
+	// 11 is a number of fields in AtomicQuerySigPubSignals before values, values is last element in the proof and
+	// it is length could be different base on the circuit configuration. The length could be modified by set value
+	// in ValueArraySize
+	const fieldLength = 11
+
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
 		return err
 	}
 
-	if len(sVals) != 24 {
-		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 24, len(sVals))
+	if len(sVals) != fieldLength+ao.GetValueArrSize() {
+		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 11+ao.GetValueArrSize(), len(sVals))
 	}
 
-	if ao.UserID, err = idFromIntStr(sVals[0]); err != nil {
+	if ao.IssuerAuthState, err = merkletree.NewHashFromString(sVals[0]); err != nil {
 		return err
 	}
 
-	if ao.UserState, err = merkletree.NewHashFromString(sVals[1]); err != nil {
+	if ao.UserID, err = idFromIntStr(sVals[1]); err != nil {
+		return err
+	}
+
+	if ao.UserState, err = merkletree.NewHashFromString(sVals[2]); err != nil {
 		return err
 	}
 
 	var ok bool
-	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
+	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
 		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
-
-	var schemaInt *big.Int
-	if schemaInt, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
-		return fmt.Errorf("invalid schema value: '%s'", sVals[3])
-	}
-	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
 	if ao.IssuerID, err = idFromIntStr(sVals[4]); err != nil {
 		return err
@@ -195,25 +221,34 @@ func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	if ao.SlotIndex, err = strconv.Atoi(sVals[6]); err != nil {
+	if ao.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[6]); err != nil {
 		return err
 	}
 
-	// 22 doesn't include in final slice.
-	for i, v := range sVals[7:22] {
+	if ao.Timestamp, err = strconv.ParseInt(sVals[7], 10, 64); err != nil {
+		return err
+	}
+
+	var schemaInt *big.Int
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[8], 10); !ok {
+		return fmt.Errorf("invalid schema value: '%s'", sVals[3])
+	}
+	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
+
+	if ao.SlotIndex, err = strconv.Atoi(sVals[9]); err != nil {
+		return err
+	}
+
+	if ao.Operator, err = strconv.Atoi(sVals[10]); err != nil {
+		return err
+	}
+
+	for i, v := range sVals[fieldLength : fieldLength+ao.GetValueArrSize()] {
 		bi, ok := big.NewInt(0).SetString(v, 10)
 		if !ok {
 			return fmt.Errorf("invalid value in index: %d", i)
 		}
 		ao.Values = append(ao.Values, bi)
-	}
-
-	if ao.Operator, err = strconv.Atoi(sVals[22]); err != nil {
-		return err
-	}
-
-	if ao.Timestamp, err = strconv.ParseInt(sVals[23], 10, 64); err != nil {
-		return err
 	}
 
 	return nil

@@ -127,6 +127,7 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 
 // AtomicQueryMTPPubSignals public signals
 type AtomicQueryMTPPubSignals struct {
+	BaseConfig
 	UserID               *core.ID         `json:"userID"`
 	UserState            *merkletree.Hash `json:"userState"`
 	Challenge            *big.Int         `json:"challenge"`
@@ -139,16 +140,21 @@ type AtomicQueryMTPPubSignals struct {
 	Timestamp            int64            `json:"timestamp"`
 }
 
-// PubSignalsUnmarshal unmarshal credentialAtomicQueryMTP.circom public signals
+// PubSignalsUnmarshal unmarshal credentialAtomicQueryMTP.circom public signals array to AtomicQueryMTPPubSignals
 func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
+	// 9 is a number of fields in AtomicQueryMTPPubSignals before values, values is last element in the proof and
+	// it is length could be different base on the circuit configuration. The length could be modified by set value
+	// in ValueArraySize
+	const fieldLength = 9
+
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
 		return err
 	}
 
-	if len(sVals) != 24 {
-		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 24, len(sVals))
+	if len(sVals) != fieldLength+ao.GetValueArrSize() {
+		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 73, len(sVals))
 	}
 
 	if ao.UserID, err = idFromIntStr(sVals[0]); err != nil {
@@ -164,39 +170,38 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
 
+	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[3]); err != nil {
+		return err
+	}
+
+	if ao.IssuerID, err = idFromIntStr(sVals[4]); err != nil {
+		return err
+	}
+
+	if ao.Timestamp, err = strconv.ParseInt(sVals[5], 10, 64); err != nil {
+		return err
+	}
+
 	var schemaInt *big.Int
-	if schemaInt, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[6], 10); !ok {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[0])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
-	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[4]); err != nil {
+	if ao.SlotIndex, err = strconv.Atoi(sVals[7]); err != nil {
 		return err
 	}
 
-	if ao.IssuerID, err = idFromIntStr(sVals[5]); err != nil {
+	if ao.Operator, err = strconv.Atoi(sVals[8]); err != nil {
 		return err
 	}
 
-	if ao.SlotIndex, err = strconv.Atoi(sVals[6]); err != nil {
-		return err
-	}
-
-	// 22 doesn't include in final slice.
-	for i, v := range sVals[7:22] {
+	for i, v := range sVals[fieldLength : fieldLength+ao.GetValueArrSize()] {
 		bi, ok := big.NewInt(0).SetString(v, 10)
 		if !ok {
 			return fmt.Errorf("invalid value in index: %d", i)
 		}
 		ao.Values = append(ao.Values, bi)
-	}
-
-	if ao.Operator, err = strconv.Atoi(sVals[22]); err != nil {
-		return err
-	}
-
-	if ao.Timestamp, err = strconv.ParseInt(sVals[23], 10, 64); err != nil {
-		return err
 	}
 
 	return nil
