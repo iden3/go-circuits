@@ -79,6 +79,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	issuerAuthClaimRevNonce := new(big.Int).SetUint64(issuerAuthClaim.GetRevocationNonce())
 	issuerAuthNonRevProof, _, err := iRevTree.GenerateProof(ctx,
 		issuerAuthClaimRevNonce, iRevTree.Root())
+	assert.Nil(t, err)
 
 	// issue issuerClaim for user
 	dataSlotA, err := core.NewElemBytesFromInt(big.NewInt(10))
@@ -219,12 +220,15 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 	issuerClaimNonRevStateInt, ok := new(big.Int).SetString("19221836623970007220538457599669851375427558847917606787084815224761802529201", 10)
 	assert.True(t, ok)
 	issuerClaimNonRevState, err := merkletree.NewHashFromBigInt(issuerClaimNonRevStateInt)
+	assert.Nil(t, err)
 
 	issuerAuthStateInt, ok := new(big.Int).SetString("11672667429383627660992648216772306271234451162443612055001584519010749218959", 10)
 	assert.True(t, ok)
 	issuerAuthState, err := merkletree.NewHashFromBigInt(issuerAuthStateInt)
+	assert.Nil(t, err)
 
 	issuerID, err := idFromIntStr("330477016068568275516898063887311212065482015025379036159122139014924926976")
+	assert.Nil(t, err)
 
 	issuerStateInt, ok := new(big.Int).SetString(
 		"11672667429383627660992648216772306271234451162443612055001584519010749218959", 10)

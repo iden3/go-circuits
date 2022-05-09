@@ -185,8 +185,10 @@ func TestAtomicQueryMTPOutputs_CircuitUnmarshal(t *testing.T) {
 	issuerClaimIdenStateInt, ok := new(big.Int).SetString("18605292738057394742004097311192572049290380262377486632479765119429313092475", 10)
 	assert.True(t, ok)
 	issuerClaimIdenState, err := merkletree.NewHashFromBigInt(issuerClaimIdenStateInt)
+	assert.NoError(t, err)
 
 	issuerID, err := idFromIntStr("26599707002460144379092755370384635496563807452878989192352627271768342528")
+	assert.NoError(t, err)
 
 	values := make([]*big.Int, 64)
 	for i := 0; i < 64; i++ {
