@@ -140,15 +140,20 @@ type AtomicQueryMTPPubSignals struct {
 	Timestamp            int64            `json:"timestamp"`
 }
 
-// PubSignalsUnmarshal unmarshal credentialAtomicQueryMTP.circom public signals
+// PubSignalsUnmarshal unmarshal credentialAtomicQueryMTP.circom public signals array to AtomicQueryMTPPubSignals
 func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
+	// 9 is a number of fields in AtomicQueryMTPPubSignals before values, values is last element in the proof and
+	// it is length could be different base on the circuit configuration. The length could be modified by set value
+	// in ValueArraySize
+	const fieldLength = 9
+
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
 		return err
 	}
 
-	if len(sVals) != 9+ao.GetValueArrSize() {
+	if len(sVals) != fieldLength+ao.GetValueArrSize() {
 		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 73, len(sVals))
 	}
 
@@ -191,7 +196,7 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	for i, v := range sVals[9 : 9+ao.GetValueArrSize()] {
+	for i, v := range sVals[fieldLength : fieldLength+ao.GetValueArrSize()] {
 		bi, ok := big.NewInt(0).SetString(v, 10)
 		if !ok {
 			return fmt.Errorf("invalid value in index: %d", i)

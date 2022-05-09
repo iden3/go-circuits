@@ -181,13 +181,18 @@ type AtomicQuerySigPubSignals struct {
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
 func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
+	// 11 is a number of fields in AtomicQuerySigPubSignals before values, values is last element in the proof and
+	// it is length could be different base on the circuit configuration. The length could be modified by set value
+	// in ValueArraySize
+	const fieldLength = 11
+
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
 		return err
 	}
 
-	if len(sVals) != 11+ao.GetValueArrSize() {
+	if len(sVals) != fieldLength+ao.GetValueArrSize() {
 		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 11+ao.GetValueArrSize(), len(sVals))
 	}
 
@@ -239,7 +244,7 @@ func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 
 	// 22 doesn't include in final slice.
-	for i, v := range sVals[11 : 11+ao.GetValueArrSize()] {
+	for i, v := range sVals[fieldLength : fieldLength+ao.GetValueArrSize()] {
 		bi, ok := big.NewInt(0).SetString(v, 10)
 		if !ok {
 			return fmt.Errorf("invalid value in index: %d", i)
