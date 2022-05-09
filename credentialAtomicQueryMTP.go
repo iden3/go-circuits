@@ -127,6 +127,7 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 
 // AtomicQueryMTPPubSignals public signals
 type AtomicQueryMTPPubSignals struct {
+	BaseConfig
 	UserID               *core.ID         `json:"userID"`
 	UserState            *merkletree.Hash `json:"userState"`
 	Challenge            *big.Int         `json:"challenge"`
@@ -147,8 +148,8 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	if len(sVals) != 24 {
-		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 24, len(sVals))
+	if len(sVals) != 9+ao.GetValueArrSize() {
+		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 73, len(sVals))
 	}
 
 	if ao.UserID, err = idFromIntStr(sVals[0]); err != nil {
@@ -164,39 +165,38 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
 
+	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[3]); err != nil {
+		return err
+	}
+
+	if ao.IssuerID, err = idFromIntStr(sVals[4]); err != nil {
+		return err
+	}
+
+	if ao.Timestamp, err = strconv.ParseInt(sVals[5], 10, 64); err != nil {
+		return err
+	}
+
 	var schemaInt *big.Int
-	if schemaInt, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[6], 10); !ok {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[0])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
-	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[4]); err != nil {
+	if ao.SlotIndex, err = strconv.Atoi(sVals[7]); err != nil {
 		return err
 	}
 
-	if ao.IssuerID, err = idFromIntStr(sVals[5]); err != nil {
+	if ao.Operator, err = strconv.Atoi(sVals[8]); err != nil {
 		return err
 	}
 
-	if ao.SlotIndex, err = strconv.Atoi(sVals[6]); err != nil {
-		return err
-	}
-
-	// 22 doesn't include in final slice.
-	for i, v := range sVals[7:22] {
+	for i, v := range sVals[9 : 9+ao.GetValueArrSize()] {
 		bi, ok := big.NewInt(0).SetString(v, 10)
 		if !ok {
 			return fmt.Errorf("invalid value in index: %d", i)
 		}
 		ao.Values = append(ao.Values, bi)
-	}
-
-	if ao.Operator, err = strconv.Atoi(sVals[22]); err != nil {
-		return err
-	}
-
-	if ao.Timestamp, err = strconv.ParseInt(sVals[23], 10, 64); err != nil {
-		return err
 	}
 
 	return nil

@@ -3,10 +3,8 @@ package circuits
 import (
 	"context"
 	"encoding/hex"
-	"encoding/json"
 	"fmt"
 	"math/big"
-	"strconv"
 	"testing"
 	"time"
 
@@ -170,69 +168,55 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 }
 
 func TestAtomicQueryMTPOutputs_CircuitUnmarshal(t *testing.T) {
-	userPrivKHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
-	issuerPrivKHex := "21a5e7321d0e2f3ca1cc6504396e6594a2211544b08c206847cdee96f832421a"
-	challenge := new(big.Int).SetInt64(1)
-	ctx := context.Background()
 
-	userID, uClaimsTree, _, _, err, _, _ := it.Generate(ctx,
-		userPrivKHex)
-	assert.Nil(t, err)
-
-	userState, err := merkletree.HashElems(
-		uClaimsTree.Root().BigInt(),
-		merkletree.HashZero.BigInt(),
-		merkletree.HashZero.BigInt())
-	assert.Nil(t, err)
-
-	// Issuer
-	issuerID, iClaimsTree, _, _, err, _, _ := it.Generate(ctx,
-		issuerPrivKHex)
-	assert.Nil(t, err)
-
-	issuerState, err := merkletree.HashElems(
-		iClaimsTree.Root().BigInt(),
-		merkletree.HashZero.BigInt(),
-		merkletree.HashZero.BigInt())
-	assert.Nil(t, err)
-
-	claimSchema, err := core.NewSchemaHashFromHex("ce6bb12c96bfd1544c02c289c6b4b987")
+	userID, err := idFromIntStr("379949150130214723420589610911161895495647789006649785264738141299135414272")
 	assert.NoError(t, err)
 
-	slotIndex := "1"
-	values := []string{"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10",
-		"11", "12", "13", "14"}
-	operator := "1"
-	timeStamp := strconv.FormatInt(time.Now().Unix(), 10)
-
-	outputsData := []string{userID.BigInt().String(),
-		userState.BigInt().String(), challenge.String(),
-		claimSchema.BigInt().String(),
-		issuerState.BigInt().String(), issuerID.BigInt().String(), slotIndex}
-	outputsData = append(outputsData, values...)
-	outputsData = append(outputsData, operator, timeStamp)
-
-	data, err := json.Marshal(outputsData)
+	userStateInt, ok := new(big.Int).SetString(
+		"18656147546666944484453899241916469544090258810192803949522794490493271005313", 10)
+	assert.True(t, ok)
+	userState, err := merkletree.NewHashFromBigInt(userStateInt)
 	assert.NoError(t, err)
+
+	schemaInt, ok := new(big.Int).SetString("180410020913331409885634153623124536270", 10)
+	assert.True(t, ok)
+	schema := core.NewSchemaHashFromInt(schemaInt)
+
+	issuerClaimIdenStateInt, ok := new(big.Int).SetString("18605292738057394742004097311192572049290380262377486632479765119429313092475", 10)
+	assert.True(t, ok)
+	issuerClaimIdenState, err := merkletree.NewHashFromBigInt(issuerClaimIdenStateInt)
+
+	issuerID, err := idFromIntStr("26599707002460144379092755370384635496563807452878989192352627271768342528")
+
+	values := make([]*big.Int, 64)
+	for i := 0; i < 64; i++ {
+		values[i] = big.NewInt(0)
+	}
+	values[0].SetInt64(10)
+	values[63].SetInt64(9999)
+
+	timestamp := int64(1642074362)
+
+	expectedOut := AtomicQueryMTPPubSignals{
+		UserID:               userID,
+		UserState:            userState,
+		Challenge:            big.NewInt(1),
+		ClaimSchema:          schema,
+		IssuerClaimIdenState: issuerClaimIdenState,
+		IssuerID:             issuerID,
+		SlotIndex:            2,
+		Values:               values,
+		Operator:             0,
+		Timestamp:            timestamp,
+	}
 
 	out := new(AtomicQueryMTPPubSignals)
-	err = out.PubSignalsUnmarshal(data)
+	err = out.PubSignalsUnmarshal([]byte(
+		`["379949150130214723420589610911161895495647789006649785264738141299135414272", "18656147546666944484453899241916469544090258810192803949522794490493271005313", "1", "18605292738057394742004097311192572049290380262377486632479765119429313092475", "26599707002460144379092755370384635496563807452878989192352627271768342528", "1642074362", "180410020913331409885634153623124536270", "2", "0", "10", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "9999"]`))
 	assert.NoError(t, err)
 
-	assert.Equal(t, userID, out.UserID)
-	assert.Equal(t, userState, out.UserState)
-	assert.Equal(t, challenge, out.Challenge)
-	assert.Equal(t, claimSchema, out.ClaimSchema)
+	assert.Equal(t, expectedOut, *out)
 
-	assert.Equal(t, issuerState, out.IssuerClaimIdenState)
-	assert.Equal(t, issuerID, out.IssuerID)
-	assert.Equal(t, slotIndex, strconv.Itoa(out.SlotIndex))
-	assert.Equal(t, len(values), len(out.Values))
-	for i, v := range out.Values {
-		assert.Equal(t, values[i], v.String())
-	}
-	assert.Equal(t, operator, strconv.Itoa(out.Operator))
-	assert.Equal(t, timeStamp, strconv.FormatInt(out.Timestamp, 10))
 }
 
 func claimsIndexValueHashes(c core.Claim) (*big.Int, *big.Int, error) {
