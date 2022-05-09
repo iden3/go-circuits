@@ -243,7 +243,6 @@ func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	// 22 doesn't include in final slice.
 	for i, v := range sVals[fieldLength : fieldLength+ao.GetValueArrSize()] {
 		bi, ok := big.NewInt(0).SetString(v, 10)
 		if !ok {

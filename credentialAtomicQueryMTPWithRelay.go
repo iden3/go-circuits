@@ -145,13 +145,14 @@ func (a AtomicQueryMTPWithRelayInputs) InputsMarshal() ([]byte, error) {
 
 // AtomicQueryMTPWithRelayPubSignals public signals
 type AtomicQueryMTPWithRelayPubSignals struct {
+	BaseConfig
 	UserID      *core.ID         `json:"userID"`
 	RelayState  *merkletree.Hash `json:"relayState"`
 	Challenge   *big.Int         `json:"challenge"`
 	ClaimSchema core.SchemaHash  `json:"claimSchema"`
 	SlotIndex   int              `json:"slotIndex"`
 	Operator    int              `json:"operator"`
-	Value       *big.Int         `json:"value"`
+	Values      []*big.Int       `json:"value"`
 	Timestamp   int64            `json:"timestamp"`
 	IssuerID    *core.ID         `json:"issuerID"`
 }
@@ -159,12 +160,17 @@ type AtomicQueryMTPWithRelayPubSignals struct {
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryMTPWithRelay.circom public signals
 func (ao *AtomicQueryMTPWithRelayPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
+	// 8 is a number of fields in AtomicQueryMTPWithRelayPubSignals before values, values is last element in the proof and
+	// it is length could be different base on the circuit configuration. The length could be modified by set value
+	// in ValueArraySize
+	const fieldLength = 8
+
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
 		return err
 	}
 
-	if len(sVals) != 9 {
+	if len(sVals) != fieldLength+ao.GetValueArrSize() {
 		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 9, len(sVals))
 	}
 
@@ -181,30 +187,34 @@ func (ao *AtomicQueryMTPWithRelayPubSignals) PubSignalsUnmarshal(data []byte) er
 		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
 
+	if ao.IssuerID, err = idFromIntStr(sVals[3]); err != nil {
+		return err
+	}
+
+	if ao.Timestamp, err = strconv.ParseInt(sVals[4], 10, 64); err != nil {
+		return err
+	}
+
 	var schemaInt *big.Int
-	if schemaInt, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[5], 10); !ok {
 		return err
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
-	if ao.SlotIndex, err = strconv.Atoi(sVals[4]); err != nil {
+	if ao.SlotIndex, err = strconv.Atoi(sVals[6]); err != nil {
 		return err
 	}
 
-	if ao.Operator, err = strconv.Atoi(sVals[5]); err != nil {
+	if ao.Operator, err = strconv.Atoi(sVals[7]); err != nil {
 		return err
 	}
 
-	if ao.Value, ok = big.NewInt(0).SetString(sVals[6], 10); !ok {
-		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
-	}
-
-	if ao.Timestamp, err = strconv.ParseInt(sVals[7], 10, 64); err != nil {
-		return err
-	}
-
-	if ao.IssuerID, err = idFromIntStr(sVals[8]); err != nil {
-		return err
+	for i, v := range sVals[fieldLength : fieldLength+ao.GetValueArrSize()] {
+		bi, ok := big.NewInt(0).SetString(v, 10)
+		if !ok {
+			return fmt.Errorf("invalid value in index: %d", i)
+		}
+		ao.Values = append(ao.Values, bi)
 	}
 
 	return nil

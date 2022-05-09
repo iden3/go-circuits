@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"math/big"
-	"strconv"
 	"testing"
 	"time"
 
@@ -252,55 +251,45 @@ func addClaimToTree(tree *merkletree.MerkleTree,
 }
 
 func TestAtomicQueryMTPWithRelayOutputs_CircuitUnmarshal(t *testing.T) {
-	userPrivKHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
-	issuerPrivKHex := "21a5e7321d0e2f3ca1cc6504396e6594a2211544b08c206847cdee96f832421a"
-	challenge := new(big.Int).SetInt64(1)
-	ctx := context.Background()
+	userID, err := idFromIntStr("379949150130214723420589610911161895495647789006649785264738141299135414272")
+	assert.NoError(t, err)
 
-	userID, uClaimsTree, _, _, err, _, _ := it.Generate(ctx,
-		userPrivKHex)
-	assert.Nil(t, err)
+	issuerID, err := idFromIntStr("26599707002460144379092755370384635496563807452878989192352627271768342528")
+	assert.NoError(t, err)
 
-	relayState, err := merkletree.HashElems(
-		uClaimsTree.Root().BigInt(),
-		merkletree.HashZero.BigInt(),
-		merkletree.HashZero.BigInt())
-	assert.Nil(t, err)
+	relayStateInt, ok := new(big.Int).SetString(
+		"4239448240735161374561925497474400621823161116770305241717998726622296721696", 10)
+	assert.True(t, ok)
+	relayState, err := merkletree.NewHashFromBigInt(relayStateInt)
+	assert.NoError(t, err)
 
-	// Issuer
-	issuerID, _, _, _, err, _, _ := it.Generate(ctx,
-		issuerPrivKHex)
-	assert.Nil(t, err)
+	schemaInt, ok := new(big.Int).SetString("180410020913331409885634153623124536270", 10)
+	assert.True(t, ok)
+	schema := core.NewSchemaHashFromInt(schemaInt)
 
-	claimSchema, err := core.NewSchemaHashFromHex("ce6bb12c96bfd1544c02c289c6b4b987")
-	assert.Nil(t, err)
+	values := make([]*big.Int, 64)
+	for i := 0; i < 64; i++ {
+		values[i] = big.NewInt(0)
+	}
+	values[0].SetInt64(10)
+	values[63].SetInt64(9999)
 
-	slotIndex := "1"
-	value := "1"
-	operator := "1"
-	timeStamp := strconv.FormatInt(time.Now().Unix(), 10)
-
-	outputsData := []string{
-		userID.BigInt().String(), relayState.BigInt().String(), challenge.String(), claimSchema.BigInt().String(), slotIndex,
-		operator, value, timeStamp, issuerID.BigInt().String(),
+	expectedOut := AtomicQueryMTPWithRelayPubSignals{
+		UserID:      userID,
+		RelayState:  relayState,
+		Challenge:   big.NewInt(1),
+		ClaimSchema: schema,
+		SlotIndex:   2,
+		Operator:    0,
+		Values:      values,
+		Timestamp:   int64(1642074362),
+		IssuerID:    issuerID,
 	}
 
-	data, err := json.Marshal(outputsData)
-	assert.NoError(t, err)
-
 	out := new(AtomicQueryMTPWithRelayPubSignals)
-	err = out.PubSignalsUnmarshal(data)
+	err = out.PubSignalsUnmarshal([]byte(
+		`["379949150130214723420589610911161895495647789006649785264738141299135414272", "4239448240735161374561925497474400621823161116770305241717998726622296721696", "1", "26599707002460144379092755370384635496563807452878989192352627271768342528", "1642074362", "180410020913331409885634153623124536270", "2", "0", "10", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "9999"]`))
+
 	assert.NoError(t, err)
-
-	assert.Equal(t, userID, out.UserID)
-	assert.Equal(t, relayState, out.RelayState)
-	assert.Equal(t, challenge, out.Challenge)
-
-	assert.Equal(t, claimSchema, out.ClaimSchema)
-
-	assert.Equal(t, slotIndex, strconv.Itoa(out.SlotIndex))
-	assert.Equal(t, operator, strconv.Itoa(out.Operator))
-	assert.Equal(t, value, out.Value.String())
-	assert.Equal(t, timeStamp, strconv.FormatInt(out.Timestamp, 10))
-	assert.Equal(t, issuerID, out.IssuerID)
+	assert.Equal(t, expectedOut, *out)
 }
