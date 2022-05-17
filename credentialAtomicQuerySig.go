@@ -260,7 +260,7 @@ func (ao AtomicQuerySigPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
 }
 
-func (ao *AtomicQuerySigPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateVerificationHandlerFunc) error {
+func (ao *AtomicQuerySigPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateResolverFunc) error {
 	userStateVerificationRes, err := stateVerFunc(ctx, ao.UserID.BigInt(), ao.UserState.BigInt())
 	if err != nil {
 		return err

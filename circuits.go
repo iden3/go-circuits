@@ -213,11 +213,11 @@ func GetCircuit(id CircuitID) (*Data, error) {
 
 // StateVerifier is interface for verification of public signals of zkp
 type StateVerifier interface {
-	VerifyStates(ctx context.Context, stateVerFunc StateVerificationHandlerFunc) error
+	VerifyStates(ctx context.Context, stateVerFunc StateResolverFunc) error
 }
 
-// StateVerificationHandlerFunc is handler for func verification
-type StateVerificationHandlerFunc func(ctx context.Context, id *big.Int, state *big.Int) (*StateVerificationResult, error)
+// StateResolverFunc is handler for func verification
+type StateResolverFunc func(ctx context.Context, id *big.Int, state *big.Int) (*StateVerificationResult, error)
 
 type StateVerificationResult struct {
 	Latest              bool

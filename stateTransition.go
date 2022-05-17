@@ -113,7 +113,7 @@ func (s StateTransitionPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(s)
 }
 
-func (ao *StateTransitionPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateVerificationHandlerFunc) error {
+func (ao *StateTransitionPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateResolverFunc) error {
 	userStateVerificationRes, err := stateVerFunc(ctx, ao.UserID.BigInt(), ao.NewUserState.BigInt())
 	if err != nil {
 		return err

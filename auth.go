@@ -110,7 +110,7 @@ func (a AuthPubSignals) GetObjMap() map[string]interface{} {
 }
 
 // VerifyStates performs all state verifications
-func (c *AuthPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateVerificationHandlerFunc) error {
+func (c *AuthPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateResolverFunc) error {
 	userStateVerificationRes, err := stateVerFunc(ctx, c.UserID.BigInt(), c.UserState.BigInt())
 	if err != nil {
 		return err

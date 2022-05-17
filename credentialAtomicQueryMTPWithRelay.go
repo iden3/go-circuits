@@ -227,6 +227,6 @@ func (ao AtomicQueryMTPWithRelayPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
 }
 
-func (ao *AtomicQueryMTPWithRelayPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateVerificationHandlerFunc) error {
+func (ao *AtomicQueryMTPWithRelayPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateResolverFunc) error {
 	return errors.New("state verification for AtomicQueryMTPWithRelay is not implemented")
 }
