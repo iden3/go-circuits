@@ -1,14 +1,14 @@
 package circuits
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"math/big"
-	"strconv"
-
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
+	"math/big"
+	"strconv"
 )
 
 // AtomicQueryMTPInputs ZK private inputs for credentialAtomicQueryMTP.circom
@@ -210,4 +210,28 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 // GetObjMap returns struct field as a map
 func (ao AtomicQueryMTPPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
+}
+
+func (ao *AtomicQueryMTPPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateVerificationHandlerFunc) error {
+
+	userStateVerificationRes, err := stateVerFunc(ctx, ao.UserID.BigInt(), ao.UserState.BigInt())
+	if err != nil {
+		return err
+	}
+
+	if !userStateVerificationRes.Latest {
+		return userStateIsNotValid
+	}
+
+	issuerClaimState, err := stateVerFunc(ctx, ao.IssuerID.BigInt(), ao.IssuerClaimIdenState.BigInt())
+	if err != nil {
+		return err
+	}
+	if issuerClaimState == nil {
+		return issuerClaimStateIsNotValid
+	}
+
+	//TODO: add revocation state check
+
+	return nil
 }

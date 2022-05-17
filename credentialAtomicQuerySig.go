@@ -1,6 +1,7 @@
 package circuits
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"math/big"
@@ -257,4 +258,25 @@ func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 // GetObjMap returns struct field as a map
 func (ao AtomicQuerySigPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
+}
+
+func (ao *AtomicQuerySigPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateVerificationHandlerFunc) error {
+	userStateVerificationRes, err := stateVerFunc(ctx, ao.UserID.BigInt(), ao.UserState.BigInt())
+	if err != nil {
+		return err
+	}
+
+	if !userStateVerificationRes.Latest {
+		return userStateIsNotValid
+	}
+
+	issuerClaimState, err := stateVerFunc(ctx, ao.IssuerID.BigInt(), ao.IssuerState.BigInt())
+	if err != nil {
+		return err
+	}
+	if issuerClaimState == nil {
+		return issuerClaimStateIsNotValid
+	}
+
+	return nil
 }

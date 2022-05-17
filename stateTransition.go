@@ -1,6 +1,7 @@
 package circuits
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 
@@ -110,4 +111,15 @@ func (s *StateTransitionPubSignals) PubSignalsUnmarshal(data []byte) error {
 // GetObjMap returns struct field as a map
 func (s StateTransitionPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(s)
+}
+
+func (ao *StateTransitionPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateVerificationHandlerFunc) error {
+	userStateVerificationRes, err := stateVerFunc(ctx, ao.UserID.BigInt(), ao.NewUserState.BigInt())
+	if err != nil {
+		return err
+	}
+	if !userStateVerificationRes.Latest {
+		return userStateIsNotValid
+	}
+	return nil
 }

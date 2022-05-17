@@ -1,13 +1,13 @@
 package circuits
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
-	"math/big"
-
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
+	"math/big"
 )
 
 // AuthInputs type represent auth.circom private inputs
@@ -107,4 +107,16 @@ func (a *AuthPubSignals) PubSignalsUnmarshal(data []byte) error {
 // GetObjMap returns AuthPubSignals as a map
 func (a AuthPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(a)
+}
+
+// VerifyStates performs all state verifications
+func (c *AuthPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateVerificationHandlerFunc) error {
+	userStateVerificationRes, err := stateVerFunc(ctx, c.UserID.BigInt(), c.UserState.BigInt())
+	if err != nil {
+		return err
+	}
+	if !userStateVerificationRes.Latest {
+		return userStateIsNotValid
+	}
+	return nil
 }

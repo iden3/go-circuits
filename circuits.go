@@ -1,11 +1,12 @@
 package circuits
 
 import (
+	"context"
 	"embed"
+	"github.com/pkg/errors"
+	"math/big"
 	"reflect"
 	"sync"
-
-	"github.com/pkg/errors"
 )
 
 var (
@@ -33,6 +34,9 @@ const (
 
 // ErrorCircuitIDNotFound returns if CircuitID is not registered
 var ErrorCircuitIDNotFound = errors.New("circuit id not supported")
+
+var userStateIsNotValid = errors.New("user state is not valid")
+var issuerClaimStateIsNotValid = errors.New("issuer claim state is not valid")
 
 const (
 	defaultMTLevels       = 32 // max MT levels, default value for identity circuits
@@ -130,6 +134,7 @@ type PubSignalsMapper interface {
 type PubSignals interface {
 	PubSignalsUnmarshaller
 	PubSignalsMapper
+	StateVerifier
 }
 
 // KeyLoader interface, if key should be fetched from file system, CDN, IPFS etc,
@@ -204,4 +209,17 @@ func GetCircuit(id CircuitID) (*Data, error) {
 		return nil, ErrorCircuitIDNotFound
 	}
 	return &circuit, nil
+}
+
+// StateVerifier is interface for verification of public signals of zkp
+type StateVerifier interface {
+	VerifyStates(ctx context.Context, stateVerFunc StateVerificationHandlerFunc) error
+}
+
+// StateVerificationHandlerFunc is handler for func verification
+type StateVerificationHandlerFunc func(ctx context.Context, id *big.Int, state *big.Int) (*StateVerificationResult, error)
+
+type StateVerificationResult struct {
+	Latest              bool
+	TransitionTimestamp int64
 }

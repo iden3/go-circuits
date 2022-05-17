@@ -1,8 +1,10 @@
 package circuits
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/pkg/errors"
 	"math/big"
 	"strconv"
 
@@ -223,4 +225,8 @@ func (ao *AtomicQueryMTPWithRelayPubSignals) PubSignalsUnmarshal(data []byte) er
 // GetObjMap returns struct field as a map
 func (ao AtomicQueryMTPWithRelayPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
+}
+
+func (ao *AtomicQueryMTPWithRelayPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateVerificationHandlerFunc) error {
+	return errors.New("state verification for AtomicQueryMTPWithRelay is not implemented")
 }
