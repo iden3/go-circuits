@@ -217,9 +217,10 @@ type StateVerifier interface {
 }
 
 // StateResolverFunc is handler for func verification
-type StateResolverFunc func(ctx context.Context, id *big.Int, state *big.Int) (*StateVerificationResult, error)
+type StateResolverFunc func(ctx context.Context, id *big.Int, state *big.Int) (*StateResolveResult, error)
 
-type StateVerificationResult struct {
+// StateResolveResult is result of state
+type StateResolveResult struct {
 	Latest              bool
 	TransitionTimestamp int64
 }
