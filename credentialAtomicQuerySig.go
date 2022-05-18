@@ -171,7 +171,7 @@ type AtomicQuerySigPubSignals struct {
 	ClaimSchema            core.SchemaHash  `json:"claimSchema"`
 	IssuerID               *core.ID         `json:"issuerID"`
 	IssuerState            *merkletree.Hash `json:"issuerState"`
-	IssuerAuthState        *merkletree.Hash `json:"IssuerAuthState"`
+	IssuerAuthState        *merkletree.Hash `json:"issuerAuthState"`
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 	SlotIndex              int              `json:"slotIndex"`
 	Values                 []*big.Int       `json:"values"`
