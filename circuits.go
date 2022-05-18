@@ -35,8 +35,8 @@ const (
 // ErrorCircuitIDNotFound returns if CircuitID is not registered
 var ErrorCircuitIDNotFound = errors.New("circuit id not supported")
 
-var errUserStateIsNotValid = errors.New("user state is not valid")
-var errIssuerClaimStateIsNotValid = errors.New("issuer claim state is not valid")
+var ErrUserStateIsNotValid = errors.New("user state is not valid")
+var ErrIssuerClaimStateIsNotValid = errors.New("issuer claim state is not valid")
 
 const (
 	defaultMTLevels       = 32 // max MT levels, default value for identity circuits

@@ -220,7 +220,7 @@ func (ao *AtomicQueryMTPPubSignals) VerifyStates(ctx context.Context, stateVerFu
 	}
 
 	if !userStateVerificationRes.Latest {
-		return errUserStateIsNotValid
+		return ErrUserStateIsNotValid
 	}
 
 	issuerClaimState, err := stateVerFunc(ctx, ao.IssuerID.BigInt(), ao.IssuerClaimIdenState.BigInt())
@@ -228,7 +228,7 @@ func (ao *AtomicQueryMTPPubSignals) VerifyStates(ctx context.Context, stateVerFu
 		return err
 	}
 	if issuerClaimState == nil {
-		return errIssuerClaimStateIsNotValid
+		return ErrIssuerClaimStateIsNotValid
 	}
 
 	//TODO: add revocation state check

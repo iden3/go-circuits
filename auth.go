@@ -116,7 +116,7 @@ func (c *AuthPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateRes
 		return err
 	}
 	if !userStateVerificationRes.Latest {
-		return errUserStateIsNotValid
+		return ErrUserStateIsNotValid
 	}
 	return nil
 }
