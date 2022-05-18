@@ -119,7 +119,7 @@ func (ao *StateTransitionPubSignals) VerifyStates(ctx context.Context, stateVerF
 		return err
 	}
 	if !userStateVerificationRes.Latest {
-		return userStateIsNotValid
+		return errUserStateIsNotValid
 	}
 	return nil
 }

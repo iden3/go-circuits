@@ -267,7 +267,7 @@ func (ao *AtomicQuerySigPubSignals) VerifyStates(ctx context.Context, stateVerFu
 	}
 
 	if !userStateVerificationRes.Latest {
-		return userStateIsNotValid
+		return errUserStateIsNotValid
 	}
 
 	issuerClaimState, err := stateVerFunc(ctx, ao.IssuerID.BigInt(), ao.IssuerState.BigInt())
@@ -275,7 +275,7 @@ func (ao *AtomicQuerySigPubSignals) VerifyStates(ctx context.Context, stateVerFu
 		return err
 	}
 	if issuerClaimState == nil {
-		return issuerClaimStateIsNotValid
+		return errIssuerClaimStateIsNotValid
 	}
 
 	return nil
