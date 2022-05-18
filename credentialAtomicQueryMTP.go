@@ -212,6 +212,7 @@ func (ao AtomicQueryMTPPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
 }
 
+// VerifyStates returns
 func (ao *AtomicQueryMTPPubSignals) VerifyStates(ctx context.Context, stateVerFunc StateResolverFunc) error {
 
 	userStateVerificationRes, err := stateVerFunc(ctx, ao.UserID.BigInt(), ao.UserState.BigInt())
