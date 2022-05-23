@@ -9,6 +9,7 @@ import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
+	"github.com/pkg/errors"
 )
 
 // AtomicQueryMTPInputs ZK private inputs for credentialAtomicQueryMTP.circom
@@ -71,6 +72,22 @@ type atomicQueryMTPCircuitInputs struct {
 
 // CircuitInputMarshal returns Circom private inputs for credentialAtomicQueryMTP.circom
 func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
+
+	if a.AuthClaim.Proof == nil {
+		return nil, errors.New("empty auth claim mtp proof")
+	}
+
+	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
+		return nil, errors.New("empty auth claim non-revocation mtp proof")
+	}
+
+	if a.Claim.Proof == nil {
+		return nil, errors.New("empty claim mtp proof")
+	}
+
+	if a.Claim.NonRevProof == nil || a.Claim.NonRevProof.Proof == nil {
+		return nil, errors.New("empty claim non-revocation mtp proof")
+	}
 
 	s := atomicQueryMTPCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,

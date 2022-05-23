@@ -8,6 +8,7 @@ import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
+	"github.com/pkg/errors"
 )
 
 // AuthInputs type represent auth.circom private inputs
@@ -43,6 +44,14 @@ type authCircuitInputs struct {
 
 // CircuitInputMarshal returns Circom private inputs for auth.circom
 func (a AuthInputs) InputsMarshal() ([]byte, error) {
+
+	if a.AuthClaim.Proof == nil {
+		return nil, errors.New("empty auth claim mtp proof")
+	}
+
+	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
+		return nil, errors.New("empty auth claim non-revocation mtp proof")
+	}
 
 	s := authCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
