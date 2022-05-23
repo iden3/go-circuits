@@ -70,7 +70,7 @@ type atomicQueryMTPCircuitInputs struct {
 	Value                           []string         `json:"value"`
 }
 
-// CircuitInputMarshal returns Circom private inputs for credentialAtomicQueryMTP.circom
+// InputsMarshal returns Circom private inputs for credentialAtomicQueryMTP.circom
 func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 
 	if a.AuthClaim.Proof == nil {

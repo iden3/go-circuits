@@ -108,6 +108,14 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 		return nil, errors.New(ErrorEmptyIssuerAuthClaimNonRevProof)
 	}
 
+	if a.Signature == nil {
+		return nil, errors.New(ErrorEmptyChallengeSignature)
+	}
+
+	if a.SignatureProof.Signature == nil {
+		return nil, errors.New(ErrorEmptyClaimSignature)
+	}
+
 	s := atomicQuerySigCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
 		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),

@@ -104,6 +104,10 @@ func (a AtomicQueryMTPWithRelayInputs) InputsMarshal() ([]byte, error) {
 		return nil, errors.New(ErrorUserStateInRelayClaimProof)
 	}
 
+	if a.Signature == nil {
+		return nil, errors.New(ErrorEmptyChallengeSignature)
+	}
+
 	s := atomicQueryMTPWithRelayCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
 		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),

@@ -42,7 +42,7 @@ type authCircuitInputs struct {
 	UserState                   *merkletree.Hash `json:"userState"`
 }
 
-// CircuitInputMarshal returns Circom private inputs for auth.circom
+// InputsMarshal returns Circom private inputs for auth.circom
 func (a AuthInputs) InputsMarshal() ([]byte, error) {
 
 	if a.AuthClaim.Proof == nil {
@@ -51,6 +51,10 @@ func (a AuthInputs) InputsMarshal() ([]byte, error) {
 
 	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
+	}
+
+	if a.Signature == nil {
+		return nil, errors.New(ErrorEmptyChallengeSignature)
 	}
 
 	s := authCircuitInputs{
