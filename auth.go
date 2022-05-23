@@ -46,11 +46,11 @@ type authCircuitInputs struct {
 func (a AuthInputs) InputsMarshal() ([]byte, error) {
 
 	if a.AuthClaim.Proof == nil {
-		return nil, errors.New("empty auth claim mtp proof")
+		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}
 
 	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
-		return nil, errors.New("empty auth claim non-revocation mtp proof")
+		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
 	s := authCircuitInputs{

@@ -85,23 +85,23 @@ type atomicQueryMTPWithRelayCircuitInputs struct {
 func (a AtomicQueryMTPWithRelayInputs) InputsMarshal() ([]byte, error) {
 
 	if a.AuthClaim.Proof == nil {
-		return nil, errors.New("empty auth claim mtp proof")
+		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}
 
 	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
-		return nil, errors.New("empty auth claim non-revocation mtp proof")
+		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
 	if a.Claim.Proof == nil {
-		return nil, errors.New("empty claim mtp proof")
+		return nil, errors.New(ErrorEmptyClaimProof)
 	}
 
 	if a.Claim.NonRevProof == nil || a.Claim.NonRevProof.Proof == nil {
-		return nil, errors.New("empty claim non-revocation mtp proof")
+		return nil, errors.New(ErrorEmptyClaimNonRevProof)
 	}
 
 	if a.UserStateInRelayClaim.Proof == nil {
-		return nil, errors.New("empty claim non-revocation mtp proof")
+		return nil, errors.New(ErrorUserStateInRelayClaimProof)
 	}
 
 	s := atomicQueryMTPWithRelayCircuitInputs{

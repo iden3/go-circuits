@@ -49,11 +49,11 @@ type stateTransitionInputsInternal struct {
 func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 
 	if c.AuthClaim.Proof == nil {
-		return nil, errors.New("empty auth claim mtp proof")
+		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}
 
 	if c.AuthClaim.NonRevProof == nil || c.AuthClaim.NonRevProof.Proof == nil {
-		return nil, errors.New("empty auth claim non-revocation mtp proof")
+		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
 	s := stateTransitionInputsInternal{
