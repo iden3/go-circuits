@@ -89,6 +89,10 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 		return nil, errors.New(ErrorEmptyClaimNonRevProof)
 	}
 
+	if a.Signature == nil {
+		return nil, errors.New(ErrorEmptyChallengeSignature)
+	}
+
 	s := atomicQueryMTPCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
 		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
