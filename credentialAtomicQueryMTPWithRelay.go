@@ -9,6 +9,7 @@ import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
+	"github.com/pkg/errors"
 )
 
 // AtomicQueryMTPWithRelayInputs ZK private inputs for credentialAtomicQueryMTPWithRelay.circom
@@ -82,6 +83,30 @@ type atomicQueryMTPWithRelayCircuitInputs struct {
 
 // InputsMarshal returns Circom private inputs for credentialAtomicQueryMTPWithRelay.circom
 func (a AtomicQueryMTPWithRelayInputs) InputsMarshal() ([]byte, error) {
+
+	if a.AuthClaim.Proof == nil {
+		return nil, errors.New(ErrorEmptyAuthClaimProof)
+	}
+
+	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
+		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
+	}
+
+	if a.Claim.Proof == nil {
+		return nil, errors.New(ErrorEmptyClaimProof)
+	}
+
+	if a.Claim.NonRevProof == nil || a.Claim.NonRevProof.Proof == nil {
+		return nil, errors.New(ErrorEmptyClaimNonRevProof)
+	}
+
+	if a.UserStateInRelayClaim.Proof == nil {
+		return nil, errors.New(ErrorUserStateInRelayClaimProof)
+	}
+
+	if a.Signature == nil {
+		return nil, errors.New(ErrorEmptyChallengeSignature)
+	}
 
 	s := atomicQueryMTPWithRelayCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,

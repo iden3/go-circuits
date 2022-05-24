@@ -9,6 +9,7 @@ import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
+	"github.com/pkg/errors"
 )
 
 // AtomicQuerySigInputs ZK private inputs for credentialAtomicQuerySig.circom
@@ -86,6 +87,34 @@ type atomicQuerySigCircuitInputs struct {
 
 // InputsMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
 func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
+
+	if a.AuthClaim.Proof == nil {
+		return nil, errors.New(ErrorEmptyAuthClaimProof)
+	}
+
+	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
+		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
+	}
+
+	if a.Claim.NonRevProof == nil || a.Claim.NonRevProof.Proof == nil {
+		return nil, errors.New(ErrorEmptyClaimNonRevProof)
+	}
+
+	if a.SignatureProof.IssuerAuthClaimMTP == nil {
+		return nil, errors.New(ErrorEmptyIssuerAuthClaimProof)
+	}
+
+	if a.SignatureProof.IssuerAuthNonRevProof.Proof == nil {
+		return nil, errors.New(ErrorEmptyIssuerAuthClaimNonRevProof)
+	}
+
+	if a.Signature == nil {
+		return nil, errors.New(ErrorEmptyChallengeSignature)
+	}
+
+	if a.SignatureProof.Signature == nil {
+		return nil, errors.New(ErrorEmptyClaimSignature)
+	}
 
 	s := atomicQuerySigCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,

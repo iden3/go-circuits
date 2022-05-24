@@ -7,6 +7,7 @@ import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
+	"github.com/pkg/errors"
 )
 
 // StateTransitionInputs ZK private inputs for stateTransition.circom
@@ -46,6 +47,14 @@ type stateTransitionInputsInternal struct {
 
 // CircuitInputMarshal returns Circom private inputs for stateTransition.circom
 func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
+
+	if c.AuthClaim.Proof == nil {
+		return nil, errors.New(ErrorEmptyAuthClaimProof)
+	}
+
+	if c.AuthClaim.NonRevProof == nil || c.AuthClaim.NonRevProof.Proof == nil {
+		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
+	}
 
 	s := stateTransitionInputsInternal{
 		AuthClaim:          *c.AuthClaim.Claim,
