@@ -1,16 +1,10 @@
 package circuits
 
 import (
-	"embed"
 	"reflect"
 	"sync"
 
 	"github.com/pkg/errors"
-)
-
-var (
-	//go:embed verificationKeys
-	verificationKeysRes embed.FS
 )
 
 // CircuitID is alias for circuit identifier
@@ -55,37 +49,27 @@ func RegisterCircuit(id CircuitID, c Data) {
 func init() {
 
 	RegisterCircuit(AuthCircuitID, Data{
-		Input:           AuthInputs{},
-		Output:          &AuthPubSignals{},
-		VerificationKey: embedFSLoader{"verificationKeys/auth.json"},
-		ProvingKey:      nil,
+		Input:  AuthInputs{},
+		Output: &AuthPubSignals{},
 	})
 
 	RegisterCircuit(StateTransitionCircuitID, Data{
-		Input:           StateTransitionInputs{},
-		Output:          &StateTransitionPubSignals{},
-		VerificationKey: embedFSLoader{"verificationKeys/stateTransition.json"},
-		ProvingKey:      nil,
+		Input:  StateTransitionInputs{},
+		Output: &StateTransitionPubSignals{},
 	})
 
 	RegisterCircuit(AtomicQueryMTPCircuitID, Data{
-		Input:           AtomicQueryMTPInputs{},
-		Output:          &AtomicQueryMTPPubSignals{},
-		VerificationKey: embedFSLoader{"verificationKeys/credentialAtomicQueryMTP.json"},
-		ProvingKey:      nil,
+		Input:  AtomicQueryMTPInputs{},
+		Output: &AtomicQueryMTPPubSignals{},
 	})
 
 	RegisterCircuit(AtomicQueryMTPWithRelayCircuitID, Data{
-		Input:           AtomicQueryMTPWithRelayInputs{},
-		Output:          &AtomicQueryMTPWithRelayPubSignals{},
-		VerificationKey: embedFSLoader{"verificationKeys/credentialAtomicQueryMTPWithRelay.json"},
-		ProvingKey:      nil,
+		Input:  AtomicQueryMTPWithRelayInputs{},
+		Output: &AtomicQueryMTPWithRelayPubSignals{},
 	})
 	RegisterCircuit(AtomicQuerySigCircuitID, Data{
-		Input:           AtomicQuerySigInputs{},
-		Output:          &AtomicQuerySigPubSignals{},
-		VerificationKey: embedFSLoader{"verificationKeys/credentialAtomicQuerySig.json"},
-		ProvingKey:      nil,
+		Input:  AtomicQuerySigInputs{},
+		Output: &AtomicQuerySigPubSignals{},
 	})
 }
 
@@ -140,20 +124,8 @@ type KeyLoader interface {
 
 // Data circuit type
 type Data struct {
-	Input           InputsMarshaller // input values type
-	Output          PubSignals       // output values type
-	VerificationKey KeyLoader
-	ProvingKey      KeyLoader
-}
-
-// embedFSLoader read keys from embedded FS
-type embedFSLoader struct {
-	path string
-}
-
-// Load keys from embedded FS
-func (m embedFSLoader) Load() ([]byte, error) {
-	return verificationKeysRes.ReadFile(m.path)
+	Input  InputsMarshaller // input values type
+	Output PubSignals       // output values type
 }
 
 // UnmarshalCircuitOutput unmarshal bytes to specific circuit Output type associated with id
@@ -179,19 +151,6 @@ func UnmarshalCircuitOutput(id CircuitID, b []byte) (map[string]interface{}, err
 	m := newPointer.(PubSignalsMapper).GetObjMap()
 
 	return m, nil
-}
-
-// GetVerificationKey return verification key registered for given CircuitID
-func GetVerificationKey(id CircuitID) ([]byte, error) {
-	circuitsLock.RLock()
-	defer circuitsLock.RUnlock()
-
-	circuit, ok := circuitsRegistry[id]
-	if !ok {
-		return nil, ErrorCircuitIDNotFound
-	}
-
-	return circuit.VerificationKey.Load()
 }
 
 // GetCircuit return circuit Data
