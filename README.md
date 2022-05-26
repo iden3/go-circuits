@@ -1,59 +1,61 @@
 # go-circuits
 
+### WARNING
+All code here is experimental and WIP
+
 [![Go Reference](https://pkg.go.dev/badge/github.com/iden3/go-circuits.svg)](https://pkg.go.dev/github.com/iden3/go-circuits)
 [![Go Report Card](https://goreportcard.com/badge/github.com/iden3/go-circuits)](https://goreportcard.com/report/github.com/iden3/go-circuits)
 ### General description:
 
-The library goal is to create a wrapper on top of standard circuits set
+The library goal is to create a wrapper for private and public inputs for identity circuits
 
 Repository of circuits implementation:  https://github.com/iden3/circuits
 
-> Set of functionality for circuits inputs preparation, verification keys, and public signals schema  retrieving
+> Set of functionality for circuits inputs preparation, and public signals schema  retrieving
 > 
 
 ### How to use :
 
-- All circuits implement *InputsPreparer*  and *BaseCircuit* Interfaces
+- All circuits implement *InputsMarshaller*  and *PubSignalsUnmarshal* Interfaces
     
     ```go
-    type InputsPreparer interface {
-    	PrepareInputs(i TypedInputs) (map[string]interface{}, error)
-    }
-    type BaseCircuit interface {
-    	InputsPreparer
-    	GetVerificationKey() VerificationKeyJSON
-    	GetPublicSignalsSchema() PublicSchemaJSON
-    }
+  type InputsMarshaller interface {
+        InputsMarshal() ([]byte, error)
+  }
+
+
+  type PubSignalsUnmarshaller interface {
+        PubSignalsUnmarshal(data []byte) error
+  }
     ```
+  
+- Example of usage:
+
+At the moment you have to fill all needed attributes for a specific Inputs, take a look in test for each specific Input
+ 
+```go
+  inputs := AuthInputs{
+        ID: identifier,
+        AuthClaim: Claim{
+            Claim:       claim,
+            Proof:       claimEntryMTP,
+            TreeState:   treeState,
+            NonRevProof: &ClaimNonRevStatus{treeState, claimNonRevMTP},
+        },
+        Signature: signature,
+        Challenge: challenge,
+    }
+
+    circuitInputJSON, err := inputs.InputsMarshal() // marshal JSON inputs for specific circuit in proper format
+```
     
-- If you use an existing circuit
+- It’s easy to extend Circuits mapping through registering custom Circuit Wrapper implementation
     
     ```go
-    
-    circuitID := "credentialAtomicQuery"
-    circuitInputs := circuits.AtomicQueryInputs{
-    			ID:               ...,
-    			AuthClaim:        ...,
-    			Challenge:        ...,
-    			Signature:        ...,
-    			Query:            ...,
-    			Claim:            ...,
-    			RevocationStatus: ...,
-    }
-    circuit, err := circuits.GetCircuit(circuits.CircuitID(circuitID))
-    if err != nil {
-    		return nil, nil, err
-    }
-    inputs, err := circuit.PrepareInputs(circuitInputs)
-    if err != nil {
-    	return nil, nil, err
-    }
-    ```
-    
-- It’s easy to extend Circuits mapping through registering custom Circuit Wrapper implementation, but it must implement *BaseCircuit* interface
-    
-    ```go
-    RegisterCircuit(CustomQueryCircuitID, &CustomQueryCircuit{})
+    RegisterCircuit(CustomCircuitID, Data{
+        Input:  CustomInputs{},
+        Output: &CustomPubSignals{},
+    })
     ```
     
     ### Querying :
@@ -63,17 +65,17 @@ Repository of circuits implementation:  https://github.com/iden3/circuits
     ```go
     // Query represents basic request to claim slot verification
     type Query struct {
-    	SlotIndex int
-    	Value     *big.Int
-    	Operator  int
+        SlotIndex int
+        Value     *big.Int
+        Operator  int
     }
     
     // QueryOperators represents operators for atomic circuits
     var QueryOperators = map[string]int{
-    	"$eq": 0,
-    	"$lt": 1,
-    	"$gt": 2,
-    	"$ni": 3,
-    	"$in": 4,
+        "$eq": 0,
+        "$lt": 1,
+        "$gt": 2,
+        "$ni": 3,
+        "$in": 4,
     }
     ```
