@@ -64,7 +64,7 @@ func TestScalarCompare(t *testing.T) {
 			name:     "testing unknown operator",
 			x:        big.NewInt(0),
 			y:        big.NewInt(1),
-			operator: 6, // unknown operator.
+			operator: 5, // unknown operator.
 			expected: false,
 			withErr:  true,
 		},
@@ -127,7 +127,7 @@ func TestVectorCompare(t *testing.T) {
 			name:     "testing unknown operator",
 			x:        big.NewInt(0),
 			y:        []*big.Int{big.NewInt(1), big.NewInt(10), big.NewInt(100)},
-			operator: 7, // unknown operator.
+			operator: 6, // unknown operator.
 			expected: false,
 			withErr:  true,
 		},
