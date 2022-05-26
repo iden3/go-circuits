@@ -2,7 +2,6 @@ package circuits
 
 import (
 	"encoding/json"
-	"fmt"
 	"math/big"
 	"testing"
 
@@ -39,12 +38,4 @@ func TestUnmarshalCircuitOutput_Err(t *testing.T) {
 	_, err := UnmarshalCircuitOutput("Err", []byte("{}"))
 
 	assert.Equal(t, err, ErrorCircuitIDNotFound)
-}
-
-func TestGetVerificationKey(t *testing.T) {
-
-	got, err := GetVerificationKey(AuthCircuitID)
-	assert.NoError(t, err)
-
-	fmt.Println(string(got))
 }
