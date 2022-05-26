@@ -1,10 +1,10 @@
 package circuits
 
 import (
-"math/big"
-"testing"
+	"math/big"
+	"testing"
 
-"github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/require"
 )
 
 func TestScalarCompare(t *testing.T) {
@@ -64,7 +64,7 @@ func TestScalarCompare(t *testing.T) {
 			name:     "testing unknown operator",
 			x:        big.NewInt(0),
 			y:        big.NewInt(1),
-			operator: 4, // unknown operator.
+			operator: 5, // unknown operator.
 			expected: false,
 			withErr:  true,
 		},
@@ -127,7 +127,7 @@ func TestVectorCompare(t *testing.T) {
 			name:     "testing unknown operator",
 			x:        big.NewInt(0),
 			y:        []*big.Int{big.NewInt(1), big.NewInt(10), big.NewInt(100)},
-			operator: 5, // unknown operator.
+			operator: 6, // unknown operator.
 			expected: false,
 			withErr:  true,
 		},

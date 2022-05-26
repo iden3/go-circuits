@@ -8,7 +8,8 @@ import (
 
 // List of available operators.
 const (
-	EQ int = iota
+	NOOP int = iota // No operation, skip query verification in circuit
+	EQ
 	LT
 	GT
 	IN
@@ -24,11 +25,12 @@ type Query struct {
 
 // QueryOperators represents operators for atomic circuits
 var QueryOperators = map[string]int{
-	"$eq":  EQ,
-	"$lt":  LT,
-	"$gt":  GT,
-	"$in":  IN,
-	"$nin": NIN,
+	"$noop": NOOP,
+	"$eq":   EQ,
+	"$lt":   LT,
+	"$gt":   GT,
+	"$in":   IN,
+	"$nin":  NIN,
 }
 
 // Comparer value.
