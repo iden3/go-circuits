@@ -70,12 +70,14 @@ At the moment you have to fill all needed attributes for a specific Inputs, take
         Operator  int
     }
     
+  
     // QueryOperators represents operators for atomic circuits
     var QueryOperators = map[string]int{
-        "$eq": 0,
-        "$lt": 1,
-        "$gt": 2,
-        "$ni": 3,
-        "$in": 4,
+        "$noop": NOOP,
+        "$eq":   EQ,
+        "$lt":   LT,
+        "$gt":   GT,
+        "$in":   IN,
+        "$nin":  NIN,
     }
     ```
