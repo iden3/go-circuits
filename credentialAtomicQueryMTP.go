@@ -154,7 +154,7 @@ type AtomicQueryMTPPubSignals struct {
 	Challenge              *big.Int         `json:"challenge"`
 	ClaimSchema            core.SchemaHash  `json:"claimSchema"`
 	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
-	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimIdenState"`
+	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 	IssuerID               *core.ID         `json:"issuerID"`
 	SlotIndex              int              `json:"slotIndex"`
 	Values                 []*big.Int       `json:"values"`
