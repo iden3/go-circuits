@@ -78,11 +78,6 @@ type atomicQuerySigCircuitInputs struct {
 	IssuerAuthClaimsTreeRoot *merkletree.Hash `json:"issuerAuthClaimsTreeRoot"`
 	IssuerAuthRevTreeRoot    *merkletree.Hash `json:"issuerAuthRevTreeRoot"`
 	IssuerAuthRootsTreeRoot  *merkletree.Hash `json:"issuerAuthRootsTreeRoot"`
-
-	IssuerClaimsTreeRoot *merkletree.Hash `json:"issuerClaimsTreeRoot"`
-	IssuerState          *merkletree.Hash `json:"issuerState"`
-	IssuerRevTreeRoot    *merkletree.Hash `json:"issuerRevTreeRoot"`
-	IssuerRootsTreeRoot  *merkletree.Hash `json:"issuerRootsTreeRoot"`
 }
 
 // InputsMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
@@ -158,13 +153,6 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 
 		IssuerAuthClaimNonRevMtp: bigIntArrayToStringArray(
 			PrepareSiblings(a.SignatureProof.IssuerAuthNonRevProof.Proof.AllSiblings(), a.GetMTLevel())),
-
-		IssuerClaimsTreeRoot: a.SignatureProof.IssuerTreeState.ClaimsRoot,
-		IssuerState:          a.SignatureProof.IssuerTreeState.State,
-		//IssuerPubKeyX:        a.SignatureProof.IssuerPublicKey.X.String(),
-		//IssuerPubKeyY:        a.SignatureProof.IssuerPublicKey.Y.String(),
-		IssuerRevTreeRoot:   a.SignatureProof.IssuerTreeState.RevocationRoot,
-		IssuerRootsTreeRoot: a.SignatureProof.IssuerTreeState.RootOfRoots,
 	}
 
 	values, err := PrepareCircuitArrayValues(a.Values, a.GetValueArrSize())
@@ -199,7 +187,6 @@ type AtomicQuerySigPubSignals struct {
 	Challenge              *big.Int         `json:"challenge"`
 	ClaimSchema            core.SchemaHash  `json:"claimSchema"`
 	IssuerID               *core.ID         `json:"issuerID"`
-	IssuerState            *merkletree.Hash `json:"issuerState"`
 	IssuerAuthState        *merkletree.Hash `json:"issuerAuthState"`
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 	SlotIndex              int              `json:"slotIndex"`
@@ -210,10 +197,10 @@ type AtomicQuerySigPubSignals struct {
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
 func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
-	// 11 is a number of fields in AtomicQuerySigPubSignals before values, values is last element in the proof and
+	// 10 is a number of fields in AtomicQuerySigPubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 11
+	const fieldLength = 10
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -222,7 +209,7 @@ func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 
 	if len(sVals) != fieldLength+ao.GetValueArrSize() {
-		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 11+ao.GetValueArrSize(), len(sVals))
+		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", fieldLength+ao.GetValueArrSize(), len(sVals))
 	}
 
 	if ao.IssuerAuthState, err = merkletree.NewHashFromString(sVals[0]); err != nil {
@@ -246,29 +233,25 @@ func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	if ao.IssuerState, err = merkletree.NewHashFromString(sVals[5]); err != nil {
+	if ao.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[5]); err != nil {
 		return err
 	}
 
-	if ao.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[6]); err != nil {
-		return err
-	}
-
-	if ao.Timestamp, err = strconv.ParseInt(sVals[7], 10, 64); err != nil {
+	if ao.Timestamp, err = strconv.ParseInt(sVals[6], 10, 64); err != nil {
 		return err
 	}
 
 	var schemaInt *big.Int
-	if schemaInt, ok = big.NewInt(0).SetString(sVals[8], 10); !ok {
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[7], 10); !ok {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[3])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
-	if ao.SlotIndex, err = strconv.Atoi(sVals[9]); err != nil {
+	if ao.SlotIndex, err = strconv.Atoi(sVals[8]); err != nil {
 		return err
 	}
 
-	if ao.Operator, err = strconv.Atoi(sVals[10]); err != nil {
+	if ao.Operator, err = strconv.Atoi(sVals[9]); err != nil {
 		return err
 	}
 

@@ -149,24 +149,25 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 // AtomicQueryMTPPubSignals public signals
 type AtomicQueryMTPPubSignals struct {
 	BaseConfig
-	UserID               *core.ID         `json:"userID"`
-	UserState            *merkletree.Hash `json:"userState"`
-	Challenge            *big.Int         `json:"challenge"`
-	ClaimSchema          core.SchemaHash  `json:"claimSchema"`
-	IssuerClaimIdenState *merkletree.Hash `json:"issuerClaimIdenState"`
-	IssuerID             *core.ID         `json:"issuerID"`
-	SlotIndex            int              `json:"slotIndex"`
-	Values               []*big.Int       `json:"values"`
-	Operator             int              `json:"operator"`
-	Timestamp            int64            `json:"timestamp"`
+	UserID                 *core.ID         `json:"userID"`
+	UserState              *merkletree.Hash `json:"userState"`
+	Challenge              *big.Int         `json:"challenge"`
+	ClaimSchema            core.SchemaHash  `json:"claimSchema"`
+	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
+	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
+	IssuerID               *core.ID         `json:"issuerID"`
+	SlotIndex              int              `json:"slotIndex"`
+	Values                 []*big.Int       `json:"values"`
+	Operator               int              `json:"operator"`
+	Timestamp              int64            `json:"timestamp"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryMTP.circom public signals array to AtomicQueryMTPPubSignals
 func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
-	// 9 is a number of fields in AtomicQueryMTPPubSignals before values, values is last element in the proof and
+	// 10 is a number of fields in AtomicQueryMTPPubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 9
+	const fieldLength = 10
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -175,7 +176,7 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 
 	if len(sVals) != fieldLength+ao.GetValueArrSize() {
-		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", 73, len(sVals))
+		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", fieldLength+ao.GetValueArrSize(), len(sVals))
 	}
 
 	if ao.UserID, err = idFromIntStr(sVals[0]); err != nil {
@@ -199,21 +200,25 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	if ao.Timestamp, err = strconv.ParseInt(sVals[5], 10, 64); err != nil {
+	if ao.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[5]); err != nil {
+		return err
+	}
+
+	if ao.Timestamp, err = strconv.ParseInt(sVals[6], 10, 64); err != nil {
 		return err
 	}
 
 	var schemaInt *big.Int
-	if schemaInt, ok = big.NewInt(0).SetString(sVals[6], 10); !ok {
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[7], 10); !ok {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[0])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
-	if ao.SlotIndex, err = strconv.Atoi(sVals[7]); err != nil {
+	if ao.SlotIndex, err = strconv.Atoi(sVals[8]); err != nil {
 		return err
 	}
 
-	if ao.Operator, err = strconv.Atoi(sVals[8]); err != nil {
+	if ao.Operator, err = strconv.Atoi(sVals[9]); err != nil {
 		return err
 	}
 
