@@ -187,6 +187,11 @@ func TestAtomicQueryMTPOutputs_CircuitUnmarshal(t *testing.T) {
 	issuerClaimIdenState, err := merkletree.NewHashFromBigInt(issuerClaimIdenStateInt)
 	assert.NoError(t, err)
 
+	issuerClaimNonRevStateInt, ok := new(big.Int).SetString("4526669839764419626617575537226877836118875794723391624256342150634803457675", 10)
+	assert.True(t, ok)
+	issuerClaimNonRevState, err := merkletree.NewHashFromBigInt(issuerClaimNonRevStateInt)
+	assert.NoError(t, err)
+
 	issuerID, err := idFromIntStr("26599707002460144379092755370384635496563807452878989192352627271768342528")
 	assert.NoError(t, err)
 
@@ -200,22 +205,24 @@ func TestAtomicQueryMTPOutputs_CircuitUnmarshal(t *testing.T) {
 	timestamp := int64(1642074362)
 
 	expectedOut := AtomicQueryMTPPubSignals{
-		UserID:               userID,
-		UserState:            userState,
-		Challenge:            big.NewInt(1),
-		ClaimSchema:          schema,
-		IssuerClaimIdenState: issuerClaimIdenState,
-		IssuerID:             issuerID,
-		SlotIndex:            2,
-		Values:               values,
-		Operator:             EQ,
-		Timestamp:            timestamp,
+		UserID:                 userID,
+		UserState:              userState,
+		Challenge:              big.NewInt(1),
+		ClaimSchema:            schema,
+		IssuerClaimIdenState:   issuerClaimIdenState,
+		IssuerClaimNonRevState: issuerClaimNonRevState,
+		IssuerID:               issuerID,
+		SlotIndex:              2,
+		Values:                 values,
+		Operator:               EQ,
+		Timestamp:              timestamp,
 	}
 
 	out := new(AtomicQueryMTPPubSignals)
 	err = out.PubSignalsUnmarshal([]byte(
 		`["379949150130214723420589610911161895495647789006649785264738141299135414272", 
-"18656147546666944484453899241916469544090258810192803949522794490493271005313", "1", "18605292738057394742004097311192572049290380262377486632479765119429313092475", "26599707002460144379092755370384635496563807452878989192352627271768342528", "1642074362", "180410020913331409885634153623124536270", "2", "1", "10", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "9999"]`))
+"18656147546666944484453899241916469544090258810192803949522794490493271005313", "1", 
+"18605292738057394742004097311192572049290380262377486632479765119429313092475", "26599707002460144379092755370384635496563807452878989192352627271768342528", "4526669839764419626617575537226877836118875794723391624256342150634803457675","1642074362", "180410020913331409885634153623124536270", "2", "1", "10", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "9999"]`))
 	assert.NoError(t, err)
 
 	assert.Equal(t, expectedOut, *out)
