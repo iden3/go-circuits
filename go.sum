@@ -3,8 +3,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/dchest/blake512 v1.0.0 h1:oDFEQFIqFSeuA34xLtXZ/rWxCXdSjirjzPhey5EUvmA=
 github.com/dchest/blake512 v1.0.0/go.mod h1:FV1x7xPPLWukZlpDpWQ88rF/SFwZ5qbskrzhLMB92JI=
-github.com/iden3/go-iden3-core v0.0.16 h1:BHNcRA+3Jbz0ur9VhQePP9u9o6cGvLBLB3Qs9OGoQlM=
-github.com/iden3/go-iden3-core v0.0.16/go.mod h1:wJtcMK/bSazyW/JrQaRrbpUMgSMg79Pke3xgtfPxDnQ=
+github.com/iden3/go-iden3-core v0.1.0 h1:bsTRmigwDU9MtzPSjWyd+WL/ZnWGDRjDO4I0e99aJdo=
+github.com/iden3/go-iden3-core v0.1.0/go.mod h1:wJtcMK/bSazyW/JrQaRrbpUMgSMg79Pke3xgtfPxDnQ=
 github.com/iden3/go-iden3-crypto v0.0.13 h1:ixWRiaqDULNyIDdOWz2QQJG5t4PpNHkQk2P6GV94cok=
 github.com/iden3/go-iden3-crypto v0.0.13/go.mod h1:swXIv0HFbJKobbQBtsB50G7IHr6PbTowutSew/iBEoo=
 github.com/iden3/go-merkletree-sql v1.0.1 h1:zZMhhyV6FLoLL+pHQiiPoAI3ORSCTKOL32/n7Sb/+R4=
