@@ -2,7 +2,9 @@ package circuits
 
 import (
 	"context"
+	"encoding/hex"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"testing"
 
@@ -14,9 +16,12 @@ func TestCircuitMarshal(t *testing.T) {
 
 	ctx := context.Background()
 	privKeyHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
-	challenge := big.NewInt(1)
+	chB, _ := hex.DecodeString("126cd331642e18b9761e88716f45c320c81e1ca451a8ab6ffe5d3b16d9427970")
+
+	challenge := new(big.Int).SetBytes(chB)
 	identifier, claim, state, claimsTree, revTree, rootsTree, claimEntryMTP, claimNonRevMTP, signature, err := it.AuthClaimFullInfo(ctx, privKeyHex, challenge)
 	assert.Nil(t, err)
+	fmt.Println(identifier.String())
 
 	treeState := TreeState{
 		State:          state,
