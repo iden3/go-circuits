@@ -19,6 +19,8 @@ const (
 	AtomicQueryMTPCircuitID CircuitID = "credentialAtomicQueryMTP"
 	// AtomicQuerySigCircuitID is a type for credentialAttrQuerySig.circom
 	AtomicQuerySigCircuitID CircuitID = "credentialAtomicQuerySig"
+	// AtomicQuerySigOnChainSmtCircuitID is a type for credentialAttrQuerySigOnChainSmt.circom
+	AtomicQuerySigOnChainSmtCircuitID CircuitID = "credentialAtomicQuerySigOnChainSmt"
 	// AtomicQueryMTPWithRelayCircuitID is a type for credentialAtomicQueryMTPWithRelay.circom
 	AtomicQueryMTPWithRelayCircuitID CircuitID = "credentialAtomicQueryMTPWithRelay"
 	// AtomicQuerySigWithRelayCircuitID is a type for credentialAttrQuerySigWithRelay.circom
