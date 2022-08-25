@@ -181,6 +181,10 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	}
 
 	atomicInputs := AtomicQueryMTPInputs{
+		BaseConfig: BaseConfig{
+			MTLevel:        32,
+			ValueArraySize: 1,
+		},
 		ID:        userIdentity,
 		AuthClaim: inputsAuthClaim,
 		Challenge: challenge,
