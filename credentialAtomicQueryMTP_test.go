@@ -176,8 +176,8 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 
 	query := Query{
 		SlotIndex: 2,
-		Values:    []*big.Int{big.NewInt(840), big.NewInt(120), big.NewInt(340), big.NewInt(509)},
-		Operator:  NIN,
+		Values:    []*big.Int{big.NewInt(980)},
+		Operator:  EQ,
 	}
 
 	atomicInputs := AtomicQueryMTPInputs{
