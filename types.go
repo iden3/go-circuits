@@ -37,11 +37,6 @@ type BJJSignatureProof struct {
 	IssuerAuthNonRevProof ClaimNonRevStatus // IssuerAuthClaim non revocation proof
 }
 
-type StateInOnChainSmt struct {
-	OnChainSmtRoot *merkletree.Hash
-	Proof          *merkletree.Proof
-}
-
 type NullifierInputs struct {
 	CorrelationID *big.Int
 	Nullifier     *big.Int

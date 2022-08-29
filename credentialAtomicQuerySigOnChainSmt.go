@@ -17,7 +17,7 @@ type AtomicQuerySigOnChainSmtInputs struct {
 	BaseConfig
 
 	// Identity anti-track inputs
-	StateInOnChainSmt
+	StateInOnChainSmtProof *merkletree.CircomVerifierProof
 	NullifierInputs
 
 	// auth
@@ -41,8 +41,8 @@ type atomicQuerySigOnChainSmtCircuitInputs struct {
 	UserStateInOnChainSmtMtpAuxHv *merkletree.Hash `json:"userStateInOnChainSmtMtpAuxHv"`
 	UserStateInOnChainSmtMtpNoAux string           `json:"userStateInOnChainSmtMtpNoAux"`
 
-	CorrelationID string `json:"correlationID"`
-	Nullifier     string `json:"nullifier"`
+	UserCorrelationID string `json:"userCorrelationID"`
+	UserNullifier     string `json:"userNullifier"`
 
 	UserAuthClaim               *core.Claim      `json:"userAuthClaim"`
 	UserAuthClaimMtp            []string         `json:"userAuthClaimMtp"`
@@ -125,12 +125,15 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 	}
 
 	s := atomicQuerySigOnChainSmtCircuitInputs{
-		UserStateInOnChainSmtRoot: a.StateInOnChainSmt.OnChainSmtRoot,
+		UserStateInOnChainSmtRoot: a.StateInOnChainSmtProof.Root,
 		// todo Need a separate config for the OnchainSMT
-		UserStateInOnChainSmtMtp: PrepareSiblingsStr(a.StateInOnChainSmt.Proof.AllSiblings(), 32),
+		UserStateInOnChainSmtMtp:      PrepareSiblingsStr(a.StateInOnChainSmtProof.Siblings, 32),
+		UserStateInOnChainSmtMtpAuxHi: &merkletree.HashZero,
+		UserStateInOnChainSmtMtpAuxHv: &merkletree.HashZero,
+		UserStateInOnChainSmtMtpNoAux: "1",
 
-		CorrelationID: a.NullifierInputs.CorrelationID.String(),
-		Nullifier:     a.NullifierInputs.Nullifier.String(),
+		UserCorrelationID: a.NullifierInputs.CorrelationID.String(),
+		UserNullifier:     a.NullifierInputs.Nullifier.String(),
 
 		UserAuthClaim: a.AuthClaim.Claim,
 		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
@@ -175,10 +178,11 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 			PrepareSiblings(a.SignatureProof.IssuerAuthNonRevProof.Proof.AllSiblings(), a.GetMTLevel())),
 	}
 
-	nodeAuxOnChainSmt := getNodeAuxValue(a.StateInOnChainSmt.Proof.NodeAux)
-	s.UserStateInOnChainSmtMtpAuxHi = nodeAuxOnChainSmt.key
-	s.UserStateInOnChainSmtMtpAuxHv = nodeAuxOnChainSmt.value
-	s.UserStateInOnChainSmtMtpNoAux = nodeAuxOnChainSmt.noAux
+	if a.StateInOnChainSmtProof.Fnc == 1 && a.StateInOnChainSmtProof.IsOld0 == false {
+		s.UserStateInOnChainSmtMtpAuxHi = a.StateInOnChainSmtProof.OldKey
+		s.UserStateInOnChainSmtMtpAuxHv = a.StateInOnChainSmtProof.OldValue
+		s.UserStateInOnChainSmtMtpNoAux = "0"
+	}
 
 	values, err := PrepareCircuitArrayValues(a.Values, a.GetValueArrSize())
 	if err != nil {
@@ -207,25 +211,26 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 // AtomicQuerySigPubSignals public inputs
 type AtomicQuerySigOnChainSmtPubSignals struct {
 	BaseConfig
-	CorrelationID          *big.Int         `json:"correlationID"`
-	Nullifier              *big.Int         `json:"nullifier"`
-	Challenge              *big.Int         `json:"challenge"`
-	ClaimSchema            core.SchemaHash  `json:"claimSchema"`
-	IssuerID               *core.ID         `json:"issuerID"`
-	IssuerAuthState        *merkletree.Hash `json:"issuerAuthState"`
-	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
-	SlotIndex              int              `json:"slotIndex"`
-	Values                 []*big.Int       `json:"values"`
-	Operator               int              `json:"operator"`
-	Timestamp              int64            `json:"timestamp"`
+	UserStateInOnChainSmtRoot *merkletree.Hash `json:"userStateInOnChainSmtRoot"`
+	UserCorrelationID         *big.Int         `json:"userCorrelationID"`
+	UserNullifier             *big.Int         `json:"userNullifier"`
+	Challenge                 *big.Int         `json:"challenge"`
+	ClaimSchema               core.SchemaHash  `json:"claimSchema"`
+	IssuerID                  *core.ID         `json:"issuerID"`
+	IssuerAuthState           *merkletree.Hash `json:"issuerAuthState"`
+	IssuerClaimNonRevState    *merkletree.Hash `json:"issuerClaimNonRevState"`
+	SlotIndex                 int              `json:"slotIndex"`
+	Values                    []*big.Int       `json:"values"`
+	Operator                  int              `json:"operator"`
+	Timestamp                 int64            `json:"timestamp"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
 func (ao *AtomicQuerySigOnChainSmtPubSignals) PubSignalsUnmarshal(data []byte) error {
-	// 10 is a number of fields in AtomicQuerySigPubSignals before values, values is last element in the proof and
+	// 10 is a number of fields in AtomicQuerySigPubOnChainSmtSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 10
+	const fieldLength = 11
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -242,41 +247,45 @@ func (ao *AtomicQuerySigOnChainSmtPubSignals) PubSignalsUnmarshal(data []byte) e
 	}
 
 	var ok bool
-	if ao.CorrelationID, ok = big.NewInt(0).SetString(sVals[1], 10); !ok {
-		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
-	}
-
-	if ao.Nullifier, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
-		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
-	}
-
-	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
-		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
-	}
-
-	if ao.IssuerID, err = idFromIntStr(sVals[4]); err != nil {
+	if ao.UserStateInOnChainSmtRoot, err = merkletree.NewHashFromString(sVals[1]); err != nil {
 		return err
 	}
 
-	if ao.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[5]); err != nil {
+	if ao.UserCorrelationID, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
+		return fmt.Errorf("invalid userCorrelationID value: '%s'", sVals[0])
+	}
+
+	if ao.UserNullifier, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
+		return fmt.Errorf("invalid userNullifier value: '%s'", sVals[0])
+	}
+
+	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[4], 10); !ok {
+		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
+	}
+
+	if ao.IssuerID, err = idFromIntStr(sVals[5]); err != nil {
 		return err
 	}
 
-	if ao.Timestamp, err = strconv.ParseInt(sVals[6], 10, 64); err != nil {
+	if ao.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[6]); err != nil {
+		return err
+	}
+
+	if ao.Timestamp, err = strconv.ParseInt(sVals[7], 10, 64); err != nil {
 		return err
 	}
 
 	var schemaInt *big.Int
-	if schemaInt, ok = big.NewInt(0).SetString(sVals[7], 10); !ok {
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[8], 10); !ok {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[3])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
-	if ao.SlotIndex, err = strconv.Atoi(sVals[8]); err != nil {
+	if ao.SlotIndex, err = strconv.Atoi(sVals[9]); err != nil {
 		return err
 	}
 
-	if ao.Operator, err = strconv.Atoi(sVals[9]); err != nil {
+	if ao.Operator, err = strconv.Atoi(sVals[10]); err != nil {
 		return err
 	}
 
