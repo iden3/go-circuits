@@ -27,8 +27,9 @@ const (
 var ErrorCircuitIDNotFound = errors.New("circuit id not supported")
 
 const (
-	defaultMTLevels       = 32 // max MT levels, default value for identity circuits
-	defaultValueArraySize = 64 // max value array size, default value for identity circuits
+	defaultMTLevels        = 32 // max MT levels, default value for identity circuits
+	defaultMTLevelsOnChain = 32 // max MT levels on chain, default value for identity circuits
+	defaultValueArraySize  = 64 // max value array size, default value for identity circuits
 )
 
 var circuitsRegistry = map[CircuitID]Data{}
@@ -75,6 +76,7 @@ func init() {
 // BaseConfig base circuit's config, provides default configuration for default circuits
 type BaseConfig struct {
 	MTLevel        int // Max levels of MT
+	MTLevelOnChain int // Max levels of MT on chain
 	ValueArraySize int // Size if value array in identity circuits
 }
 
@@ -84,6 +86,14 @@ func (c BaseConfig) GetMTLevel() int {
 		return defaultMTLevels
 	}
 	return c.MTLevel
+}
+
+// GetMTLevel max circuit MT levels on chain
+func (c BaseConfig) GetMTLevelOnChain() int {
+	if c.MTLevelOnChain == 0 {
+		return defaultMTLevelsOnChain
+	}
+	return c.MTLevelOnChain
 }
 
 // GetValueArrSize return size of circuits value array size

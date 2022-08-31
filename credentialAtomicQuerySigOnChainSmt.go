@@ -93,7 +93,7 @@ type atomicQuerySigOnChainSmtCircuitInputs struct {
 	IssuerAuthRootsTreeRoot  *merkletree.Hash `json:"issuerAuthRootsTreeRoot"`
 }
 
-// InputsMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
+// InputsMarshal returns Circom private inputs for credentialAtomicQuerySigOnChainSmt.circom
 func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 
 	if a.AuthClaim.Proof == nil {
@@ -125,9 +125,8 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 	}
 
 	s := atomicQuerySigOnChainSmtCircuitInputs{
-		UserStateInOnChainSmtRoot: a.StateInOnChainSmtProof.Root,
-		// todo Need a separate config for the OnchainSMT
-		UserStateInOnChainSmtMtp:      PrepareSiblingsStr(a.StateInOnChainSmtProof.Siblings, 32),
+		UserStateInOnChainSmtRoot:     a.StateInOnChainSmtProof.Root,
+		UserStateInOnChainSmtMtp:      PrepareSiblingsStr(a.StateInOnChainSmtProof.Siblings, a.GetMTLevelOnChain()),
 		UserStateInOnChainSmtMtpAuxHi: &merkletree.HashZero,
 		UserStateInOnChainSmtMtpAuxHv: &merkletree.HashZero,
 		UserStateInOnChainSmtMtpNoAux: "1",
