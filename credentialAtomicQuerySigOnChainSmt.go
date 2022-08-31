@@ -96,6 +96,10 @@ type atomicQuerySigOnChainSmtCircuitInputs struct {
 // InputsMarshal returns Circom private inputs for credentialAtomicQuerySigOnChainSmt.circom
 func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 
+	if a.StateInOnChainSmtProof == nil {
+		return nil, errors.New(ErrorEmptyStateInOnChainSmtProof)
+	}
+
 	if a.AuthClaim.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}

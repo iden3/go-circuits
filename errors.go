@@ -1,6 +1,7 @@
 package circuits
 
 const (
+	ErrorEmptyStateInOnChainSmtProof     = "empty state in on-chain SMT proof"
 	ErrorEmptyAuthClaimProof             = "empty auth claim mtp proof"
 	ErrorEmptyAuthClaimNonRevProof       = "empty auth claim non-revocation mtp proof"
 	ErrorEmptyChallengeSignature         = "empty challenge signature"
