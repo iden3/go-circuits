@@ -41,8 +41,8 @@ type atomicQuerySigOnChainSmtCircuitInputs struct {
 	UserStateInOnChainSmtMtpAuxHv *merkletree.Hash `json:"userStateInOnChainSmtMtpAuxHv"`
 	UserStateInOnChainSmtMtpNoAux string           `json:"userStateInOnChainSmtMtpNoAux"`
 
-	UserCorrelationID string `json:"userCorrelationID"`
-	UserNullifier     string `json:"userNullifier"`
+	UserSalt      string `json:"userSalt"`
+	UserNullifier string `json:"userNullifier"`
 
 	UserAuthClaim               *core.Claim      `json:"userAuthClaim"`
 	UserAuthClaimMtp            []string         `json:"userAuthClaimMtp"`
@@ -135,8 +135,8 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 		UserStateInOnChainSmtMtpAuxHv: &merkletree.HashZero,
 		UserStateInOnChainSmtMtpNoAux: "1",
 
-		UserCorrelationID: a.NullifierInputs.CorrelationID.String(),
-		UserNullifier:     a.NullifierInputs.Nullifier.String(),
+		UserSalt:      a.NullifierInputs.Salt.String(),
+		UserNullifier: a.NullifierInputs.Nullifier.String(),
 
 		UserAuthClaim: a.AuthClaim.Claim,
 		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
@@ -215,7 +215,6 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 type AtomicQuerySigOnChainSmtPubSignals struct {
 	BaseConfig
 	UserStateInOnChainSmtRoot *merkletree.Hash `json:"userStateInOnChainSmtRoot"`
-	UserCorrelationID         *big.Int         `json:"userCorrelationID"`
 	UserNullifier             *big.Int         `json:"userNullifier"`
 	Challenge                 *big.Int         `json:"challenge"`
 	ClaimSchema               core.SchemaHash  `json:"claimSchema"`
@@ -233,7 +232,7 @@ func (ao *AtomicQuerySigOnChainSmtPubSignals) PubSignalsUnmarshal(data []byte) e
 	// 10 is a number of fields in AtomicQuerySigPubOnChainSmtSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 11
+	const fieldLength = 10
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -254,41 +253,37 @@ func (ao *AtomicQuerySigOnChainSmtPubSignals) PubSignalsUnmarshal(data []byte) e
 		return err
 	}
 
-	if ao.UserCorrelationID, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
-		return fmt.Errorf("invalid userCorrelationID value: '%s'", sVals[0])
-	}
-
-	if ao.UserNullifier, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
+	if ao.UserNullifier, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
 		return fmt.Errorf("invalid userNullifier value: '%s'", sVals[0])
 	}
 
-	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[4], 10); !ok {
+	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
 		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
 
-	if ao.IssuerID, err = idFromIntStr(sVals[5]); err != nil {
+	if ao.IssuerID, err = idFromIntStr(sVals[4]); err != nil {
 		return err
 	}
 
-	if ao.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[6]); err != nil {
+	if ao.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[5]); err != nil {
 		return err
 	}
 
-	if ao.Timestamp, err = strconv.ParseInt(sVals[7], 10, 64); err != nil {
+	if ao.Timestamp, err = strconv.ParseInt(sVals[6], 10, 64); err != nil {
 		return err
 	}
 
 	var schemaInt *big.Int
-	if schemaInt, ok = big.NewInt(0).SetString(sVals[8], 10); !ok {
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[7], 10); !ok {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[3])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
-	if ao.SlotIndex, err = strconv.Atoi(sVals[9]); err != nil {
+	if ao.SlotIndex, err = strconv.Atoi(sVals[8]); err != nil {
 		return err
 	}
 
-	if ao.Operator, err = strconv.Atoi(sVals[10]); err != nil {
+	if ao.Operator, err = strconv.Atoi(sVals[9]); err != nil {
 		return err
 	}
 

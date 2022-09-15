@@ -38,6 +38,6 @@ type BJJSignatureProof struct {
 }
 
 type NullifierInputs struct {
-	CorrelationID *big.Int
-	Nullifier     *big.Int
+	Salt      *big.Int
+	Nullifier *big.Int
 }
