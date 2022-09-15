@@ -3,6 +3,9 @@ package circuits
 import (
 	"context"
 	"encoding/hex"
+	"fmt"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/iden3/go-iden3-crypto/utils"
 	"math/big"
 	"testing"
 	"time"
@@ -18,10 +21,13 @@ import (
 func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	userPrivKHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
 	issuerPrivKHex := "21a5e7321d0e2f3ca1cc6504396e6594a2211544b08c206847cdee96f832421a"
-	challenge := new(big.Int).SetInt64(1)
+	//challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
-
-	userIdentity, uClaimsTree, _, _, err, userAuthCoreClaim, userPrivateKey := it.Generate(ctx,
+	addr := common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+	fmt.Println(len(addr.Bytes()))
+	challenge := new(big.Int).SetBytes(utils.SwapEndianness(addr.Bytes()))
+	fmt.Println(challenge.String())
+	userIdentity, uClaimsTree, uRevsTree, _, err, userAuthCoreClaim, userPrivateKey := it.Generate(ctx,
 		userPrivKHex)
 	assert.Nil(t, err)
 
@@ -30,13 +36,39 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		merkletree.HashZero.BigInt(),
 		merkletree.HashZero.BigInt())
 
-	userAuthTreeState := TreeState{
+	userTreeState := TreeState{
 		State:          state,
 		ClaimsRoot:     uClaimsTree.Root(),
 		RevocationRoot: &merkletree.HashZero,
 		RootOfRoots:    &merkletree.HashZero,
 	}
 	assert.Nil(t, err)
+	fmt.Println("genesis user state: ", state.BigInt())
+
+	/*
+		Add claim to user state
+	*/
+	err = uRevsTree.Add(ctx, new(big.Int).SetInt64(10), new(big.Int).SetInt64(0))
+	assert.NoError(t, err)
+	fmt.Println("revocation root new", uRevsTree.Root().Hex())
+
+	// for new user state
+
+	newUserState, err := merkletree.HashElems(
+		uClaimsTree.Root().BigInt(),
+		uRevsTree.Root().BigInt(),
+		merkletree.HashZero.BigInt())
+	assert.Nil(t, err)
+
+	userNewTreeState := TreeState{
+		State:          newUserState,
+		ClaimsRoot:     uClaimsTree.Root(),
+		RevocationRoot: uRevsTree.Root(),
+		RootOfRoots:    &merkletree.HashZero,
+	}
+	userTreeState = userNewTreeState
+
+	fmt.Println("new user state: ", newUserState.BigInt().String())
 
 	hIndexAuthEntryUser, _, err := claimsIndexValueHashes(*userAuthCoreClaim)
 	assert.Nil(t, err)
@@ -44,6 +76,12 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	mtpProofUser, _, err := uClaimsTree.GenerateProof(ctx,
 		hIndexAuthEntryUser, uClaimsTree.Root())
 	assert.Nil(t, err)
+
+	authClaimRevNonce := new(big.Int).
+		SetUint64(userAuthCoreClaim.GetRevocationNonce())
+	proofAuthClaimNotRevoked, _, err :=
+		uRevsTree.GenerateProof(ctx, authClaimRevNonce, uRevsTree.Root())
+	require.NoError(t, err)
 
 	message := big.NewInt(0).SetBytes(challenge.Bytes())
 
@@ -82,13 +120,16 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	assert.Nil(t, err)
 
 	// issue issuerClaim for user
-	dataSlotA, err := core.NewElemBytesFromInt(big.NewInt(10))
+	// issue issuerClaim for user
+	dataSlotA, err := core.NewElemBytesFromInt(big.NewInt(19960424))
+	assert.Nil(t, err)
+	dataSlotB, err := core.NewElemBytesFromInt(big.NewInt(1))
 	assert.Nil(t, err)
 
 	nonce := 1
 	var schemaHash core.SchemaHash
 
-	schemaBytes, err := hex.DecodeString("ce6bb12c96bfd1544c02c289c6b4b987")
+	schemaBytes, err := hex.DecodeString("2e2d1c11ad3e500de68d7ce16a0a559e")
 	assert.Nil(t, err)
 
 	copy(schemaHash[:], schemaBytes)
@@ -96,7 +137,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	issuerCoreClaim, err := core.NewClaim(
 		schemaHash,
 		core.WithIndexID(*userIdentity),
-		core.WithIndexData(dataSlotA, core.ElemBytes{}),
+		core.WithIndexData(dataSlotA, dataSlotB),
 		core.WithExpirationDate(time.Unix(1669884010,
 			0)), //Thu Dec 01 2022 08:40:10 GMT+0000
 		core.WithRevocationNonce(uint64(nonce)))
@@ -143,10 +184,10 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		//Schema:    authClaim.Schema,
 		Claim:     userAuthCoreClaim,
 		Proof:     mtpProofUser,
-		TreeState: userAuthTreeState,
+		TreeState: userTreeState,
 		NonRevProof: &ClaimNonRevStatus{
-			TreeState: userAuthTreeState,
-			Proof:     mtpProofUser,
+			TreeState: userTreeState,
+			Proof:     proofAuthClaimNotRevoked,
 		},
 	}
 
@@ -176,8 +217,8 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 
 	query := Query{
 		SlotIndex: 2,
-		Values:    []*big.Int{new(big.Int).SetInt64(10)},
-		Operator:  EQ,
+		Values:    []*big.Int{new(big.Int).SetInt64(20020101)},
+		Operator:  LT,
 	}
 
 	atomicInputs := AtomicQuerySigInputs{

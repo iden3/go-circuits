@@ -71,7 +71,7 @@ func TestStateTransitionIssuerInputs_InputsMarshal(t *testing.T) {
 	//err = revTree.Add(ctx, big.NewInt(1), big.NewInt(0))
 	//assert.Nil(t, err)
 
-	stateBigInt, _ := new(big.Int).SetString("17339270624307006522829587570402128825147845744601780689258033623056405933706", 10)
+	stateBigInt, _ := new(big.Int).SetString("3340419603063795695007776009132808712127213200101711453039725856758438470204", 10)
 
 	newState, err := merkletree.NewHashFromBigInt(stateBigInt)
 	assert.Nil(t, err)
@@ -111,6 +111,8 @@ func TestStateTransitionIssuerInputs_InputsMarshal(t *testing.T) {
 
 	assert.JSONEq(t, expectedJSONInputs, string(inputBytes))
 
+	fmt.Println("===============")
+	fmt.Println(string(inputBytes))
 	//generate next state transition
 
 	// update rev tree
@@ -121,7 +123,7 @@ func TestStateTransitionIssuerInputs_InputsMarshal(t *testing.T) {
 	//claimsTreeHash, err := merkletree.NewHashFromBigInt(claimsTreeRootNewState)
 	assert.Nil(t, err)
 
-	indexI, _ := new(big.Int).SetString("9952518973948399855222905667654505135428115441557162018570780317525685263895", 10)
+	indexI, _ := new(big.Int).SetString("7293687685598142491122424599284746042327806751697049932874734997308627559223", 10)
 	valueI, _ := new(big.Int).SetString("12984060845532756394764110136147025514383100492807476892974969126577713534395", 10)
 
 	err = claimsTree.Add(ctx, indexI, valueI)

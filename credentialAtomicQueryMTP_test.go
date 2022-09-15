@@ -9,18 +9,25 @@ import (
 	"time"
 
 	it "github.com/iden3/go-circuits/testing"
-	"github.com/iden3/go-iden3-crypto/poseidon"
-	"github.com/stretchr/testify/require"
-
 	core "github.com/iden3/go-iden3-core"
+	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/iden3/go-merkletree-sql"
 	"github.com/iden3/go-merkletree-sql/db/memory"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	userPrivKHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
 	issuerPrivKHex := "21a5e7321d0e2f3ca1cc6504396e6594a2211544b08c206847cdee96f832421a"
+	/*
+		addr := common.HexToAddress("0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266")
+		fmt.Println(len(addr.Bytes()))
+		challenge := new(big.Int).SetBytes(utils.SwapEndianness(addr.Bytes()))
+		fmt.Println(challenge.String())
+	*/
+	//ctx := context.Background()
+	//
 	challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
 
@@ -35,7 +42,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		merkletree.HashZero.BigInt())
 	assert.Nil(t, err)
 
-	_ = TreeState{
+	userTreeState := TreeState{
 		State:          state,
 		ClaimsRoot:     uClaimsTree.Root(),
 		RevocationRoot: &merkletree.HashZero,
@@ -47,7 +54,6 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	/*
 		Add claim to user state
 	*/
-
 	err = uRevsTree.Add(ctx, new(big.Int).SetInt64(10), new(big.Int).SetInt64(0))
 	assert.NoError(t, err)
 	fmt.Println("revocation root new", uRevsTree.Root().Hex())
@@ -66,6 +72,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		RevocationRoot: uRevsTree.Root(),
 		RootOfRoots:    &merkletree.HashZero,
 	}
+	userTreeState = userNewTreeState
 	fmt.Println("new user state: ", newUserState.BigInt().String())
 
 	hIndexAuthEntryUser, _, err := claimsIndexValueHashes(*userAuthCoreClaim)
@@ -85,7 +92,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	assert.Nil(t, err)
 
 	// issue issuerClaim for user
-	dataSlotA, err := core.NewElemBytesFromInt(big.NewInt(980))
+	dataSlotA, err := core.NewElemBytesFromInt(big.NewInt(19960424))
 	assert.Nil(t, err)
 	dataSlotB, err := core.NewElemBytesFromInt(big.NewInt(1))
 	assert.Nil(t, err)
@@ -93,7 +100,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	nonce := 1
 	var schemaHash core.SchemaHash
 
-	schemaBytes, err := hex.DecodeString("ce38102464833febf36e714922a83050")
+	schemaBytes, err := hex.DecodeString("2e2d1c11ad3e500de68d7ce16a0a559e")
 	assert.Nil(t, err)
 
 	copy(schemaHash[:], schemaBytes)
@@ -156,9 +163,9 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	inputsAuthClaim := Claim{
 		Claim:     userAuthCoreClaim,
 		Proof:     mtpProofUser,
-		TreeState: userNewTreeState,
+		TreeState: userTreeState,
 		NonRevProof: &ClaimNonRevStatus{
-			TreeState: userNewTreeState,
+			TreeState: userTreeState,
 			Proof:     proofAuthClaimNotRevoked,
 		},
 	}
@@ -176,15 +183,11 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 
 	query := Query{
 		SlotIndex: 2,
-		Values:    []*big.Int{big.NewInt(980)},
-		Operator:  EQ,
+		Values:    []*big.Int{big.NewInt(20020101)},
+		Operator:  LT,
 	}
 
 	atomicInputs := AtomicQueryMTPInputs{
-		BaseConfig: BaseConfig{
-			MTLevel:        32,
-			ValueArraySize: 1,
-		},
 		ID:        userIdentity,
 		AuthClaim: inputsAuthClaim,
 		Challenge: challenge,
