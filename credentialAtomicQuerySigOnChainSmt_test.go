@@ -30,6 +30,7 @@ func TestAttrQuerySigOnChainSmt_PrepareInputs(t *testing.T) {
 		uClaimsTree.Root().BigInt(),
 		merkletree.HashZero.BigInt(),
 		merkletree.HashZero.BigInt())
+	assert.Nil(t, err)
 
 	fmt.Println(state.BigInt().String())
 	fmt.Println(uClaimsTree.Root().String())
@@ -39,10 +40,10 @@ func TestAttrQuerySigOnChainSmt_PrepareInputs(t *testing.T) {
 	assert.Nil(t, err)
 
 	// Note: The identity is considered to have a genesis state, so we don't add it to the tree
-	//err = onChainSmt.Add(ctx, userIdentity.BigInt(), state.BigInt())
-	//assert.Nil(t, err)
+	// err = onChainSmt.Add(ctx, userIdentity.BigInt(), state.BigInt())
+	// assert.Nil(t, err)
 
-	//this is just to emulate that some other leaves exist in the tree, just to make MTP siblings not to be zero
+	// this is just to emulate that some other leaves exist in the tree, just to make MTP siblings not to be zero
 	err = onChainSmt.Add(ctx, big.NewInt(2), big.NewInt(100))
 	assert.Nil(t, err)
 	err = onChainSmt.Add(ctx, big.NewInt(4), big.NewInt(300))
@@ -122,7 +123,7 @@ func TestAttrQuerySigOnChainSmt_PrepareInputs(t *testing.T) {
 		core.WithIndexID(*userIdentity),
 		core.WithIndexData(dataSlotA, core.ElemBytes{}),
 		core.WithExpirationDate(time.Unix(1669884010,
-			0)), //Thu Dec 01 2022 08:40:10 GMT+0000
+			0)), // Thu Dec 01 2022 08:40:10 GMT+0000
 		core.WithRevocationNonce(uint64(nonce)))
 	assert.Nil(t, err)
 

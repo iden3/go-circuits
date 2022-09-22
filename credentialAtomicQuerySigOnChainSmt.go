@@ -12,7 +12,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// AtomicQuerySigInputs ZK private inputs for credentialAtomicQuerySig.circom
+// AtomicQuerySigOnChainSmtInputs ZK private inputs for credentialAtomicQuerySigOnChainSmt.circom
 type AtomicQuerySigOnChainSmtInputs struct {
 	BaseConfig
 
@@ -181,7 +181,7 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 			PrepareSiblings(a.SignatureProof.IssuerAuthNonRevProof.Proof.AllSiblings(), a.GetMTLevel())),
 	}
 
-	if a.StateInOnChainSmtProof.Fnc == 1 && a.StateInOnChainSmtProof.IsOld0 == false {
+	if a.StateInOnChainSmtProof.Fnc == 1 && !a.StateInOnChainSmtProof.IsOld0 {
 		s.UserStateInOnChainSmtMtpAuxHi = a.StateInOnChainSmtProof.OldKey
 		s.UserStateInOnChainSmtMtpAuxHv = a.StateInOnChainSmtProof.OldValue
 		s.UserStateInOnChainSmtMtpNoAux = "0"
@@ -211,7 +211,7 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// AtomicQuerySigPubSignals public inputs
+// AtomicQuerySigOnChainSmtPubSignals public inputs
 type AtomicQuerySigOnChainSmtPubSignals struct {
 	BaseConfig
 	UserStateInOnChainSmtRoot *merkletree.Hash `json:"userStateInOnChainSmtRoot"`

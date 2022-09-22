@@ -112,23 +112,23 @@ func AuthClaimFullInfo(ctx context.Context, privKeyHex string,
 		return nil, nil, nil, nil, nil, nil, nil, nil, nil, err
 	}
 
-	//Proof claim exists
+	// Proof claim exists
 	hi, _, err := claimsIndexValueHashes(*claim)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, nil, nil, nil, err
 	}
 	claimEntryMTP, _, _ := claimsTree.GenerateProof(ctx, hi, claimsTree.Root())
 
-	//Proof claim not revoked
+	// Proof claim not revoked
 	revNonce := claim.GetRevocationNonce()
 	revNonceInt := new(big.Int).SetUint64(revNonce)
 	claimNonRevMTP, _, _ := revTree.GenerateProof(ctx, revNonceInt,
 		revTree.Root())
 
-	//Calculate state
+	// Calculate state
 	state, _ := CalcStateFromRoots(claimsTree, revTree, rootsTree)
 
-	//Calculate signature
+	// Calculate signature
 	message := big.NewInt(0).SetBytes(challenge.Bytes())
 	challengeSignature := privateKey.SignPoseidon(message)
 
