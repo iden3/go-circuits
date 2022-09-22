@@ -18,10 +18,10 @@ type AtomicQuerySigOnChainSmtInputs struct {
 
 	// Identity anti-track inputs
 	StateInOnChainSmtProof *merkletree.CircomVerifierProof
-	NullifierInputs
 
 	// auth
 	ID        *core.ID
+	Salt      *big.Int
 	AuthClaim Claim
 	Challenge *big.Int
 	Signature *babyjub.Signature
@@ -41,9 +41,6 @@ type atomicQuerySigOnChainSmtCircuitInputs struct {
 	UserStateInOnChainSmtMtpAuxHv *merkletree.Hash `json:"userStateInOnChainSmtMtpAuxHv"`
 	UserStateInOnChainSmtMtpNoAux string           `json:"userStateInOnChainSmtMtpNoAux"`
 
-	UserSalt      string `json:"userSalt"`
-	UserNullifier string `json:"userNullifier"`
-
 	UserAuthClaim               *core.Claim      `json:"userAuthClaim"`
 	UserAuthClaimMtp            []string         `json:"userAuthClaimMtp"`
 	UserAuthClaimNonRevMtp      []string         `json:"userAuthClaimNonRevMtp"`
@@ -55,6 +52,8 @@ type atomicQuerySigOnChainSmtCircuitInputs struct {
 	UserRevTreeRoot             *merkletree.Hash `json:"userRevTreeRoot"`
 	UserRootsTreeRoot           *merkletree.Hash `json:"userRootsTreeRoot"`
 	UserID                      string           `json:"userID"`
+
+	UserSalt string `json:"userSalt"`
 
 	Challenge             string `json:"challenge"`
 	ChallengeSignatureR8X string `json:"challengeSignatureR8x"`
@@ -135,18 +134,24 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 		UserStateInOnChainSmtMtpAuxHv: &merkletree.HashZero,
 		UserStateInOnChainSmtMtpNoAux: "1",
 
-		UserSalt:      a.NullifierInputs.Salt.String(),
-		UserNullifier: a.NullifierInputs.Nullifier.String(),
-
 		UserAuthClaim: a.AuthClaim.Claim,
 		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
-		Challenge:                       a.Challenge.String(),
-		ChallengeSignatureR8X:           a.Signature.R8.X.String(),
-		ChallengeSignatureR8Y:           a.Signature.R8.Y.String(),
-		ChallengeSignatureS:             a.Signature.S.String(),
+		Challenge:             a.Challenge.String(),
+		ChallengeSignatureR8X: a.Signature.R8.X.String(),
+		ChallengeSignatureR8Y: a.Signature.R8.Y.String(),
+		ChallengeSignatureS:   a.Signature.S.String(),
+
+		UserClaimsTreeRoot: a.AuthClaim.TreeState.ClaimsRoot,
+		UserState:          a.AuthClaim.TreeState.State,
+		UserRevTreeRoot:    a.AuthClaim.TreeState.RevocationRoot,
+		UserRootsTreeRoot:  a.AuthClaim.TreeState.RootOfRoots,
+		UserID:             a.ID.BigInt().String(),
+
+		UserSalt: a.Salt.String(),
+
 		IssuerClaim:                     a.Claim.Claim,
 		IssuerClaimNonRevClaimsTreeRoot: a.Claim.NonRevProof.TreeState.ClaimsRoot,
 		IssuerClaimNonRevRevTreeRoot:    a.Claim.NonRevProof.TreeState.RevocationRoot,
@@ -155,11 +160,6 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimNonRevMtp: PrepareSiblingsStr(a.Claim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		ClaimSchema:             a.Claim.Claim.GetSchemaHash().BigInt().String(),
-		UserClaimsTreeRoot:      a.AuthClaim.TreeState.ClaimsRoot,
-		UserState:               a.AuthClaim.TreeState.State,
-		UserRevTreeRoot:         a.AuthClaim.TreeState.RevocationRoot,
-		UserRootsTreeRoot:       a.AuthClaim.TreeState.RootOfRoots,
-		UserID:                  a.ID.BigInt().String(),
 		IssuerID:                a.IssuerID.BigInt().String(),
 		Operator:                a.Operator,
 		SlotIndex:               a.SlotIndex,

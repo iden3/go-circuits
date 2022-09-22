@@ -4,7 +4,6 @@ import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql"
-	"math/big"
 )
 
 type ClaimNonRevStatus struct {
@@ -35,9 +34,4 @@ type BJJSignatureProof struct {
 	IssuerAuthClaim       *core.Claim
 	IssuerAuthClaimMTP    *merkletree.Proof
 	IssuerAuthNonRevProof ClaimNonRevStatus // IssuerAuthClaim non revocation proof
-}
-
-type NullifierInputs struct {
-	Salt      *big.Int
-	Nullifier *big.Int
 }
