@@ -66,8 +66,13 @@ func Generate(ctx context.Context, privKHex string) (*core.ID,
 	}
 
 	state, _ := poseidon.Hash([]*big.Int{claimsTree.Root().BigInt(), big.NewInt(0), big.NewInt(0)})
-	// create new identity
-	identifier, err := core.IdGenesisFromIdenState(core.TypeDefault,
+	t, err := core.BuildDIDType(core.Polygon, core.Mumbai)
+	if err != nil {
+		return nil, nil, nil, nil, err, nil, nil
+	}
+
+	// create new identity\
+	identifier, err := core.IdGenesisFromIdenState(t,
 		state)
 	if err != nil {
 		return nil, nil, nil, nil, err, nil, nil
