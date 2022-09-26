@@ -12,8 +12,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// AtomicQuerySigOnChainSmtInputs ZK private inputs for credentialAtomicQuerySigOnChainSmt.circom
-type AtomicQuerySigOnChainSmtInputs struct {
+// AtomicQuerySigV2Inputs ZK private inputs for credentialAtomicQuerySigV2.circom
+type AtomicQuerySigV2Inputs struct {
 	BaseConfig
 
 	// Identity anti-track inputs
@@ -33,8 +33,8 @@ type AtomicQuerySigOnChainSmtInputs struct {
 	CurrentTimeStamp int64
 }
 
-// atomicQuerySigOnChainSmtCircuitInputs type represents credentialAtomicQuerySig.circom private inputs required by prover
-type atomicQuerySigOnChainSmtCircuitInputs struct {
+// atomicQuerySigV2CircuitInputs type represents credentialAtomicQuerySig.circom private inputs required by prover
+type atomicQuerySigV2CircuitInputs struct {
 	UserStateInOnChainSmtRoot     *merkletree.Hash `json:"userStateInOnChainSmtRoot"`
 	UserStateInOnChainSmtMtp      []string         `json:"userStateInOnChainSmtMtp"`
 	UserStateInOnChainSmtMtpAuxHi *merkletree.Hash `json:"userStateInOnChainSmtMtpAuxHi"`
@@ -51,7 +51,7 @@ type atomicQuerySigOnChainSmtCircuitInputs struct {
 	UserState                   *merkletree.Hash `json:"userState"`
 	UserRevTreeRoot             *merkletree.Hash `json:"userRevTreeRoot"`
 	UserRootsTreeRoot           *merkletree.Hash `json:"userRootsTreeRoot"`
-	UserID                      string           `json:"userID"`
+	UserClearTextID             string           `json:"userClearTextID"`
 
 	UserSalt string `json:"userSalt"`
 
@@ -92,8 +92,8 @@ type atomicQuerySigOnChainSmtCircuitInputs struct {
 	IssuerAuthRootsTreeRoot  *merkletree.Hash `json:"issuerAuthRootsTreeRoot"`
 }
 
-// InputsMarshal returns Circom private inputs for credentialAtomicQuerySigOnChainSmt.circom
-func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
+// InputsMarshal returns Circom private inputs for credentialAtomicQuerySigV2.circom
+func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 
 	if a.StateInOnChainSmtProof == nil {
 		return nil, errors.New(ErrorEmptyStateInOnChainSmtProof)
@@ -127,7 +127,7 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 		return nil, errors.New(ErrorEmptyClaimSignature)
 	}
 
-	s := atomicQuerySigOnChainSmtCircuitInputs{
+	s := atomicQuerySigV2CircuitInputs{
 		UserStateInOnChainSmtRoot:     a.StateInOnChainSmtProof.Root,
 		UserStateInOnChainSmtMtp:      PrepareSiblingsStr(a.StateInOnChainSmtProof.Siblings, a.GetMTLevelOnChain()),
 		UserStateInOnChainSmtMtpAuxHi: &merkletree.HashZero,
@@ -148,7 +148,7 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 		UserState:          a.AuthClaim.TreeState.State,
 		UserRevTreeRoot:    a.AuthClaim.TreeState.RevocationRoot,
 		UserRootsTreeRoot:  a.AuthClaim.TreeState.RootOfRoots,
-		UserID:             a.ID.BigInt().String(),
+		UserClearTextID:    a.ID.BigInt().String(),
 
 		UserSalt: a.Salt.String(),
 
@@ -211,11 +211,11 @@ func (a AtomicQuerySigOnChainSmtInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// AtomicQuerySigOnChainSmtPubSignals public inputs
-type AtomicQuerySigOnChainSmtPubSignals struct {
+// AtomicQuerySigV2PubSignals public inputs
+type AtomicQuerySigV2PubSignals struct {
 	BaseConfig
 	UserStateInOnChainSmtRoot *merkletree.Hash `json:"userStateInOnChainSmtRoot"`
-	UserNullifier             *big.Int         `json:"userNullifier"`
+	UserID                    *big.Int         `json:"userID"`
 	Challenge                 *big.Int         `json:"challenge"`
 	ClaimSchema               core.SchemaHash  `json:"claimSchema"`
 	IssuerID                  *core.ID         `json:"issuerID"`
@@ -228,7 +228,7 @@ type AtomicQuerySigOnChainSmtPubSignals struct {
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
-func (ao *AtomicQuerySigOnChainSmtPubSignals) PubSignalsUnmarshal(data []byte) error {
+func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// 10 is a number of fields in AtomicQuerySigPubOnChainSmtSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
@@ -253,7 +253,7 @@ func (ao *AtomicQuerySigOnChainSmtPubSignals) PubSignalsUnmarshal(data []byte) e
 		return err
 	}
 
-	if ao.UserNullifier, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
+	if ao.UserID, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
 		return fmt.Errorf("invalid userNullifier value: '%s'", sVals[0])
 	}
 
@@ -299,6 +299,6 @@ func (ao *AtomicQuerySigOnChainSmtPubSignals) PubSignalsUnmarshal(data []byte) e
 }
 
 // GetObjMap returns struct field as a map
-func (ao AtomicQuerySigOnChainSmtPubSignals) GetObjMap() map[string]interface{} {
+func (ao AtomicQuerySigV2PubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
 }
