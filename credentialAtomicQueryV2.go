@@ -17,7 +17,7 @@ type AtomicQuerySigV2Inputs struct {
 	BaseConfig
 
 	// Identity anti-track inputs
-	StateInOnChainSmtProof *merkletree.CircomVerifierProof
+	StateInOnChainSmt
 
 	// auth
 	ID        *core.ID
@@ -95,7 +95,7 @@ type atomicQuerySigV2CircuitInputs struct {
 // InputsMarshal returns Circom private inputs for credentialAtomicQuerySigV2.circom
 func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 
-	if a.StateInOnChainSmtProof == nil {
+	if a.StateInOnChainSmt.Proof == nil {
 		return nil, errors.New(ErrorEmptyStateInOnChainSmtProof)
 	}
 
@@ -128,8 +128,8 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 	}
 
 	s := atomicQuerySigV2CircuitInputs{
-		UserStateInOnChainSmtRoot:     a.StateInOnChainSmtProof.Root,
-		UserStateInOnChainSmtMtp:      PrepareSiblingsStr(a.StateInOnChainSmtProof.Siblings, a.GetMTLevelOnChain()),
+		UserStateInOnChainSmtRoot:     a.StateInOnChainSmt.Root,
+		UserStateInOnChainSmtMtp:      PrepareSiblingsStr(a.StateInOnChainSmt.Proof.AllSiblings(), a.GetMTLevelOnChain()),
 		UserStateInOnChainSmtMtpAuxHi: &merkletree.HashZero,
 		UserStateInOnChainSmtMtpAuxHv: &merkletree.HashZero,
 		UserStateInOnChainSmtMtpNoAux: "1",
@@ -181,11 +181,10 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 			PrepareSiblings(a.SignatureProof.IssuerAuthNonRevProof.Proof.AllSiblings(), a.GetMTLevel())),
 	}
 
-	if a.StateInOnChainSmtProof.Fnc == 1 && !a.StateInOnChainSmtProof.IsOld0 {
-		s.UserStateInOnChainSmtMtpAuxHi = a.StateInOnChainSmtProof.OldKey
-		s.UserStateInOnChainSmtMtpAuxHv = a.StateInOnChainSmtProof.OldValue
-		s.UserStateInOnChainSmtMtpNoAux = "0"
-	}
+	userStateInOnChainSmtNodeAux := getNodeAuxValue(a.StateInOnChainSmt.Proof.NodeAux)
+	s.UserStateInOnChainSmtMtpAuxHi = userStateInOnChainSmtNodeAux.key
+	s.UserStateInOnChainSmtMtpAuxHv = userStateInOnChainSmtNodeAux.value
+	s.UserStateInOnChainSmtMtpNoAux = userStateInOnChainSmtNodeAux.noAux
 
 	values, err := PrepareCircuitArrayValues(a.Values, a.GetValueArrSize())
 	if err != nil {
