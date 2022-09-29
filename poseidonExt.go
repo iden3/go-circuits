@@ -9,10 +9,15 @@ import (
 // BatchSize defined by poseidon hash implementation in Solidity
 const BatchSize = 6
 
-func poseidonHash(values []*big.Int) (*big.Int, error) {
+// PoseidonHash returns the solidity and circom implementation of poseidon hash
+func PoseidonHash(values []*big.Int) (*big.Int, error) {
 
-	if values == nil || len(values) == 0 {
+	if values == nil {
 		return nil, errors.New("values not provided")
+	}
+
+	if len(values) == 0 {
+		return nil, errors.New("empty values")
 	}
 
 	l := len(values)
@@ -43,5 +48,4 @@ func poseidonHash(values []*big.Int) (*big.Int, error) {
 	}
 
 	return fullHash, nil
-
 }
