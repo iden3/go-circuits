@@ -248,7 +248,7 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 		IssuerAuthState:        issuerAuthState,
 		IssuerClaimNonRevState: issuerClaimNonRevState,
 		SlotIndex:              2,
-		Values:                 values,
+		ValueHash:              nil,
 		Operator:               EQ,
 		Timestamp:              timestamp,
 	}

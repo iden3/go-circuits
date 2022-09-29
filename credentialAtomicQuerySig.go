@@ -190,17 +190,15 @@ type AtomicQuerySigPubSignals struct {
 	IssuerAuthState        *merkletree.Hash `json:"issuerAuthState"`
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 	SlotIndex              int              `json:"slotIndex"`
-	Values                 []*big.Int       `json:"values"`
+	ValueHash              *big.Int         `json:"valueHash"`
 	Operator               int              `json:"operator"`
 	Timestamp              int64            `json:"timestamp"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
 func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
-	// 10 is a number of fields in AtomicQuerySigPubSignals before values, values is last element in the proof and
-	// it is length could be different base on the circuit configuration. The length could be modified by set value
-	// in ValueArraySize
-	const fieldLength = 10
+	// 11 is a number of fields in AtomicQueryMTPPubSignals
+	const fieldLength = 11
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -208,59 +206,58 @@ func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	if len(sVals) != fieldLength+ao.GetValueArrSize() {
-		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", fieldLength+ao.GetValueArrSize(), len(sVals))
+	if len(sVals) != fieldLength {
+		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", fieldLength, len(sVals))
 	}
+
+	var ok bool
 
 	if ao.IssuerAuthState, err = merkletree.NewHashFromString(sVals[0]); err != nil {
 		return err
 	}
 
-	if ao.UserID, err = idFromIntStr(sVals[1]); err != nil {
+	bi, ok := big.NewInt(0).SetString(sVals[1], 10)
+	if !ok {
+		return fmt.Errorf("invalid value hash")
+	}
+	ao.ValueHash = bi
+
+	if ao.UserID, err = idFromIntStr(sVals[2]); err != nil {
 		return err
 	}
 
-	if ao.UserState, err = merkletree.NewHashFromString(sVals[2]); err != nil {
+	if ao.UserState, err = merkletree.NewHashFromString(sVals[3]); err != nil {
 		return err
 	}
 
-	var ok bool
-	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
+	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[4], 10); !ok {
 		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
 
-	if ao.IssuerID, err = idFromIntStr(sVals[4]); err != nil {
+	if ao.IssuerID, err = idFromIntStr(sVals[5]); err != nil {
 		return err
 	}
 
-	if ao.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[5]); err != nil {
+	if ao.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[6]); err != nil {
 		return err
 	}
 
-	if ao.Timestamp, err = strconv.ParseInt(sVals[6], 10, 64); err != nil {
+	if ao.Timestamp, err = strconv.ParseInt(sVals[7], 10, 64); err != nil {
 		return err
 	}
 
 	var schemaInt *big.Int
-	if schemaInt, ok = big.NewInt(0).SetString(sVals[7], 10); !ok {
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[8], 10); !ok {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[3])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
-	if ao.SlotIndex, err = strconv.Atoi(sVals[8]); err != nil {
+	if ao.SlotIndex, err = strconv.Atoi(sVals[9]); err != nil {
 		return err
 	}
 
-	if ao.Operator, err = strconv.Atoi(sVals[9]); err != nil {
+	if ao.Operator, err = strconv.Atoi(sVals[10]); err != nil {
 		return err
-	}
-
-	for i, v := range sVals[fieldLength : fieldLength+ao.GetValueArrSize()] {
-		bi, ok := big.NewInt(0).SetString(v, 10)
-		if !ok {
-			return fmt.Errorf("invalid value in index: %d", i)
-		}
-		ao.Values = append(ao.Values, bi)
 	}
 
 	return nil

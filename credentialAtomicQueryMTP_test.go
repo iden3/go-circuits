@@ -213,7 +213,7 @@ func TestAtomicQueryMTPOutputs_CircuitUnmarshal(t *testing.T) {
 		IssuerClaimNonRevState: issuerClaimNonRevState,
 		IssuerID:               issuerID,
 		SlotIndex:              2,
-		Values:                 values,
+		ValueHash:              nil,
 		Operator:               EQ,
 		Timestamp:              timestamp,
 	}
