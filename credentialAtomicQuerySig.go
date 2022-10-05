@@ -216,11 +216,9 @@ func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	bi, ok := big.NewInt(0).SetString(sVals[1], 10)
-	if !ok {
+	if ao.ValueHash, ok = big.NewInt(0).SetString(sVals[1], 10); !ok {
 		return fmt.Errorf("invalid value hash")
 	}
-	ao.ValueHash = bi
 
 	if ao.UserID, err = idFromIntStr(sVals[2]); err != nil {
 		return err

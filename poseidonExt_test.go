@@ -1,38 +1,49 @@
 package circuits
 
 import (
+	"fmt"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
 )
 
-func TestPoseidonHash_64input(t *testing.T) {
-	arr := make([]*big.Int, 64)
-	for i := 0; i < 64; i++ {
-		arr[i] = big.NewInt(0)
+func TestPoseidonExtendedHash(t *testing.T) {
+	zeros := make([]*big.Int, 64)
+	for i := range zeros {
+		zeros[i] = big.NewInt(0)
 	}
-	h1, err := PoseidonHash(arr)
-	exp, ok := new(big.Int).SetString("727338310353795144219993768420910033473938536894650379536715977254833201346", 10)
-	require.Empty(t, err)
-	require.True(t, ok)
-	assert.Equal(t, h1, exp)
+	sequence := make([]*big.Int, 63)
+	for i := range sequence {
+		sequence[i] = big.NewInt(int64(i + 1))
+	}
+	reverseSequence := make([]*big.Int, 60)
+	for i := range reverseSequence {
+		reverseSequence[i] = big.NewInt(int64(60 - i))
+	}
 
-	for i := 0; i < 64; i++ {
-		arr[i] = big.NewInt(int64(i + 1))
+	testCases := [][]*big.Int{
+		zeros,
+		sequence,
+		reverseSequence,
+		{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5)},
+		{big.NewInt(0)},
+		{big.NewInt(1), big.NewInt(2), big.NewInt(3), big.NewInt(4), big.NewInt(5), big.NewInt(6)},
 	}
-	h2, err := PoseidonHash(arr)
-	exp, ok = new(big.Int).SetString("9206504708748250872960725447878206077072019695495427485684343849164309826975", 10)
-	require.True(t, ok)
-	require.Empty(t, err)
-	assert.Equal(t, h2, exp)
 
-	for i := 0; i < 64; i++ {
-		arr[i] = big.NewInt(int64(64 - i))
+	testResults := []string{
+		"7368935780301629035733097554153370898490964345621267223639562510928947240459",
+		"5141441971348023348086244244216563379825719214260560525236342102655139861412",
+		"1980406908386847376697137710198826655972108629440197428494707119108499632713",
+		"2579592068985894564663884204285667087640059297900666937160965942401359072100",
+		"14408838593220040598588012778523101864903887657864399481915450526643617223637",
+		"11520133791077739462983963458665556954298550456396705311618752731525149020132",
 	}
-	h3, err := PoseidonHash(arr)
-	exp, ok = new(big.Int).SetString("11790321463525137746903439564431765868870258693422117265865753765715743495357", 10)
-	require.True(t, ok)
-	require.Empty(t, err)
-	assert.Equal(t, h3, exp)
+
+	for i, testCase := range testCases {
+		result, err := PoseidonHash(testCase)
+		require.NoError(t, err)
+		fmt.Println(result.String())
+		assert.Equal(t, testResults[i], result.String())
+	}
 }

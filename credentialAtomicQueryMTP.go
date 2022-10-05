@@ -178,11 +178,10 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 
 	var ok bool
-	bi, ok := big.NewInt(0).SetString(sVals[0], 10)
-	if !ok {
+
+	if ao.ValueHash, ok = big.NewInt(0).SetString(sVals[0], 10); !ok {
 		return fmt.Errorf("invalid value hash")
 	}
-	ao.ValueHash = bi
 
 	if ao.UserID, err = idFromIntStr(sVals[1]); err != nil {
 		return err
