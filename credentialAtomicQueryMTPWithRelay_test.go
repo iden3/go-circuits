@@ -128,7 +128,7 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 		Proof:     authNonRevProof,
 	}
 
-	inputsAuthClaim := Claim{
+	inputsAuthClaim := ClaimWithMTPProof{
 		//Schema: userAuthClaim.Schema,
 		//Slots:            getSlots(userAuthCoreClaim),
 		Claim:       userAuthCoreClaim,
@@ -137,14 +137,14 @@ func TestAtomicQueryMTPWithRelay_PrepareInputs(t *testing.T) {
 		NonRevProof: userNonRevProof,
 	}
 
-	inputsUserStateInRelayClaim := Claim{
+	inputsUserStateInRelayClaim := ClaimWithMTPProof{
 		//Schema:    userAuthClaim.Schema,
 		Claim:     claimUserStateInRelay,
 		Proof:     proofUserStateInRelay,
 		TreeState: relayTreeState,
 	}
 
-	inputsUserClaim := Claim{
+	inputsUserClaim := ClaimWithMTPProof{
 		Claim: issuerCoreClaim,
 		//Schema: issuerCoreClaim.GetSchemaHash(),
 		//Slots:            getSlots(issuerCoreClaim),

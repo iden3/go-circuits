@@ -18,11 +18,11 @@ type AtomicQuerySigInputs struct {
 
 	// auth
 	ID        *core.ID
-	AuthClaim Claim
+	AuthClaim ClaimWithMTPProof
 	Challenge *big.Int
 	Signature *babyjub.Signature
 
-	Claim // issuerClaim
+	Claim ClaimWithSigProof // issuerClaim
 
 	Query
 
@@ -95,11 +95,11 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 		return nil, errors.New(ErrorEmptyClaimNonRevProof)
 	}
 
-	if a.SignatureProof.IssuerAuthClaimMTP == nil {
+	if a.Claim.SignatureProof.IssuerAuthClaimMTP == nil {
 		return nil, errors.New(ErrorEmptyIssuerAuthClaimProof)
 	}
 
-	if a.SignatureProof.IssuerAuthNonRevProof.Proof == nil {
+	if a.Claim.SignatureProof.IssuerAuthNonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyIssuerAuthClaimNonRevProof)
 	}
 
@@ -107,7 +107,7 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 		return nil, errors.New(ErrorEmptyChallengeSignature)
 	}
 
-	if a.SignatureProof.Signature == nil {
+	if a.Claim.SignatureProof.Signature == nil {
 		return nil, errors.New(ErrorEmptyClaimSignature)
 	}
 
@@ -134,25 +134,29 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 		UserRevTreeRoot:         a.AuthClaim.TreeState.RevocationRoot,
 		UserRootsTreeRoot:       a.AuthClaim.TreeState.RootOfRoots,
 		UserID:                  a.ID.BigInt().String(),
-		IssuerID:                a.IssuerID.BigInt().String(),
+		IssuerID:                a.Claim.IssuerID.BigInt().String(),
 		Operator:                a.Operator,
 		SlotIndex:               a.SlotIndex,
 		Timestamp:               a.CurrentTimeStamp,
-		IssuerClaimSignatureR8X: a.SignatureProof.Signature.R8.X.String(),
-		IssuerClaimSignatureR8Y: a.SignatureProof.Signature.R8.Y.String(),
-		IssuerClaimSignatureS:   a.SignatureProof.Signature.S.String(),
+		IssuerClaimSignatureR8X: a.Claim.SignatureProof.Signature.R8.X.String(),
+		IssuerClaimSignatureR8Y: a.Claim.SignatureProof.Signature.R8.Y.String(),
+		IssuerClaimSignatureS:   a.Claim.SignatureProof.Signature.S.String(),
 
 		IssuerAuthClaimMtp: bigIntArrayToStringArray(
-			PrepareSiblings(a.SignatureProof.IssuerAuthClaimMTP.AllSiblings(), a.GetMTLevel())),
+			PrepareSiblings(
+				a.Claim.SignatureProof.IssuerAuthClaimMTP.AllSiblings(),
+				a.GetMTLevel())),
 
-		IssuerAuthClaimsTreeRoot: a.SignatureProof.IssuerTreeState.ClaimsRoot,
-		IssuerAuthRevTreeRoot:    a.SignatureProof.IssuerTreeState.RevocationRoot,
-		IssuerAuthRootsTreeRoot:  a.SignatureProof.IssuerTreeState.RootOfRoots,
+		IssuerAuthClaimsTreeRoot: a.Claim.SignatureProof.IssuerTreeState.ClaimsRoot,
+		IssuerAuthRevTreeRoot:    a.Claim.SignatureProof.IssuerTreeState.RevocationRoot,
+		IssuerAuthRootsTreeRoot:  a.Claim.SignatureProof.IssuerTreeState.RootOfRoots,
 
-		IssuerAuthClaim: a.SignatureProof.IssuerAuthClaim,
+		IssuerAuthClaim: a.Claim.SignatureProof.IssuerAuthClaim,
 
 		IssuerAuthClaimNonRevMtp: bigIntArrayToStringArray(
-			PrepareSiblings(a.SignatureProof.IssuerAuthNonRevProof.Proof.AllSiblings(), a.GetMTLevel())),
+			PrepareSiblings(
+				a.Claim.SignatureProof.IssuerAuthNonRevProof.Proof.AllSiblings(),
+				a.GetMTLevel())),
 	}
 
 	values, err := PrepareCircuitArrayValues(a.Values, a.GetValueArrSize())
@@ -171,7 +175,8 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 	s.IssuerClaimNonRevMtpAuxHv = nodeAux.value
 	s.IssuerClaimNonRevMtpNoAux = nodeAux.noAux
 
-	issuerAuthNodeAux := getNodeAuxValue(a.SignatureProof.IssuerAuthNonRevProof.Proof.NodeAux)
+	issuerAuthNodeAux := getNodeAuxValue(
+		a.Claim.SignatureProof.IssuerAuthNonRevProof.Proof.NodeAux)
 	s.IssuerAuthClaimNonRevMtpAuxHi = issuerAuthNodeAux.key
 	s.IssuerAuthClaimNonRevMtpAuxHv = issuerAuthNodeAux.value
 	s.IssuerAuthClaimNonRevMtpNoAux = issuerAuthNodeAux.noAux

@@ -27,7 +27,7 @@ func TestCircuitMarshal(t *testing.T) {
 
 	inputs := AuthInputs{
 		ID: identifier,
-		AuthClaim: Claim{
+		AuthClaim: ClaimWithMTPProof{
 			Claim:       claim,
 			Proof:       claimEntryMTP,
 			TreeState:   treeState,

@@ -48,6 +48,8 @@ func RegisterCircuit(id CircuitID, c Data) {
 // nolint // register supported circuit
 func init() {
 
+	// TODO add here JSON-LD inputs registration here
+
 	RegisterCircuit(AuthCircuitID, Data{
 		Input:  AuthInputs{},
 		Output: &AuthPubSignals{},

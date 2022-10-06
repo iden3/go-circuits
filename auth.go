@@ -17,7 +17,7 @@ type AuthInputs struct {
 
 	ID *core.ID
 
-	AuthClaim Claim
+	AuthClaim ClaimWithMTPProof
 
 	Signature *babyjub.Signature
 	Challenge *big.Int

@@ -18,15 +18,15 @@ type AtomicQueryMTPWithRelayInputs struct {
 
 	// auth
 	ID        *core.ID
-	AuthClaim Claim
+	AuthClaim ClaimWithMTPProof
 	Challenge *big.Int
 	Signature *babyjub.Signature
 
 	// relay
-	UserStateInRelayClaim Claim
+	UserStateInRelayClaim ClaimWithMTPProof
 
 	// claim
-	Claim
+	Claim ClaimWithMTPProof
 
 	CurrentTimeStamp int64
 
@@ -135,7 +135,7 @@ func (a AtomicQueryMTPWithRelayInputs) InputsMarshal() ([]byte, error) {
 		UserRevTreeRoot:    a.AuthClaim.TreeState.RevocationRoot,
 		UserRootsTreeRoot:  a.AuthClaim.TreeState.RootOfRoots,
 		UserID:             a.ID.BigInt().String(),
-		IssuerID:           a.IssuerID.BigInt().String(),
+		IssuerID:           a.Claim.IssuerID.BigInt().String(),
 		Operator:           a.Operator,
 		SlotIndex:          a.SlotIndex,
 		Timestamp:          a.CurrentTimeStamp,

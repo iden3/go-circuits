@@ -11,13 +11,20 @@ type ClaimNonRevStatus struct {
 	Proof     *merkletree.Proof
 }
 
-type Claim struct {
+type ClaimWithSigProof struct {
 	IssuerID       *core.ID
 	Claim          *core.Claim
 	TreeState      TreeState
-	Proof          *merkletree.Proof
 	NonRevProof    *ClaimNonRevStatus // Claim non revocation proof
 	SignatureProof BJJSignatureProof
+}
+
+type ClaimWithMTPProof struct {
+	IssuerID    *core.ID
+	Claim       *core.Claim
+	TreeState   TreeState
+	Proof       *merkletree.Proof
+	NonRevProof *ClaimNonRevStatus // Claim non revocation proof
 }
 
 type TreeState struct {

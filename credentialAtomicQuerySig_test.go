@@ -113,10 +113,6 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	err = iClaimsTree.Add(ctx, hashIndex, hashValue)
 	assert.Nil(t, err)
 
-	proof, _, err := iClaimsTree.GenerateProof(ctx, hashIndex,
-		iClaimsTree.Root())
-	assert.Nil(t, err)
-
 	stateAfterClaimAdd, err := merkletree.HashElems(
 		iClaimsTree.Root().BigInt(),
 		merkletree.HashZero.BigInt(),
@@ -139,7 +135,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		big.NewInt(int64(nonce)), issuerRevTree.Root())
 	assert.Nil(t, err)
 
-	inputsAuthClaim := Claim{
+	inputsAuthClaim := ClaimWithMTPProof{
 		//Schema:    authClaim.Schema,
 		Claim:     userAuthCoreClaim,
 		Proof:     mtpProofUser,
@@ -162,9 +158,8 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		},
 	}
 
-	inputsUserClaim := Claim{
+	inputsUserClaim := ClaimWithSigProof{
 		Claim:     issuerCoreClaim,
-		Proof:     proof,
 		TreeState: issuerStateAfterClaimAdd,
 		NonRevProof: &ClaimNonRevStatus{
 			TreeState: issuerStateAfterClaimAdd,

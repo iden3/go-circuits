@@ -20,7 +20,7 @@ type StateTransitionInputs struct {
 	NewState          *merkletree.Hash
 	IsOldStateGenesis bool
 
-	AuthClaim Claim
+	AuthClaim ClaimWithMTPProof
 
 	Signature *babyjub.Signature
 }

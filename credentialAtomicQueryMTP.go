@@ -17,11 +17,11 @@ type AtomicQueryMTPInputs struct {
 	BaseConfig
 	// auth
 	ID        *core.ID
-	AuthClaim Claim
+	AuthClaim ClaimWithMTPProof
 	Challenge *big.Int
 	Signature *babyjub.Signature
 
-	Claim // claim issued for user
+	Claim ClaimWithMTPProof // claim issued for user
 
 	CurrentTimeStamp int64
 
@@ -121,7 +121,7 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 		UserRevTreeRoot:    a.AuthClaim.TreeState.RevocationRoot,
 		UserRootsTreeRoot:  a.AuthClaim.TreeState.RootOfRoots,
 		UserID:             a.ID.BigInt().String(),
-		IssuerID:           a.IssuerID.BigInt().String(),
+		IssuerID:           a.Claim.IssuerID.BigInt().String(),
 		Operator:           a.Operator,
 		SlotIndex:          a.SlotIndex,
 		Timestamp:          a.CurrentTimeStamp,
