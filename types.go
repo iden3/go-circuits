@@ -35,3 +35,16 @@ type BJJSignatureProof struct {
 	IssuerAuthClaimMTP    *merkletree.Proof
 	IssuerAuthNonRevProof ClaimNonRevStatus // IssuerAuthClaim non revocation proof
 }
+
+type AuthClaimV2 struct {
+	Claim       *core.Claim
+	TreeState   *TreeState
+	Proof       *merkletree.Proof
+	NonRevProof *ClaimNonRevStatus
+	GlobalTree  *GlobalTree
+}
+
+type GlobalTree struct {
+	Root  *merkletree.Hash
+	Proof *merkletree.Proof
+}
