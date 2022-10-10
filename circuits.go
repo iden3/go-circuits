@@ -13,6 +13,8 @@ type CircuitID string
 const (
 	// AuthCircuitID is a type that must be used for auth.circom
 	AuthCircuitID CircuitID = "auth"
+	// AuthCircuitID is a type that must be used for authV2.circom
+	AuthCircuitV2ID CircuitID = "authV2"
 	// StateTransitionCircuitID is a type that must be used for stateTransition.circom
 	StateTransitionCircuitID CircuitID = "stateTransition"
 	// AtomicQueryMTPCircuitID is a type for credentialAtomicQueryMTP.circom
@@ -51,6 +53,11 @@ func init() {
 	RegisterCircuit(AuthCircuitID, Data{
 		Input:  AuthInputs{},
 		Output: &AuthPubSignals{},
+	})
+
+	RegisterCircuit(AuthCircuitV2ID, Data{
+		Input:  AuthV2Inputs{},
+		Output: &AuthV2PubSignals{},
 	})
 
 	RegisterCircuit(StateTransitionCircuitID, Data{
