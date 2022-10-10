@@ -3,6 +3,8 @@ package circuits
 import (
 	"math/big"
 
+	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-schema-processor/merklize"
 	"github.com/pkg/errors"
 )
 
@@ -116,4 +118,28 @@ func FactoryComparer(x *big.Int, y []*big.Int, t int) (Comparer, error) {
 		return nil, errors.New("unknown compare type")
 	}
 	return cmp, nil
+}
+
+// JsonLDQuery represents basic request to Json-LD claim field
+type JsonLDQuery struct {
+	Path     merklize.Path
+	Value    *big.Int
+	MTP      *merkletree.Proof
+	Operator int
+	Values   []*big.Int
+}
+
+func (q JsonLDQuery) validate() error {
+	if q.Values == nil {
+		return errors.New(ErrorEmptyJsonLDQueryValue)
+	}
+	if q.MTP == nil {
+		return errors.New(ErrorEmptyJsonLDQueryProof)
+	}
+	for i := range q.Values {
+		if q.Values[i] == nil {
+			return errors.New(ErrorEmptyJsonLDQueryValues)
+		}
+	}
+	return nil
 }

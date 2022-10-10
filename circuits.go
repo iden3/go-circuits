@@ -23,6 +23,8 @@ const (
 	AtomicQueryMTPWithRelayCircuitID CircuitID = "credentialAtomicQueryMTPWithRelay"
 	// AtomicQuerySigWithRelayCircuitID is a type for credentialAttrQuerySigWithRelay.circom
 	AtomicQuerySigWithRelayCircuitID CircuitID = "credentialAtomicQuerySigWithRelay"
+	// JsonLDAtomicQueryMTPCircuitID is a type for credentialJsonLDAtomicQueryMTP.circom
+	JsonLDAtomicQueryMTPCircuitID CircuitID = "credentialJsonLDAtomicQueryMTP"
 )
 
 // ErrorCircuitIDNotFound returns if CircuitID is not registered
@@ -48,8 +50,6 @@ func RegisterCircuit(id CircuitID, c Data) {
 // nolint // register supported circuit
 func init() {
 
-	// TODO add here JSON-LD inputs registration here
-
 	RegisterCircuit(AuthCircuitID, Data{
 		Input:  AuthInputs{},
 		Output: &AuthPubSignals{},
@@ -72,6 +72,11 @@ func init() {
 	RegisterCircuit(AtomicQuerySigCircuitID, Data{
 		Input:  AtomicQuerySigInputs{},
 		Output: &AtomicQuerySigPubSignals{},
+	})
+
+	RegisterCircuit(JsonLDAtomicQueryMTPCircuitID, Data{
+		Input:  JsonLDAtomicQueryMTPInputs{},
+		Output: &JsonLDAtomicQueryMTPPubSignals{},
 	})
 }
 
