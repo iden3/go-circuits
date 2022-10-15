@@ -127,16 +127,16 @@ func (a *AuthV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid number of Output values expected {%d} got {%d} ", 3, len(sVals))
 	}
 
-	var ok bool
-	if a.Challenge, ok = big.NewInt(0).SetString(sVals[0], 10); !ok {
-		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
-	}
-
-	if a.GlobalRoot, err = merkletree.NewHashFromString(sVals[1]); err != nil {
+	if a.UserID, err = idFromIntStr(sVals[0]); err != nil {
 		return err
 	}
 
-	if a.UserID, err = idFromIntStr(sVals[2]); err != nil {
+	var ok bool
+	if a.Challenge, ok = big.NewInt(0).SetString(sVals[1], 10); !ok {
+		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
+	}
+
+	if a.GlobalRoot, err = merkletree.NewHashFromString(sVals[2]); err != nil {
 		return err
 	}
 

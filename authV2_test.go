@@ -89,7 +89,7 @@ func TestAuthV2Circuit_CircuitUnmarshal(t *testing.T) {
 	state, err := merkletree.NewHashFromBigInt(stateInt)
 	assert.NoError(t, err)
 
-	out := []string{challenge.String(), state.BigInt().String(), identifier.BigInt().String()}
+	out := []string{identifier.BigInt().String(), challenge.String(), state.BigInt().String()}
 	bytesOut, err := json.Marshal(out)
 	assert.NoError(t, err)
 
