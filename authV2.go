@@ -27,7 +27,7 @@ type AuthV2Inputs struct {
 // authCircuitInputs type reflect auth.circom private inputs required by prover
 type authV2CircuitInputs struct {
 	// ID
-	UserID   string `json:"userClearTextID"`
+	UserID   string `json:"userGenesisID"`
 	UserSalt string `json:"userSalt"`
 
 	// AuthClaim proof of inclusion
@@ -52,11 +52,11 @@ type authV2CircuitInputs struct {
 	UserState          *merkletree.Hash `json:"userState"`
 
 	// Global on-cain state
-	UserStateInOnChainSmtRoot     *merkletree.Hash `json:"userStateInOnChainSmtRoot"`
-	UserStateInOnChainSmtMtp      []string         `json:"userStateInOnChainSmtMtp"`
-	UserStateInOnChainSmtMtpAuxHi *merkletree.Hash `json:"userStateInOnChainSmtMtpAuxHi"`
-	UserStateInOnChainSmtMtpAuxHv *merkletree.Hash `json:"userStateInOnChainSmtMtpAuxHv"`
-	UserStateInOnChainSmtMtpNoAux string           `json:"userStateInOnChainSmtMtpNoAux"`
+	GlobalSmtRoot     *merkletree.Hash `json:"globalSmtRoot"`
+	GlobalSmtMtp      []string         `json:"globalSmtMtp"`
+	GlobalSmtMtpAuxHi *merkletree.Hash `json:"globalSmtMtpAuxHi"`
+	GlobalSmtMtpAuxHv *merkletree.Hash `json:"globalSmtMtpAuxHv"`
+	GlobalSmtMtpNoAux string           `json:"globalSmtMtpNoAux"`
 }
 
 // InputsMarshal returns Circom private inputs for auth.circom
@@ -82,16 +82,16 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 			a.GetMTLevel()),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
-		Challenge:                 a.Challenge.String(),
-		ChallengeSignatureR8X:     a.Signature.R8.X.String(),
-		ChallengeSignatureR8Y:     a.Signature.R8.Y.String(),
-		ChallengeSignatureS:       a.Signature.S.String(),
-		UserClaimsTreeRoot:        a.AuthClaim.TreeState.ClaimsRoot,
-		UserRevTreeRoot:           a.AuthClaim.TreeState.RevocationRoot,
-		UserRootsTreeRoot:         a.AuthClaim.TreeState.RootOfRoots,
-		UserState:                 a.AuthClaim.TreeState.State,
-		UserStateInOnChainSmtRoot: a.AuthClaim.GlobalTree.Root,
-		UserStateInOnChainSmtMtp:  PrepareSiblingsStr(a.AuthClaim.GlobalTree.Proof.AllSiblings(), a.GetMTLevel()),
+		Challenge:             a.Challenge.String(),
+		ChallengeSignatureR8X: a.Signature.R8.X.String(),
+		ChallengeSignatureR8Y: a.Signature.R8.Y.String(),
+		ChallengeSignatureS:   a.Signature.S.String(),
+		UserClaimsTreeRoot:    a.AuthClaim.TreeState.ClaimsRoot,
+		UserRevTreeRoot:       a.AuthClaim.TreeState.RevocationRoot,
+		UserRootsTreeRoot:     a.AuthClaim.TreeState.RootOfRoots,
+		UserState:             a.AuthClaim.TreeState.State,
+		GlobalSmtRoot:         a.AuthClaim.GlobalTree.Root,
+		GlobalSmtMtp:          PrepareSiblingsStr(a.AuthClaim.GlobalTree.Proof.AllSiblings(), a.GetMTLevel()),
 		// TODO: change when pr with tree state will be merged
 	}
 
@@ -101,9 +101,9 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
 	globalNodeAux := getNodeAuxValue(a.AuthClaim.GlobalTree.Proof.NodeAux)
-	s.UserStateInOnChainSmtMtpAuxHi = globalNodeAux.key
-	s.UserStateInOnChainSmtMtpAuxHv = globalNodeAux.value
-	s.UserStateInOnChainSmtMtpNoAux = globalNodeAux.noAux
+	s.GlobalSmtMtpAuxHi = globalNodeAux.key
+	s.GlobalSmtMtpAuxHv = globalNodeAux.value
+	s.GlobalSmtMtpNoAux = globalNodeAux.noAux
 
 	return json.Marshal(s)
 }
@@ -112,7 +112,7 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 type AuthV2PubSignals struct {
 	UserID     *core.ID         `json:"userID"`
 	Challenge  *big.Int         `json:"challenge"`
-	GlobalRoot *merkletree.Hash `json:"userStateInOnChainSmtRoot"`
+	GlobalRoot *merkletree.Hash `json:"GlobalSmtRoot"`
 }
 
 // PubSignalsUnmarshal unmarshal auth.circom public inputs to AuthPubSignals
