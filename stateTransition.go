@@ -77,7 +77,7 @@ func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 		s.IsOldStateGenesis = "0"
 	}
 
-	nodeAuxAuth := getNodeAuxValue(c.AuthClaim.NonRevProof.Proof.NodeAux)
+	nodeAuxAuth := getNodeAuxValue(c.AuthClaim.NonRevProof.Proof)
 	s.AuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.AuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.AuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux

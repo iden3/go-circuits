@@ -18,7 +18,7 @@ type AuthV2Inputs struct {
 	ID   *core.ID
 	Salt *big.Int
 
-	AuthClaim AuthClaimV2
+	AuthClaim ClaimV2
 
 	Signature *babyjub.Signature
 	Challenge *big.Int
@@ -62,11 +62,11 @@ type authV2CircuitInputs struct {
 // InputsMarshal returns Circom private inputs for auth.circom
 func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 
-	if a.AuthClaim.Proof == nil {
+	if a.AuthClaim.MTProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}
 
-	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
+	if a.AuthClaim.NonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
@@ -78,7 +78,7 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 		UserID:        a.ID.BigInt().String(),
 		UserSalt:      a.Salt.String(),
 		UserAuthClaim: a.AuthClaim.Claim,
-		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.MTProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
@@ -86,21 +86,21 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 		ChallengeSignatureR8X: a.Signature.R8.X.String(),
 		ChallengeSignatureR8Y: a.Signature.R8.Y.String(),
 		ChallengeSignatureS:   a.Signature.S.String(),
-		UserClaimsTreeRoot:    a.AuthClaim.TreeState.ClaimsRoot,
-		UserRevTreeRoot:       a.AuthClaim.TreeState.RevocationRoot,
-		UserRootsTreeRoot:     a.AuthClaim.TreeState.RootOfRoots,
-		UserState:             a.AuthClaim.TreeState.State,
+		UserClaimsTreeRoot:    a.AuthClaim.MTProof.TreeState.ClaimsRoot,
+		UserRevTreeRoot:       a.AuthClaim.MTProof.TreeState.RevocationRoot,
+		UserRootsTreeRoot:     a.AuthClaim.MTProof.TreeState.RootOfRoots,
+		UserState:             a.AuthClaim.MTProof.TreeState.State,
 		GlobalSmtRoot:         a.AuthClaim.GlobalTree.Root,
 		GlobalSmtMtp:          PrepareSiblingsStr(a.AuthClaim.GlobalTree.Proof.AllSiblings(), a.GetMTLevel()),
 		// TODO: change when pr with tree state will be merged
 	}
 
-	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.NonRevProof.Proof.NodeAux)
+	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
 	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
-	globalNodeAux := getNodeAuxValue(a.AuthClaim.GlobalTree.Proof.NodeAux)
+	globalNodeAux := getNodeAuxValue(a.AuthClaim.GlobalTree.Proof)
 	s.GlobalSmtMtpAuxHi = globalNodeAux.key
 	s.GlobalSmtMtpAuxHv = globalNodeAux.value
 	s.GlobalSmtMtpNoAux = globalNodeAux.noAux
@@ -108,7 +108,7 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// AuthPubSignals auth.circom public signals
+// AuthV2PubSignals auth.circom public signals
 type AuthV2PubSignals struct {
 	UserID     *core.ID         `json:"userID"`
 	Challenge  *big.Int         `json:"challenge"`

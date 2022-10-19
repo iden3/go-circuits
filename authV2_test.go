@@ -32,7 +32,7 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 	proof, _, err := gTree.GenerateProof(ctx, identifier.BigInt(), nil)
 	assert.NoError(t, err)
 
-	treeState := &TreeState{
+	treeState := TreeState{
 		State:          state,
 		ClaimsRoot:     claimsTree.Root(),
 		RevocationRoot: revTree.Root(),
@@ -47,12 +47,14 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 	inputs := AuthV2Inputs{
 		ID:   identifier,
 		Salt: big.NewInt(10),
-		AuthClaim: AuthClaimV2{
-			Claim:       claim,
-			Proof:       claimEntryMTP,
-			TreeState:   treeState,
-			NonRevProof: &ClaimNonRevStatus{*treeState, claimNonRevMTP},
-			GlobalTree:  &globalTree,
+		AuthClaim: ClaimV2{
+			Claim: claim,
+			MTProof: MTProof{
+				Proof:     claimEntryMTP,
+				TreeState: treeState,
+			},
+			NonRevProof: ClaimNonRevStatus{treeState, claimNonRevMTP},
+			GlobalTree:  globalTree,
 		},
 		Signature: signature,
 		Challenge: challenge,

@@ -36,12 +36,17 @@ type BJJSignatureProof struct {
 	IssuerAuthNonRevProof ClaimNonRevStatus // IssuerAuthClaim non revocation proof
 }
 
-type AuthClaimV2 struct {
-	Claim       *core.Claim
-	TreeState   *TreeState
-	Proof       *merkletree.Proof
-	NonRevProof *ClaimNonRevStatus
-	GlobalTree  *GlobalTree
+type ClaimV2 struct {
+	Claim          *core.Claim
+	NonRevProof    ClaimNonRevStatus
+	MTProof        MTProof
+	SignatureProof BJJSignatureProof
+	GlobalTree     GlobalTree
+}
+
+type MTProof struct {
+	Proof     *merkletree.Proof
+	TreeState TreeState
 }
 
 type GlobalTree struct {
