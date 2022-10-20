@@ -16,7 +16,7 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 	ctx := context.Background()
 	privKeyHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
 	challenge, b := big.NewInt(0).SetString(
-		"19054333970885023780123560936675456700861469068603321884718748961750930466794", 10)
+		"6110517768249559238193477435454792024732173865488900270849624328650765691494", 10)
 	assert.True(t, b)
 	identifier, claim, state, claimsTree, revTree, rootsTree, claimEntryMTP, claimNonRevMTP, signature, err := it.AuthClaimFullInfo(ctx, privKeyHex, challenge)
 	assert.Nil(t, err)
