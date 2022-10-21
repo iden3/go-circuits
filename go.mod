@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/iden3/go-iden3-core v0.1.0
 	github.com/iden3/go-iden3-crypto v0.0.13
-	github.com/iden3/go-merkletree-sql v1.0.1
+	github.com/iden3/go-merkletree-sql/v2 v2.0.0
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.7.0
 )

@@ -8,7 +8,7 @@ import (
 	it "github.com/iden3/go-circuits/testing"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/poseidon"
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -3,12 +3,12 @@ package circuits
 import (
 	"encoding/json"
 	"fmt"
-	"math/big"
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
+	"math/big"
 )
 
 // AuthInputs type represent auth.circom private inputs
