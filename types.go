@@ -3,7 +3,7 @@ package circuits
 import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 )
 
 type ClaimNonRevStatus struct {

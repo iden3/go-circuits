@@ -6,7 +6,7 @@ import (
 	"reflect"
 
 	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 )
 
