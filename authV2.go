@@ -7,7 +7,7 @@ import (
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 )
 
@@ -15,8 +15,8 @@ import (
 type AuthV2Inputs struct {
 	BaseConfig
 
-	ID   *core.ID
-	Salt *big.Int
+	ID    *core.ID
+	Nonce *big.Int
 
 	AuthClaim ClaimV2
 
@@ -27,8 +27,8 @@ type AuthV2Inputs struct {
 // authCircuitInputs type reflect auth.circom private inputs required by prover
 type authV2CircuitInputs struct {
 	// ID
-	UserID   string `json:"userGenesisID"`
-	UserSalt string `json:"userSalt"`
+	UserID string `json:"userGenesisID"`
+	Nonce  string `json:"nonce"`
 
 	// AuthClaim proof of inclusion
 	UserAuthClaim    *core.Claim `json:"userAuthClaim"`
@@ -76,7 +76,7 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 
 	s := authV2CircuitInputs{
 		UserID:        a.ID.BigInt().String(),
-		UserSalt:      a.Salt.String(),
+		Nonce:         a.Nonce.String(),
 		UserAuthClaim: a.AuthClaim.Claim,
 		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.MTProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
