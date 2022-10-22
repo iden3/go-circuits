@@ -21,10 +21,6 @@ const (
 	AtomicQueryMTPCircuitID CircuitID = "credentialAtomicQueryMTP"
 	// AtomicQuerySigCircuitID is a type for credentialAttrQuerySig.circom
 	AtomicQuerySigCircuitID CircuitID = "credentialAtomicQuerySig"
-	// AtomicQueryMTPWithRelayCircuitID is a type for credentialAtomicQueryMTPWithRelay.circom
-	AtomicQueryMTPWithRelayCircuitID CircuitID = "credentialAtomicQueryMTPWithRelay"
-	// AtomicQuerySigWithRelayCircuitID is a type for credentialAttrQuerySigWithRelay.circom
-	AtomicQuerySigWithRelayCircuitID CircuitID = "credentialAtomicQuerySigWithRelay"
 )
 
 // ErrorCircuitIDNotFound returns if CircuitID is not registered
@@ -70,10 +66,6 @@ func init() {
 		Output: &AtomicQueryMTPPubSignals{},
 	})
 
-	RegisterCircuit(AtomicQueryMTPWithRelayCircuitID, Data{
-		Input:  AtomicQueryMTPWithRelayInputs{},
-		Output: &AtomicQueryMTPWithRelayPubSignals{},
-	})
 	RegisterCircuit(AtomicQuerySigCircuitID, Data{
 		Input:  AtomicQuerySigInputs{},
 		Output: &AtomicQuerySigPubSignals{},
