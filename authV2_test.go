@@ -17,9 +17,11 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 	ctx := context.Background()
 	privKeyHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
 	challenge, b := big.NewInt(0).SetString(
-		"6110517768249559238193477435454792024732173865488900270849624328650765691494", 10)
+		"6110517768249559238193477435454792024732173865488900270849624328650765691494",
+		10)
 	assert.True(t, b)
-	identifier, claim, state, claimsTree, revTree, rootsTree, claimEntryMTP, claimNonRevMTP, signature, err := it.AuthClaimFullInfo(ctx, privKeyHex, challenge)
+	identifier, claim, state, claimsTree, revTree, rootsTree, claimEntryMTP, claimNonRevMTP, signature, err := it.AuthClaimFullInfo(ctx,
+		privKeyHex, challenge)
 	assert.Nil(t, err)
 
 	gTree := it.GlobalTree(ctx)
@@ -27,7 +29,9 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 	// add id to global tree
 	h := "a65ddf87d7f064d8306833149a42f0ec260533cb9e7f0e8493a796114ce979b9"
 	i, _, s, _, _, _, _, _, _, err := it.AuthClaimFullInfo(ctx, h, challenge)
-	gTree.Add(ctx, i.BigInt(), s.BigInt())
+	require.NoError(t, err)
+	err = gTree.Add(ctx, i.BigInt(), s.BigInt())
+	require.NoError(t, err)
 
 	// Generate proof
 	proof, _, err := gTree.GenerateProof(ctx, identifier.BigInt(), nil)
@@ -85,80 +89,79 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 func TestAuthV2Inputs_InputsMarshal_fromJson(t *testing.T) {
 	auth2_json := `
 {
-          "id": "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyGQoC",
-          "nonce": "10",
-          "authClaim": {
-            "claim": [
-              "304427537360709784173770334266246861770",
-              "0",
-              "17640206035128972995519606214765283372613874593503528180869261482403155458945",
-              "20634138280259599560273310290025659992320584624461316485434108770067472477956",
-              "15930428023331155902",
-              "0",
-              "0",
-              "0"
-            ],
-            "nonRevProof": {
-              "treeState": {
-                "state": "18656147546666944484453899241916469544090258810192803949522794490493271005313",
-                "claimsRoot": "9763429684850732628215303952870004997159843236039795272605841029866455670219",
-                "revocationRoot": "0",
-                "rootOfRoots": "0"
-              },
-              "proof": {
-                "existence": false,
-                "siblings": []
-              }
-            },
-            "mtProof": {
-              "proof": {
-                "existence": true,
-                "siblings": []
-              },
-              "treeState": {
-                "state": "18656147546666944484453899241916469544090258810192803949522794490493271005313",
-                "claimsRoot": "9763429684850732628215303952870004997159843236039795272605841029866455670219",
-                "revocationRoot": "0",
-                "rootOfRoots": "0"
-              }
-            },
-            "signatureProof": {
-              "issuerID": null,
-              "signature": null,
-              "issuerTreeState": {
-                "state": null,
-                "claimsRoot": null,
-                "revocationRoot": null,
-                "rootOfRoots": null
-              },
-              "issuerAuthClaim": null,
-              "issuerAuthClaimMTP": null,
-              "issuerAuthNonRevProof": {
-                "treeState": {
-                  "state": null,
-                  "claimsRoot": null,
-                  "revocationRoot": null,
-                  "rootOfRoots": null
-                },
-                "proof": null
-              }
-            },
-            "globalTree": {
-              "root": "8654801164827267300505642792609108116741757079309873831472910903288030796079",
-              "proof": {
-                "existence": false,
-                "siblings": [],
-                "node_aux": {
-                  "key": "24225204644786657620626565452898941426026601178354142146799363069935288320",
-                  "value": "1257746809182882563786560928809910818663538703587513060503018952434273712929"
-                }
-              }
-            }
-          },
-          "signature": "13274071857accaec43e289504c539812c7b258bb23ce58a4598ad59daf3402eabdf39d356d0d3d2eaac1c983af1f046aa734cfb1d907f7149db32f1e616d502",
-          "challenge": "6110517768249559238193477435454792024732173865488900270849624328650765691494"
+  "id": "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyGQoC",
+  "nonce": "10",
+  "authClaim": {
+    "claim": [
+      "304427537360709784173770334266246861770",
+      "0",
+      "17640206035128972995519606214765283372613874593503528180869261482403155458945",
+      "20634138280259599560273310290025659992320584624461316485434108770067472477956",
+      "15930428023331155902",
+      "0",
+      "0",
+      "0"
+    ],
+    "nonRevProof": {
+      "treeState": {
+        "state": "18656147546666944484453899241916469544090258810192803949522794490493271005313",
+        "claimsRoot": "9763429684850732628215303952870004997159843236039795272605841029866455670219",
+        "revocationRoot": "0",
+        "rootOfRoots": "0"
+      },
+      "proof": {
+        "existence": false,
+        "siblings": []
+      }
+    },
+    "mtProof": {
+      "proof": {
+        "existence": true,
+        "siblings": []
+      },
+      "treeState": {
+        "state": "18656147546666944484453899241916469544090258810192803949522794490493271005313",
+        "claimsRoot": "9763429684850732628215303952870004997159843236039795272605841029866455670219",
+        "revocationRoot": "0",
+        "rootOfRoots": "0"
+      }
+    },
+    "signatureProof": {
+      "issuerID": null,
+      "signature": null,
+      "issuerTreeState": {
+        "state": null,
+        "claimsRoot": null,
+        "revocationRoot": null,
+        "rootOfRoots": null
+      },
+      "issuerAuthClaim": null,
+      "issuerAuthClaimMTP": null,
+      "issuerAuthNonRevProof": {
+        "treeState": {
+          "state": null,
+          "claimsRoot": null,
+          "revocationRoot": null,
+          "rootOfRoots": null
+        },
+        "proof": null
+      }
+    },
+    "globalTree": {
+      "root": "8654801164827267300505642792609108116741757079309873831472910903288030796079",
+      "proof": {
+        "existence": false,
+        "siblings": [],
+        "node_aux": {
+          "key": "24225204644786657620626565452898941426026601178354142146799363069935288320",
+          "value": "1257746809182882563786560928809910818663538703587513060503018952434273712929"
         }
-`
+      }
+    }
+  },
+  "signature": "13274071857accaec43e289504c539812c7b258bb23ce58a4598ad59daf3402eabdf39d356d0d3d2eaac1c983af1f046aa734cfb1d907f7149db32f1e616d502",
+  "challenge": "6110517768249559238193477435454792024732173865488900270849624328650765691494"
+}`
 
 	var inputs AuthV2Inputs
 	err := json.Unmarshal([]byte(auth2_json), &inputs)

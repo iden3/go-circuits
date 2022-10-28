@@ -8,7 +8,6 @@ import (
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-merkletree-sql/v2"
 )
 
 type jsonInt big.Int
@@ -66,19 +65,6 @@ func (s *jsonSignature) MarshalJSON() ([]byte, error) {
 	bs := babyjub.Signature(*s)
 	sigComp := bs.Compress()
 	return json.Marshal(hex.EncodeToString(sigComp[:]))
-}
-
-// Maybe remove this struct after migration ClaimNonRevStatus => MTProof
-type jsonClaimNonRevStatus struct {
-	TreeState TreeState         `json:"tree_state"`
-	Proof     *merkletree.Proof `json:"proof"`
-}
-
-func newJsonClaimNonRevStatus(c ClaimNonRevStatus) jsonClaimNonRevStatus {
-	var claim jsonClaimNonRevStatus
-	claim.TreeState = c.TreeState
-	claim.Proof = c.Proof
-	return claim
 }
 
 type jsonInputs struct {
