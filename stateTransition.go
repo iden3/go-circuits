@@ -6,7 +6,7 @@ import (
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 )
 
@@ -77,7 +77,7 @@ func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 		s.IsOldStateGenesis = "0"
 	}
 
-	nodeAuxAuth := getNodeAuxValue(c.AuthClaim.NonRevProof.Proof.NodeAux)
+	nodeAuxAuth := getNodeAuxValue(c.AuthClaim.NonRevProof.Proof)
 	s.AuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.AuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.AuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
