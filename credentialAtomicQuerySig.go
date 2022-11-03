@@ -8,7 +8,7 @@ import (
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 )
 
@@ -161,17 +161,17 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 	}
 	s.Value = bigIntArrayToStringArray(values)
 
-	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.NonRevProof.Proof.NodeAux)
+	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
 	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
-	nodeAux := getNodeAuxValue(a.Claim.NonRevProof.Proof.NodeAux)
+	nodeAux := getNodeAuxValue(a.Claim.NonRevProof.Proof)
 	s.IssuerClaimNonRevMtpAuxHi = nodeAux.key
 	s.IssuerClaimNonRevMtpAuxHv = nodeAux.value
 	s.IssuerClaimNonRevMtpNoAux = nodeAux.noAux
 
-	issuerAuthNodeAux := getNodeAuxValue(a.SignatureProof.IssuerAuthNonRevProof.Proof.NodeAux)
+	issuerAuthNodeAux := getNodeAuxValue(a.SignatureProof.IssuerAuthNonRevProof.Proof)
 	s.IssuerAuthClaimNonRevMtpAuxHi = issuerAuthNodeAux.key
 	s.IssuerAuthClaimNonRevMtpAuxHv = issuerAuthNodeAux.value
 	s.IssuerAuthClaimNonRevMtpNoAux = issuerAuthNodeAux.noAux

@@ -8,8 +8,8 @@ import (
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-iden3-crypto/poseidon"
-	"github.com/iden3/go-merkletree-sql"
-	"github.com/iden3/go-merkletree-sql/db/memory"
+	"github.com/iden3/go-merkletree-sql/v2"
+	"github.com/iden3/go-merkletree-sql/v2/db/memory"
 )
 
 func AuthClaimFromPubKey(X, Y *big.Int) (*core.Claim, error) {
@@ -143,4 +143,13 @@ func claimsIndexValueHashes(c core.Claim) (*big.Int, *big.Int, error) {
 	}
 	valueHash, err := poseidon.Hash(core.ElemBytesToInts(value[:]))
 	return indexHash, valueHash, err
+}
+
+func GlobalTree(ctx context.Context) *merkletree.MerkleTree {
+	// init global tree
+	globalTree, err := merkletree.NewMerkleTree(ctx, memory.NewMemoryStorage(), 32)
+	if err != nil {
+		panic(err)
+	}
+	return globalTree
 }

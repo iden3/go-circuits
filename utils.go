@@ -6,7 +6,7 @@ import (
 	"reflect"
 
 	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 )
 
@@ -72,21 +72,31 @@ type nodeAuxValue struct {
 	noAux string
 }
 
-func getNodeAuxValue(a *merkletree.NodeAux) nodeAuxValue {
+func getNodeAuxValue(p *merkletree.Proof) nodeAuxValue {
 
-	aux := nodeAuxValue{
+	// proof of inclusion
+	if p.Existence {
+		return nodeAuxValue{
+			key:   &merkletree.HashZero,
+			value: &merkletree.HashZero,
+			noAux: "0",
+		}
+	}
+
+	// proof of non-inclusion (NodeAux exists)
+	if p.NodeAux != nil && p.NodeAux.Value != nil && p.NodeAux.Key != nil {
+		return nodeAuxValue{
+			key:   p.NodeAux.Key,
+			value: p.NodeAux.Value,
+			noAux: "0",
+		}
+	}
+	// proof of non-inclusion (NodeAux does not exist)
+	return nodeAuxValue{
 		key:   &merkletree.HashZero,
 		value: &merkletree.HashZero,
 		noAux: "1",
 	}
-
-	if a != nil && a.Value != nil && a.Key != nil {
-		aux.key = a.Key
-		aux.value = a.Value
-		aux.noAux = "0"
-	}
-
-	return aux
 }
 
 func idFromIntStr(s string) (*core.ID, error) {
