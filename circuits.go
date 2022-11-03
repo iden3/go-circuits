@@ -27,8 +27,9 @@ const (
 var ErrorCircuitIDNotFound = errors.New("circuit id not supported")
 
 const (
-	defaultMTLevels       = 32 // max MT levels, default value for identity circuits
-	defaultValueArraySize = 64 // max value array size, default value for identity circuits
+	defaultMTLevels        = 32 // max MT levels, default value for identity circuits
+	defaultValueArraySize  = 64 // max value array size, default value for identity circuits
+	defaultMTLevelsOnChain = 32 // max MT levels on chain, default value for identity circuits
 )
 
 var circuitsRegistry = map[CircuitID]Data{}
@@ -76,6 +77,7 @@ func init() {
 type BaseConfig struct {
 	MTLevel        int // Max levels of MT
 	ValueArraySize int // Size if value array in identity circuits
+	MTLevelOnChain int // Max levels of MT on chain
 }
 
 // GetMTLevel max circuit MT levels
@@ -92,6 +94,14 @@ func (c BaseConfig) GetValueArrSize() int {
 		return defaultValueArraySize
 	}
 	return c.ValueArraySize
+}
+
+// GetMTLevel max circuit MT levels on chain
+func (c BaseConfig) GetMTLevelOnChain() int {
+	if c.MTLevelOnChain == 0 {
+		return defaultMTLevelsOnChain
+	}
+	return c.MTLevelOnChain
 }
 
 // InputsMarshaller interface implemented by types that can marshal circuit `input` structures

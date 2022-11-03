@@ -91,7 +91,7 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 		UserRootsTreeRoot:     a.AuthClaim.MTProof.TreeState.RootOfRoots,
 		UserState:             a.AuthClaim.MTProof.TreeState.State,
 		GlobalSmtRoot:         a.AuthClaim.GlobalTree.Root,
-		GlobalSmtMtp:          PrepareSiblingsStr(a.AuthClaim.GlobalTree.Proof.AllSiblings(), a.GetMTLevel()),
+		GlobalSmtMtp:          PrepareSiblingsStr(a.AuthClaim.GlobalTree.Proof.AllSiblings(), a.GetMTLevelOnChain()),
 		// TODO: change when pr with tree state will be merged
 	}
 
