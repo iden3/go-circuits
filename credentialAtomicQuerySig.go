@@ -165,17 +165,17 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 	}
 	s.Value = bigIntArrayToStringArray(values)
 
-	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
+	nodeAuxAuth := GetNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
 	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
-	nodeAux := getNodeAuxValue(a.Claim.NonRevProof.Proof)
+	nodeAux := GetNodeAuxValue(a.Claim.NonRevProof.Proof)
 	s.IssuerClaimNonRevMtpAuxHi = nodeAux.key
 	s.IssuerClaimNonRevMtpAuxHv = nodeAux.value
 	s.IssuerClaimNonRevMtpNoAux = nodeAux.noAux
 
-	issuerAuthNodeAux := getNodeAuxValue(
+	issuerAuthNodeAux := GetNodeAuxValue(
 		a.Claim.SignatureProof.IssuerAuthNonRevProof.Proof)
 	s.IssuerAuthClaimNonRevMtpAuxHi = issuerAuthNodeAux.key
 	s.IssuerAuthClaimNonRevMtpAuxHv = issuerAuthNodeAux.value
@@ -184,7 +184,7 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// AtomicQuerySigPubSignals public inputs
+// AtomicQuerySigV2PubSignals public inputs
 type AtomicQuerySigPubSignals struct {
 	BaseConfig
 	UserID                 *core.ID         `json:"userID"`
@@ -202,7 +202,7 @@ type AtomicQuerySigPubSignals struct {
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
 func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
-	// 10 is a number of fields in AtomicQuerySigPubSignals before values, values is last element in the proof and
+	// 10 is a number of fields in AtomicQuerySigV2PubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
 	const fieldLength = 10

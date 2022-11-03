@@ -3,7 +3,7 @@ package circuits
 import (
 	"math/big"
 
-	"github.com/iden3/go-merkletree-sql"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/iden3/go-schema-processor/merklize"
 	"github.com/pkg/errors"
 )

@@ -95,12 +95,12 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 		// TODO: change when pr with tree state will be merged
 	}
 
-	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
+	nodeAuxAuth := GetNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
 	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
-	globalNodeAux := getNodeAuxValue(a.AuthClaim.GlobalTree.Proof)
+	globalNodeAux := GetNodeAuxValue(a.AuthClaim.GlobalTree.Proof)
 	s.GlobalSmtMtpAuxHi = globalNodeAux.key
 	s.GlobalSmtMtpAuxHv = globalNodeAux.value
 	s.GlobalSmtMtpNoAux = globalNodeAux.noAux

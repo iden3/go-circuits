@@ -133,12 +133,12 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 	}
 	s.Value = bigIntArrayToStringArray(values)
 
-	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
+	nodeAuxAuth := GetNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
 	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
-	nodeAux := getNodeAuxValue(a.Claim.NonRevProof.Proof)
+	nodeAux := GetNodeAuxValue(a.Claim.NonRevProof.Proof)
 	s.IssuerClaimNonRevMtpAuxHi = nodeAux.key
 	s.IssuerClaimNonRevMtpAuxHv = nodeAux.value
 	s.IssuerClaimNonRevMtpNoAux = nodeAux.noAux
