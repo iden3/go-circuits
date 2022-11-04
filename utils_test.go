@@ -4,7 +4,7 @@ import (
 	"math/big"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestPrepareCircuitArrayValues(t *testing.T) {
@@ -13,10 +13,10 @@ func TestPrepareCircuitArrayValues(t *testing.T) {
 
 	arr, err := PrepareCircuitArrayValues(arr, 5)
 
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	exp := []*big.Int{new(big.Int).SetInt64(1), new(big.Int).SetInt64(2), new(big.Int), new(big.Int), new(big.Int)}
-	assert.EqualValues(t, exp, arr)
+	require.EqualValues(t, exp, arr)
 
 }
 
@@ -26,5 +26,10 @@ func TestPrepareCircuitArrayValuesErr(t *testing.T) {
 
 	_, err := PrepareCircuitArrayValues(arr, 1)
 
-	assert.Errorf(t, err, "array size 2 is bigger max expected size 1")
+	require.Errorf(t, err, "array size 2 is bigger max expected size 1")
+}
+
+func Test_boolToInt(t *testing.T) {
+	require.True(t, boolToInt(true) == 1)
+	require.True(t, boolToInt(false) == 0)
 }
