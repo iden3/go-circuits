@@ -52,13 +52,13 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 	inputs := AuthV2Inputs{
 		ID:    identifier,
 		Nonce: big.NewInt(10),
-		AuthClaim: ClaimV2{
+		AuthClaim: ClaimWithGlobalAuthProof{
 			Claim: claim,
 			MTProof: MTProof{
 				Proof:     claimEntryMTP,
 				TreeState: treeState,
 			},
-			NonRevProof: ClaimNonRevStatus{treeState, claimNonRevMTP},
+			NonRevProof: MTProof{claimNonRevMTP, treeState},
 			GlobalTree:  globalTree,
 		},
 		Signature: signature,

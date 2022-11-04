@@ -6,25 +6,38 @@ import (
 	"github.com/iden3/go-merkletree-sql/v2"
 )
 
-type ClaimNonRevStatus struct {
-	TreeState TreeState         `json:"treeState"`
-	Proof     *merkletree.Proof `json:"proof"`
-}
-
 type ClaimWithSigProof struct {
 	IssuerID       *core.ID
 	Claim          *core.Claim
-	TreeState      TreeState
-	NonRevProof    *ClaimNonRevStatus // Claim non revocation proof
+	NonRevProof    MTProof // Claim non revocation proof
 	SignatureProof BJJSignatureProof
 }
 
 type ClaimWithMTPProof struct {
 	IssuerID    *core.ID
 	Claim       *core.Claim
-	TreeState   TreeState
-	Proof       *merkletree.Proof
-	NonRevProof *ClaimNonRevStatus // Claim non revocation proof
+	MTProof     MTProof
+	NonRevProof MTProof // Claim non revocation proof
+}
+
+type ClaimWithGlobalAuthProof struct {
+	Claim          *core.Claim       `json:"claim"`
+	NonRevProof    MTProof           `json:"nonRevProof"`
+	MTProof        MTProof           `json:"mtProof"`
+	SignatureProof BJJSignatureProof `json:"signatureProof"`
+	GlobalTree     GlobalTree        `json:"globalTree"`
+}
+
+type BJJSignatureProof struct {
+	Signature             *babyjub.Signature `json:"signature"`
+	IssuerAuthClaim       *core.Claim        `json:"issuerAuthClaim"`
+	IssuerAuthClaimMTP    MTProof            `json:"issuerAuthClaimMTP"`
+	IssuerAuthNonRevProof MTProof            `json:"issuerAuthNonRevProof"` // IssuerAuthClaim non revocation proof
+}
+
+type MTProof struct {
+	Proof     *merkletree.Proof `json:"proof"`
+	TreeState TreeState         `json:"treeState"`
 }
 
 type TreeState struct {
@@ -32,28 +45,6 @@ type TreeState struct {
 	ClaimsRoot     *merkletree.Hash `json:"claimsRoot"`
 	RevocationRoot *merkletree.Hash `json:"revocationRoot"`
 	RootOfRoots    *merkletree.Hash `json:"rootOfRoots"`
-}
-
-type BJJSignatureProof struct {
-	IssuerID              *core.ID           `json:"issuerID"`
-	Signature             *babyjub.Signature `json:"signature"`
-	IssuerTreeState       TreeState          `json:"issuerTreeState"`
-	IssuerAuthClaim       *core.Claim        `json:"issuerAuthClaim"`
-	IssuerAuthClaimMTP    *merkletree.Proof  `json:"issuerAuthClaimMTP"`
-	IssuerAuthNonRevProof ClaimNonRevStatus  `json:"issuerAuthNonRevProof"` // IssuerAuthClaim non revocation proof
-}
-
-type ClaimV2 struct {
-	Claim          *core.Claim       `json:"claim"`
-	NonRevProof    ClaimNonRevStatus `json:"nonRevProof"`
-	MTProof        MTProof           `json:"mtProof"`
-	SignatureProof BJJSignatureProof `json:"signatureProof"`
-	GlobalTree     GlobalTree        `json:"globalTree"`
-}
-
-type MTProof struct {
-	Proof     *merkletree.Proof `json:"proof"`
-	TreeState TreeState         `json:"treeState"`
 }
 
 type GlobalTree struct {

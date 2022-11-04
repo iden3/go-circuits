@@ -136,31 +136,34 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 
 	inputsAuthClaim := ClaimWithMTPProof{
 		//Schema:    authClaim.Schema,
-		Claim:     userAuthCoreClaim,
-		Proof:     mtpProofUser,
-		TreeState: userAuthTreeState,
-		NonRevProof: &ClaimNonRevStatus{
+		Claim: userAuthCoreClaim,
+		MTProof: MTProof{
+			Proof:     mtpProofUser,
+			TreeState: userAuthTreeState,
+		},
+		NonRevProof: MTProof{
 			TreeState: userAuthTreeState,
 			Proof:     mtpProofUser,
 		},
 	}
 
 	claimIssuerSignature := BJJSignatureProof{
-		IssuerID:           issuerIdentity,
-		IssuerTreeState:    issuerAuthTreeState,
-		IssuerAuthClaimMTP: mtpProofIssuer,
-		Signature:          claimSignature,
-		IssuerAuthClaim:    issuerAuthClaim,
-		IssuerAuthNonRevProof: ClaimNonRevStatus{
+		Signature:       claimSignature,
+		IssuerAuthClaim: issuerAuthClaim,
+		IssuerAuthClaimMTP: MTProof{
+			TreeState: issuerAuthTreeState,
+			Proof:     mtpProofIssuer,
+		},
+		IssuerAuthNonRevProof: MTProof{
 			TreeState: issuerAuthTreeState,
 			Proof:     issuerAuthNonRevProof,
 		},
 	}
 
 	inputsUserClaim := ClaimWithSigProof{
-		Claim:     issuerCoreClaim,
-		TreeState: issuerStateAfterClaimAdd,
-		NonRevProof: &ClaimNonRevStatus{
+		Claim: issuerCoreClaim,
+		//TreeState: issuerStateAfterClaimAdd,
+		NonRevProof: MTProof{
 			TreeState: issuerStateAfterClaimAdd,
 			Proof:     proofNotRevoke,
 		},

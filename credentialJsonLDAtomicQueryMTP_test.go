@@ -86,7 +86,7 @@ func TestJsonLDAtomicQuery_PrepareInputs(t *testing.T) {
 		it.Generate(ctx, issuerPrivKHex)
 	require.NoError(t, err)
 
-	mz, err := merklize.Merklize(ctx, strings.NewReader(testClaimDocument))
+	mz, err := merklize.MerklizeJSONLD(ctx, strings.NewReader(testClaimDocument))
 	require.NoError(t, err)
 
 	// issue issuerClaim for user
@@ -153,21 +153,25 @@ func TestJsonLDAtomicQuery_PrepareInputs(t *testing.T) {
 	require.NoError(t, err)
 
 	inputsAuthClaim := ClaimWithMTPProof{
-		Claim:     userAuthCoreClaim,
-		Proof:     mtpProofUser,
-		TreeState: userAuthTreeState,
-		NonRevProof: &ClaimNonRevStatus{
+		Claim: userAuthCoreClaim,
+		MTProof: MTProof{
+			Proof:     mtpProofUser,
+			TreeState: userAuthTreeState,
+		},
+		NonRevProof: MTProof{
 			TreeState: userAuthTreeState,
 			Proof:     proofAuthClaimNotRevoked,
 		},
 	}
 
 	inputsUserClaim := ClaimWithMTPProof{
-		Claim:     issuerCoreClaim,
-		Proof:     proof,
-		TreeState: issuerStateAfterClaimAdd,
-		IssuerID:  issuerID,
-		NonRevProof: &ClaimNonRevStatus{
+		IssuerID: issuerID,
+		Claim:    issuerCoreClaim,
+		MTProof: MTProof{
+			Proof:     proof,
+			TreeState: issuerStateAfterClaimAdd,
+		},
+		NonRevProof: MTProof{
 			TreeState: issuerStateAfterClaimAdd,
 			Proof:     proofNotRevoke,
 		},
@@ -176,10 +180,10 @@ func TestJsonLDAtomicQuery_PrepareInputs(t *testing.T) {
 	path, err := merklize.NewPath("http://schema.org/identifier")
 	require.NoError(t, err)
 
-	jsonLDProof, _, err := mz.Proof(ctx, path)
+	jsonLDProof, value, err := mz.Proof(ctx, path)
 	require.NoError(t, err)
 
-	jsonLDValue, err := mz.HashValue(83627465)
+	jsonLDValue, err := value.MtEntry()
 	require.NoError(t, err)
 
 	query := JsonLDQuery{

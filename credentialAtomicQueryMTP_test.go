@@ -116,21 +116,25 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	require.NoError(t, err)
 
 	inputsAuthClaim := ClaimWithMTPProof{
-		Claim:     userAuthCoreClaim,
-		Proof:     mtpProofUser,
-		TreeState: userAuthTreeState,
-		NonRevProof: &ClaimNonRevStatus{
+		Claim: userAuthCoreClaim,
+		MTProof: MTProof{
+			Proof:     mtpProofUser,
+			TreeState: userAuthTreeState,
+		},
+		NonRevProof: MTProof{
 			TreeState: userAuthTreeState,
 			Proof:     proofAuthClaimNotRevoked,
 		},
 	}
 
 	inputsUserClaim := ClaimWithMTPProof{
-		Claim:     issuerCoreClaim,
-		Proof:     proof,
-		TreeState: issuerStateAfterClaimAdd,
-		IssuerID:  issuerID,
-		NonRevProof: &ClaimNonRevStatus{
+		Claim: issuerCoreClaim,
+		MTProof: MTProof{
+			Proof:     proof,
+			TreeState: issuerStateAfterClaimAdd,
+		},
+		IssuerID: issuerID,
+		NonRevProof: MTProof{
 			TreeState: issuerStateAfterClaimAdd,
 			Proof:     proofNotRevoke,
 		},

@@ -83,19 +83,19 @@ type atomicQuerySigCircuitInputs struct {
 // InputsMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
 func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 
-	if a.AuthClaim.Proof == nil {
+	if a.AuthClaim.MTProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}
 
-	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
+	if a.AuthClaim.NonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
-	if a.Claim.NonRevProof == nil || a.Claim.NonRevProof.Proof == nil {
+	if a.Claim.NonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyClaimNonRevProof)
 	}
 
-	if a.Claim.SignatureProof.IssuerAuthClaimMTP == nil {
+	if a.Claim.SignatureProof.IssuerAuthClaimMTP.Proof == nil {
 		return nil, errors.New(ErrorEmptyIssuerAuthClaimProof)
 	}
 
@@ -113,7 +113,7 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 
 	s := atomicQuerySigCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
-		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.MTProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
@@ -129,10 +129,10 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimNonRevMtp: PrepareSiblingsStr(a.Claim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		ClaimSchema:             a.Claim.Claim.GetSchemaHash().BigInt().String(),
-		UserClaimsTreeRoot:      a.AuthClaim.TreeState.ClaimsRoot,
-		UserState:               a.AuthClaim.TreeState.State,
-		UserRevTreeRoot:         a.AuthClaim.TreeState.RevocationRoot,
-		UserRootsTreeRoot:       a.AuthClaim.TreeState.RootOfRoots,
+		UserClaimsTreeRoot:      a.AuthClaim.MTProof.TreeState.ClaimsRoot,
+		UserState:               a.AuthClaim.MTProof.TreeState.State,
+		UserRevTreeRoot:         a.AuthClaim.MTProof.TreeState.RevocationRoot,
+		UserRootsTreeRoot:       a.AuthClaim.MTProof.TreeState.RootOfRoots,
 		UserID:                  a.ID.BigInt().String(),
 		IssuerID:                a.Claim.IssuerID.BigInt().String(),
 		Operator:                a.Operator,
@@ -144,12 +144,12 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 
 		IssuerAuthClaimMtp: bigIntArrayToStringArray(
 			PrepareSiblings(
-				a.Claim.SignatureProof.IssuerAuthClaimMTP.AllSiblings(),
+				a.Claim.SignatureProof.IssuerAuthClaimMTP.Proof.AllSiblings(),
 				a.GetMTLevel())),
 
-		IssuerAuthClaimsTreeRoot: a.Claim.SignatureProof.IssuerTreeState.ClaimsRoot,
-		IssuerAuthRevTreeRoot:    a.Claim.SignatureProof.IssuerTreeState.RevocationRoot,
-		IssuerAuthRootsTreeRoot:  a.Claim.SignatureProof.IssuerTreeState.RootOfRoots,
+		IssuerAuthClaimsTreeRoot: a.Claim.SignatureProof.IssuerAuthClaimMTP.TreeState.ClaimsRoot,
+		IssuerAuthRevTreeRoot:    a.Claim.SignatureProof.IssuerAuthClaimMTP.TreeState.RevocationRoot,
+		IssuerAuthRootsTreeRoot:  a.Claim.SignatureProof.IssuerAuthClaimMTP.TreeState.RootOfRoots,
 
 		IssuerAuthClaim: a.Claim.SignatureProof.IssuerAuthClaim,
 

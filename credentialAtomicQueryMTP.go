@@ -73,19 +73,19 @@ type atomicQueryMTPCircuitInputs struct {
 // InputsMarshal returns Circom private inputs for credentialAtomicQueryMTP.circom
 func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 
-	if a.AuthClaim.Proof == nil {
+	if a.AuthClaim.MTProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}
 
-	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
+	if a.AuthClaim.NonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
-	if a.Claim.Proof == nil {
+	if a.Claim.MTProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyClaimProof)
 	}
 
-	if a.Claim.NonRevProof == nil || a.Claim.NonRevProof.Proof == nil {
+	if a.Claim.NonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyClaimNonRevProof)
 	}
 
@@ -95,7 +95,7 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 
 	s := atomicQueryMTPCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
-		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.MTProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
@@ -104,11 +104,11 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 		ChallengeSignatureR8Y:           a.Signature.R8.Y.String(),
 		ChallengeSignatureS:             a.Signature.S.String(),
 		IssuerClaim:                     a.Claim.Claim,
-		IssuerClaimClaimsTreeRoot:       a.Claim.TreeState.ClaimsRoot,
-		IssuerClaimIdenState:            a.Claim.TreeState.State,
-		IssuerClaimMtp:                  PrepareSiblingsStr(a.Claim.Proof.AllSiblings(), a.GetMTLevel()),
-		IssuerClaimRevTreeRoot:          a.Claim.TreeState.RevocationRoot,
-		IssuerClaimRootsTreeRoot:        a.Claim.TreeState.RootOfRoots,
+		IssuerClaimClaimsTreeRoot:       a.Claim.MTProof.TreeState.ClaimsRoot,
+		IssuerClaimIdenState:            a.Claim.MTProof.TreeState.State,
+		IssuerClaimMtp:                  PrepareSiblingsStr(a.Claim.MTProof.Proof.AllSiblings(), a.GetMTLevel()),
+		IssuerClaimRevTreeRoot:          a.Claim.MTProof.TreeState.RevocationRoot,
+		IssuerClaimRootsTreeRoot:        a.Claim.MTProof.TreeState.RootOfRoots,
 		IssuerClaimNonRevClaimsTreeRoot: a.Claim.NonRevProof.TreeState.ClaimsRoot,
 		IssuerClaimNonRevRevTreeRoot:    a.Claim.NonRevProof.TreeState.RevocationRoot,
 		IssuerClaimNonRevRootsTreeRoot:  a.Claim.NonRevProof.TreeState.RootOfRoots,
@@ -116,10 +116,10 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimNonRevMtp: PrepareSiblingsStr(a.Claim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		ClaimSchema:        a.Claim.Claim.GetSchemaHash().BigInt().String(),
-		UserClaimsTreeRoot: a.AuthClaim.TreeState.ClaimsRoot,
-		UserState:          a.AuthClaim.TreeState.State,
-		UserRevTreeRoot:    a.AuthClaim.TreeState.RevocationRoot,
-		UserRootsTreeRoot:  a.AuthClaim.TreeState.RootOfRoots,
+		UserClaimsTreeRoot: a.AuthClaim.MTProof.TreeState.ClaimsRoot,
+		UserState:          a.AuthClaim.MTProof.TreeState.State,
+		UserRevTreeRoot:    a.AuthClaim.MTProof.TreeState.RevocationRoot,
+		UserRootsTreeRoot:  a.AuthClaim.MTProof.TreeState.RootOfRoots,
 		UserID:             a.ID.BigInt().String(),
 		IssuerID:           a.Claim.IssuerID.BigInt().String(),
 		Operator:           a.Operator,

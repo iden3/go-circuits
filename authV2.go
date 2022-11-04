@@ -18,7 +18,7 @@ type AuthV2Inputs struct {
 	ID    *core.ID
 	Nonce *big.Int
 
-	AuthClaim ClaimV2
+	AuthClaim ClaimWithGlobalAuthProof
 
 	Signature *babyjub.Signature
 	Challenge *big.Int
