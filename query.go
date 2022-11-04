@@ -122,11 +122,12 @@ func FactoryComparer(x *big.Int, y []*big.Int, t int) (Comparer, error) {
 
 // JsonLDQuery represents basic request to Json-LD claim field
 type JsonLDQuery struct {
-	Path     merklize.Path
-	Value    *big.Int
-	MTP      *merkletree.Proof
-	Operator int
-	Values   []*big.Int
+	Path      merklize.Path
+	Value     *big.Int
+	MTP       *merkletree.Proof
+	Operator  int
+	Values    []*big.Int
+	SlotIndex int
 }
 
 func (q JsonLDQuery) validate() error {
