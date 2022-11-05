@@ -12,4 +12,7 @@ const (
 	ErrorEmptyJsonLDQueryProof           = "empty JSON-LD query mtp proof"
 	ErrorEmptyJsonLDQueryValue           = "empty JSON-LD query value"
 	ErrorEmptyJsonLDQueryValues          = "empty JSON-LD query values"
+	ErrorEmptyID                         = "empty ID"
+	ErrorEmptyChallenge                  = "empty challenge"
+	ErrorEmptyGlobalProof                = "empty global identity mtp proof"
 )
