@@ -15,14 +15,14 @@ import (
 type AuthV2Inputs struct {
 	BaseConfig
 
-	ID    *core.ID
-	Nonce *big.Int
+	ID    *core.ID `json:"id"`
+	Nonce *big.Int `json:"nonce"`
 
-	AuthClaim   ClaimWithMTPProof
-	GlobalProof GlobalTree
+	AuthClaim   ClaimWithMTPProof `json:"authClaim"`
+	GlobalProof GlobalTree        `json:"globalProof"`
 
-	Signature *babyjub.Signature
-	Challenge *big.Int
+	Signature *babyjub.Signature `json:"signature"`
+	Challenge *big.Int           `json:"challenge"`
 }
 
 // authCircuitInputs type reflect auth.circom private inputs required by prover
@@ -60,10 +60,10 @@ type authV2CircuitInputs struct {
 	GlobalSmtMtpNoAux string           `json:"globalSmtMtpNoAux"`
 }
 
-func (a AuthV2Inputs) validate() error {
+func (a AuthV2Inputs) Validate() error {
 
 	if a.ID == nil {
-		return errors.New("id is nil")
+		return errors.New(ErrorEmptyID)
 	}
 
 	if a.AuthClaim.IncProof.Proof == nil {
@@ -74,8 +74,16 @@ func (a AuthV2Inputs) validate() error {
 		return errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
+	if a.GlobalProof.Proof == nil {
+		return errors.New(ErrorEmptyGlobalProof)
+	}
+
 	if a.Signature == nil {
 		return errors.New(ErrorEmptyChallengeSignature)
+	}
+
+	if a.Challenge == nil {
+		return errors.New(ErrorEmptyChallenge)
 	}
 
 	return nil
@@ -84,7 +92,7 @@ func (a AuthV2Inputs) validate() error {
 // InputsMarshal returns Circom private inputs for auth.circom
 func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 
-	if err := a.validate(); err != nil {
+	if err := a.Validate(); err != nil {
 		return nil, err
 	}
 

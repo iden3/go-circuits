@@ -14,155 +14,148 @@ import (
 )
 
 func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
-	ctx := context.Background()
-	privKeyHex := "28156abe7fe2fd433dc9df969286b96666489bac508612d0e16593e944c4f69f"
-	challenge, b := big.NewInt(0).SetString(
-		"6110517768249559238193477435454792024732173865488900270849624328650765691494",
-		10)
-	assert.True(t, b)
-	identifier, claim, state, claimsTree, revTree, rootsTree, claimEntryMTP, claimNonRevMTP, signature, err := it.AuthClaimFullInfo(ctx,
-		privKeyHex, challenge)
-	assert.Nil(t, err)
 
+	ctx := context.Background()
+	challenge := big.NewInt(10)
+
+	// generate identity
+	user, err := it.NewIdentity(userPK)
+	require.NoError(t, err)
+	nonce := big.NewInt(0)
+
+	user2, err := it.NewIdentity(issuerPK)
+	require.NoError(t, err)
+
+	// generate global tree
 	gTree := it.GlobalTree(ctx)
 
-	// add id to global tree
-	h := "a65ddf87d7f064d8306833149a42f0ec260533cb9e7f0e8493a796114ce979b9"
-	i, _, s, _, _, _, _, _, _, err := it.AuthClaimFullInfo(ctx, h, challenge)
-	require.NoError(t, err)
-	err = gTree.Add(ctx, i.BigInt(), s.BigInt())
+	err = gTree.Add(ctx, user2.ID.BigInt(), user2.State().BigInt())
 	require.NoError(t, err)
 
-	// Generate proof
-	proof, _, err := gTree.GenerateProof(ctx, identifier.BigInt(), nil)
-	assert.NoError(t, err)
+	// prepare inputs
+	globalProof, _, err := gTree.GenerateProof(ctx, user.ID.BigInt(), nil)
+	require.NoError(t, err)
 
-	treeState := TreeState{
-		State:          state,
-		ClaimsRoot:     claimsTree.Root(),
-		RevocationRoot: revTree.Root(),
-		RootOfRoots:    rootsTree.Root(),
-	}
+	authClaimIncMTP, _, err := user.ClaimMTPRaw(user.AuthClaim)
+	require.NoError(t, err)
 
-	globalTree := GlobalTree{
-		Root:  gTree.Root(),
-		Proof: proof,
-	}
+	authClaimNonRevMTP, _, err := user.ClaimRevMTPRaw(user.AuthClaim)
+	require.NoError(t, err)
+
+	signature, err := user.SignBBJJ(challenge.Bytes())
+	require.NoError(t, err)
 
 	inputs := AuthV2Inputs{
-		ID:    identifier,
-		Nonce: big.NewInt(10),
+		ID:    &user.ID,
+		Nonce: nonce,
 		AuthClaim: ClaimWithMTPProof{
-			Claim: claim,
+			Claim: user.AuthClaim,
 			IncProof: MTProof{
-				Proof:     claimEntryMTP,
-				TreeState: treeState,
+				Proof:     authClaimIncMTP,
+				TreeState: GetTreeState(user),
 			},
-			NonRevProof: MTProof{claimNonRevMTP, treeState},
+			NonRevProof: MTProof{
+				Proof:     authClaimNonRevMTP,
+				TreeState: GetTreeState(user),
+			},
 		},
-		GlobalProof: globalTree,
-		Signature:   signature,
-		Challenge:   challenge,
+		GlobalProof: GlobalTree{
+			Root:  gTree.Root(),
+			Proof: globalProof,
+		},
+		Signature: signature,
+		Challenge: challenge,
 	}
 
-	inputsJsonBytes, err := json.MarshalIndent(inputs, "", "  ")
-	require.NoError(t, err)
-	t.Log(string(inputsJsonBytes))
+	//inputsJsonBytes, err := json.MarshalIndent(inputs, "", "  ")
+	//require.NoError(t, err)
+	//t.Log(string(inputsJsonBytes))
 
 	circuitInputJSON, err := inputs.InputsMarshal()
 	assert.Nil(t, err)
-	t.Log(string(circuitInputJSON))
-	expectedJSONInputs := `{"userGenesisID":"20920305170169595198233610955511031459141100274346276665183631177096036352","nonce":"10","userAuthClaim":["304427537360709784173770334266246861770","0","17640206035128972995519606214765283372613874593503528180869261482403155458945","20634138280259599560273310290025659992320584624461316485434108770067472477956","15930428023331155902","0","0","0"],"userAuthClaimMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"userAuthClaimNonRevMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"userAuthClaimNonRevMtpAuxHi":"0","userAuthClaimNonRevMtpAuxHv":"0","userAuthClaimNonRevMtpNoAux":"1","challenge":"6110517768249559238193477435454792024732173865488900270849624328650765691494","challengeSignatureR8x":"2273647433349372574162365571517182161856978101733725351784171216877260126349","challengeSignatureR8y":"20921152258050920729820249883788091534543872328111915977763626674391221282579","challengeSignatureS":"1281122186572874955530253539759994983000852038854525332258204958436946993067","userClaimsTreeRoot":"9763429684850732628215303952870004997159843236039795272605841029866455670219","userRevTreeRoot":"0","userRootsTreeRoot":"0","userState":"18656147546666944484453899241916469544090258810192803949522794490493271005313","globalSmtRoot":"8654801164827267300505642792609108116741757079309873831472910903288030796079","globalSmtMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"globalSmtMtpAuxHi":"24225204644786657620626565452898941426026601178354142146799363069935288320","globalSmtMtpAuxHv":"1257746809182882563786560928809910818663538703587513060503018952434273712929","globalSmtMtpNoAux":"0"}
-`
 
-	var actualInputs map[string]interface{}
-	err = json.Unmarshal(circuitInputJSON, &actualInputs)
-	assert.Nil(t, err)
+	exp := it.TestData(t, "authV2_inputs", string(circuitInputJSON), *generate)
+	require.JSONEq(t, exp, string(circuitInputJSON))
 
-	var expectedInputs map[string]interface{}
-	err = json.Unmarshal([]byte(expectedJSONInputs), &expectedInputs)
-	assert.Nil(t, err)
+	//t.Log(string(circuitInputJSON))
+	//expectedJSONInputs := `{"userGenesisID":"20920305170169595198233610955511031459141100274346276665183631177096036352","nonce":"10","userAuthClaim":["304427537360709784173770334266246861770","0","17640206035128972995519606214765283372613874593503528180869261482403155458945","20634138280259599560273310290025659992320584624461316485434108770067472477956","15930428023331155902","0","0","0"],"userAuthClaimMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"userAuthClaimNonRevMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"userAuthClaimNonRevMtpAuxHi":"0","userAuthClaimNonRevMtpAuxHv":"0","userAuthClaimNonRevMtpNoAux":"1","challenge":"6110517768249559238193477435454792024732173865488900270849624328650765691494","challengeSignatureR8x":"2273647433349372574162365571517182161856978101733725351784171216877260126349","challengeSignatureR8y":"20921152258050920729820249883788091534543872328111915977763626674391221282579","challengeSignatureS":"1281122186572874955530253539759994983000852038854525332258204958436946993067","userClaimsTreeRoot":"9763429684850732628215303952870004997159843236039795272605841029866455670219","userRevTreeRoot":"0","userRootsTreeRoot":"0","userState":"18656147546666944484453899241916469544090258810192803949522794490493271005313","globalSmtRoot":"8654801164827267300505642792609108116741757079309873831472910903288030796079","globalSmtMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"globalSmtMtpAuxHi":"24225204644786657620626565452898941426026601178354142146799363069935288320","globalSmtMtpAuxHv":"1257746809182882563786560928809910818663538703587513060503018952434273712929","globalSmtMtpNoAux":"0"}
+	//`
 
-	assert.Equal(t, actualInputs, expectedInputs)
+	//var actualInputs map[string]interface{}
+	//err = json.Unmarshal(circuitInputJSON, &actualInputs)
+	//assert.Nil(t, err)
+	//
+	//var expectedInputs map[string]interface{}
+	//err = json.Unmarshal([]byte(expectedJSONInputs), &expectedInputs)
+	//assert.Nil(t, err)
+	//
+	//assert.Equal(t, actualInputs, expectedInputs)
+	//
+	//marshal, err := json.Marshal(inputs)
+	//require.NoError(t, err)
+	//
+	//var inputs2 AuthV2Inputs
+	//json.Unmarshal(marshal, &inputs2)
+	//
+	//require.Equal(t, inputs, inputs2)
 }
 
 func TestAuthV2Inputs_InputsMarshal_fromJson(t *testing.T) {
 	t.Skip("skipping TODO: finish test")
-	auth2_json := `
-{
-  "id": "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyGQoC",
-  "nonce": "10",
-  "authClaim": {
-    "claim": [
-      "304427537360709784173770334266246861770",
-      "0",
-      "17640206035128972995519606214765283372613874593503528180869261482403155458945",
-      "20634138280259599560273310290025659992320584624461316485434108770067472477956",
-      "15930428023331155902",
-      "0",
-      "0",
-      "0"
-    ],
-    "nonRevProof": {
-      "treeState": {
-        "state": "18656147546666944484453899241916469544090258810192803949522794490493271005313",
-        "claimsRoot": "9763429684850732628215303952870004997159843236039795272605841029866455670219",
-        "revocationRoot": "0",
-        "rootOfRoots": "0"
-      },
-      "proof": {
-        "existence": false,
-        "siblings": []
-      }
-    },
-    "mtProof": {
-      "proof": {
-        "existence": true,
-        "siblings": []
-      },
-      "treeState": {
-        "state": "18656147546666944484453899241916469544090258810192803949522794490493271005313",
-        "claimsRoot": "9763429684850732628215303952870004997159843236039795272605841029866455670219",
-        "revocationRoot": "0",
-        "rootOfRoots": "0"
-      }
-    },
-    "signatureProof": {
-      "issuerID": null,
-      "signature": null,
-      "issuerTreeState": {
-        "state": null,
-        "claimsRoot": null,
-        "revocationRoot": null,
-        "rootOfRoots": null
-      },
-      "issuerAuthClaim": null,
-      "issuerAuthClaimMTP": null,
-      "issuerAuthNonRevProof": {
-        "treeState": {
-          "state": null,
-          "claimsRoot": null,
-          "revocationRoot": null,
-          "rootOfRoots": null
-        },
-        "proof": null
-      }
-    },
-    "globalTree": {
-      "root": "8654801164827267300505642792609108116741757079309873831472910903288030796079",
-      "proof": {
-        "existence": false,
-        "siblings": [],
-        "node_aux": {
-          "key": "24225204644786657620626565452898941426026601178354142146799363069935288320",
-          "value": "1257746809182882563786560928809910818663538703587513060503018952434273712929"
-        }
-      }
-    }
-  },
-  "signature": "13274071857accaec43e289504c539812c7b258bb23ce58a4598ad59daf3402eabdf39d356d0d3d2eaac1c983af1f046aa734cfb1d907f7149db32f1e616d502",
-  "challenge": "6110517768249559238193477435454792024732173865488900270849624328650765691494"
-}`
+	auth2_json := `{
+          "id": "119tqceWdRd2F6WnAyVuFQRFjK3WUXq2LorSPyGQoC",
+          "nonce": "10",
+          "authClaim": {
+            "IssuerID": null,
+            "Claim": [
+              "304427537360709784173770334266246861770",
+              "0",
+              "17640206035128972995519606214765283372613874593503528180869261482403155458945",
+              "20634138280259599560273310290025659992320584624461316485434108770067472477956",
+              "15930428023331155902",
+              "0",
+              "0",
+              "0"
+            ],
+            "IncProof": {
+              "proof": {
+                "existence": true,
+                "siblings": []
+              },
+              "treeState": {
+                "state": "18656147546666944484453899241916469544090258810192803949522794490493271005313",
+                "claimsRoot": "9763429684850732628215303952870004997159843236039795272605841029866455670219",
+                "revocationRoot": "0",
+                "rootOfRoots": "0"
+              }
+            },
+            "NonRevProof": {
+              "proof": {
+                "existence": false,
+                "siblings": []
+              },
+              "treeState": {
+                "state": "18656147546666944484453899241916469544090258810192803949522794490493271005313",
+                "claimsRoot": "9763429684850732628215303952870004997159843236039795272605841029866455670219",
+                "revocationRoot": "0",
+                "rootOfRoots": "0"
+              }
+            }
+          },
+          "globalTree": {
+            "root": "8654801164827267300505642792609108116741757079309873831472910903288030796079",
+            "proof": {
+              "existence": false,
+              "siblings": [],
+              "node_aux": {
+                "key": "24225204644786657620626565452898941426026601178354142146799363069935288320",
+                "value": "1257746809182882563786560928809910818663538703587513060503018952434273712929"
+              }
+            }
+          },
+          "signature": "13274071857accaec43e289504c539812c7b258bb23ce58a4598ad59daf3402eabdf39d356d0d3d2eaac1c983af1f046aa734cfb1d907f7149db32f1e616d502",
+          "challenge": "6110517768249559238193477435454792024732173865488900270849624328650765691494"
+        }`
 
 	var inputs AuthV2Inputs
 	err := json.Unmarshal([]byte(auth2_json), &inputs)
@@ -203,4 +196,13 @@ func TestAuthV2Circuit_CircuitUnmarshal(t *testing.T) {
 	assert.Equal(t, challenge, ao.Challenge)
 	assert.Equal(t, state, ao.GlobalRoot)
 	assert.Equal(t, &identifier, ao.UserID)
+}
+
+func GetTreeState(it *it.IdentityTest) TreeState {
+	return TreeState{
+		State:          it.State(),
+		ClaimsRoot:     it.Clt.Root(),
+		RevocationRoot: it.Ret.Root(),
+		RootOfRoots:    it.Rot.Root(),
+	}
 }
