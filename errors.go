@@ -7,7 +7,6 @@ const (
 	ErrorEmptyClaimSignature             = "empty claim signature"
 	ErrorEmptyClaimProof                 = "empty claim mtp proof"
 	ErrorEmptyClaimNonRevProof           = "empty claim non-revocation mtp proof"
-	ErrorUserStateInRelayClaimProof      = "empty user state in relay claim non-revocation mtp proof"
 	ErrorEmptyIssuerAuthClaimProof       = "empty issuer auth claim mtp proof"
 	ErrorEmptyIssuerAuthClaimNonRevProof = "empty issuer auth claim non-revocation mtp proof"
 	ErrorEmptyJsonLDQueryProof           = "empty JSON-LD query mtp proof"
