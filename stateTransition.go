@@ -48,7 +48,7 @@ type stateTransitionInputsInternal struct {
 // CircuitInputMarshal returns Circom private inputs for stateTransition.circom
 func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 
-	if c.AuthClaim.MTProof.Proof == nil {
+	if c.AuthClaim.IncProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}
 
@@ -58,7 +58,7 @@ func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 
 	s := stateTransitionInputsInternal{
 		AuthClaim:          *c.AuthClaim.Claim,
-		AuthClaimMtp:       PrepareSiblingsStr(c.AuthClaim.MTProof.Proof.AllSiblings(), c.GetMTLevel()),
+		AuthClaimMtp:       PrepareSiblingsStr(c.AuthClaim.IncProof.Proof.AllSiblings(), c.GetMTLevel()),
 		AuthClaimNonRevMtp: PrepareSiblingsStr(c.AuthClaim.NonRevProof.Proof.AllSiblings(), c.GetMTLevel()),
 		UserID:             c.ID.BigInt().String(),
 		NewIdState:         c.NewState,

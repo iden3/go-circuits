@@ -87,8 +87,8 @@ func TestStateTransitionInputs_InputsMarshal(t *testing.T) {
 		NewState:          newState,
 		IsOldStateGenesis: true,
 		AuthClaim: ClaimWithMTPProof{
-			Claim:   authClaim,
-			MTProof: MTProof{Proof: authMTPProof},
+			Claim:    authClaim,
+			IncProof: MTProof{Proof: authMTPProof},
 			NonRevProof: MTProof{
 				Proof: authNonRevMTPProof,
 			},
