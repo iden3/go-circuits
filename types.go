@@ -20,13 +20,6 @@ type ClaimWithMTPProof struct {
 	NonRevProof MTProof // proof of non revocation of the `Claim` in the issuer revocation tree
 }
 
-//type ClaimWithGlobalAuthProof struct {
-//	Claim          *core.Claim       `json:"claim"`
-//	IncProof       MTProof           `json:"incProof"`
-//	NonRevProof    MTProof           `json:"nonRevProof"`
-//	SignatureProof BJJSignatureProof `json:"signatureProof"`
-//}
-
 // BJJSignatureProof is a proof of issuer AuthClaim signature over a claim
 type BJJSignatureProof struct {
 	// Signature Signing the claim with the private key of the issuer associated with the issuerAuthClaim
