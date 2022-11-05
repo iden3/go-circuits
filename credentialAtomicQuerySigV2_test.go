@@ -64,9 +64,6 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 	claimSig, err := issuer.SignClaimBBJJ(claim)
 	require.NoError(t, err)
 
-	issuerClaimNonRevState, err := issuer.State()
-	require.NoError(t, err)
-
 	issuerClaimNonRevMtp, issuerClaimNonRevAux, err := issuer.ClaimRevMTP(claim)
 	require.NoError(t, err)
 
@@ -94,7 +91,7 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 		IssuerClaimNonRevClaimsTreeRoot: issuer.Clt.Root().BigInt().String(),
 		IssuerClaimNonRevRevTreeRoot:    issuer.Ret.Root().BigInt().String(),
 		IssuerClaimNonRevRootsTreeRoot:  issuer.Rot.Root().BigInt().String(),
-		IssuerClaimNonRevState:          issuerClaimNonRevState.BigInt().String(),
+		IssuerClaimNonRevState:          issuer.State().BigInt().String(),
 		IssuerClaimNonRevMtp:            issuerClaimNonRevMtp,
 		IssuerClaimNonRevMtpAuxHi:       issuerClaimNonRevAux.Key,
 		IssuerClaimNonRevMtpAuxHv:       issuerClaimNonRevAux.Value,
@@ -132,9 +129,6 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 	require.NoError(t, err)
 	t.Log(string(expJson))
 
-	issuerState, err := issuer.State()
-	require.NoError(t, err)
-
 	issuerClaimNonRevMtpRaw, _, err := issuer.ClaimRevMTPRaw(claim)
 	require.NoError(t, err)
 
@@ -153,7 +147,7 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 			Claim:    claim,
 			NonRevProof: MTProof{
 				TreeState: TreeState{
-					State:          issuerState,
+					State:          issuer.State(),
 					ClaimsRoot:     issuer.Clt.Root(),
 					RevocationRoot: issuer.Ret.Root(),
 					RootOfRoots:    issuer.Rot.Root(),
@@ -165,7 +159,7 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 				IssuerAuthClaim: issuer.AuthClaim,
 				IssuerAuthIncProof: MTProof{
 					TreeState: TreeState{
-						State:          issuerState,
+						State:          issuer.State(),
 						ClaimsRoot:     issuer.Clt.Root(),
 						RevocationRoot: issuer.Ret.Root(),
 						RootOfRoots:    issuer.Rot.Root(),
@@ -174,7 +168,7 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 				},
 				IssuerAuthNonRevProof: MTProof{
 					TreeState: TreeState{
-						State:          issuerState,
+						State:          issuer.State(),
 						ClaimsRoot:     issuer.Clt.Root(),
 						RevocationRoot: issuer.Ret.Root(),
 						RootOfRoots:    issuer.Rot.Root(),
