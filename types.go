@@ -7,17 +7,17 @@ import (
 )
 
 type ClaimWithSigProof struct {
-	IssuerID       *core.ID
-	Claim          *core.Claim
-	NonRevProof    MTProof // Claim non revocation proof
-	SignatureProof BJJSignatureProof
+	IssuerID       *core.ID          `json:"issuerID"`
+	Claim          *core.Claim       `json:"claim"`
+	NonRevProof    MTProof           `json:"nonRevProof"` // Claim non revocation proof
+	SignatureProof BJJSignatureProof `json:"signatureProof"`
 }
 
 type ClaimWithMTPProof struct {
-	IssuerID    *core.ID
-	Claim       *core.Claim
-	IncProof    MTProof // proof of inclusion `Claim` to the issuer claims tree
-	NonRevProof MTProof // proof of non revocation of the `Claim` in the issuer revocation tree
+	IssuerID    *core.ID    `json:"issuerId"`
+	Claim       *core.Claim `json:"claim"`
+	IncProof    MTProof     `json:"incProof"`    // proof of inclusion `Claim` to the issuer claims tree
+	NonRevProof MTProof     `json:"nonRevProof"` // proof of non revocation of the `Claim` in the issuer revocation tree
 }
 
 // BJJSignatureProof is a proof of issuer AuthClaim signature over a claim
