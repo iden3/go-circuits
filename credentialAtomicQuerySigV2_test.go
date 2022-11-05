@@ -163,7 +163,7 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 			SignatureProof: BJJSignatureProof{
 				Signature:       claimSig,
 				IssuerAuthClaim: issuer.AuthClaim,
-				IssuerAuthClaimMTP: MTProof{
+				IssuerAuthIncProof: MTProof{
 					TreeState: TreeState{
 						State:          issuerState,
 						ClaimsRoot:     issuer.Clt.Root(),

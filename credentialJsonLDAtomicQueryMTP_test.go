@@ -154,7 +154,7 @@ func TestJsonLDAtomicQuery_PrepareInputs(t *testing.T) {
 
 	inputsAuthClaim := ClaimWithMTPProof{
 		Claim: userAuthCoreClaim,
-		MTProof: MTProof{
+		IncProof: MTProof{
 			Proof:     mtpProofUser,
 			TreeState: userAuthTreeState,
 		},
@@ -167,7 +167,7 @@ func TestJsonLDAtomicQuery_PrepareInputs(t *testing.T) {
 	inputsUserClaim := ClaimWithMTPProof{
 		IssuerID: issuerID,
 		Claim:    issuerCoreClaim,
-		MTProof: MTProof{
+		IncProof: MTProof{
 			Proof:     proof,
 			TreeState: issuerStateAfterClaimAdd,
 		},

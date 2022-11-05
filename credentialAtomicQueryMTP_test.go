@@ -117,7 +117,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 
 	inputsAuthClaim := ClaimWithMTPProof{
 		Claim: userAuthCoreClaim,
-		MTProof: MTProof{
+		IncProof: MTProof{
 			Proof:     mtpProofUser,
 			TreeState: userAuthTreeState,
 		},
@@ -129,7 +129,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 
 	inputsUserClaim := ClaimWithMTPProof{
 		Claim: issuerCoreClaim,
-		MTProof: MTProof{
+		IncProof: MTProof{
 			Proof:     proof,
 			TreeState: issuerStateAfterClaimAdd,
 		},

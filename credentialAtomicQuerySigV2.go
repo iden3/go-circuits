@@ -80,7 +80,7 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 		return nil, errors.New(ErrorEmptyClaimNonRevProof)
 	}
 
-	if a.Claim.SignatureProof.IssuerAuthClaimMTP.Proof == nil {
+	if a.Claim.SignatureProof.IssuerAuthIncProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyIssuerAuthClaimProof)
 	}
 
@@ -113,7 +113,7 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimSignatureR8Y: a.Claim.SignatureProof.Signature.R8.Y.String(),
 		IssuerClaimSignatureS:   a.Claim.SignatureProof.Signature.S.String(),
 		IssuerAuthClaim:         a.Claim.SignatureProof.IssuerAuthClaim,
-		IssuerAuthClaimMtp: PrepareSiblingsStr(a.Claim.SignatureProof.IssuerAuthClaimMTP.Proof.AllSiblings(),
+		IssuerAuthClaimMtp: PrepareSiblingsStr(a.Claim.SignatureProof.IssuerAuthIncProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		IssuerAuthClaimNonRevMtp: PrepareSiblingsStr(a.Claim.SignatureProof.IssuerAuthNonRevProof.Proof.
 			AllSiblings(), a.GetMTLevel()),

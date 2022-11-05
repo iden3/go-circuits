@@ -137,7 +137,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	inputsAuthClaim := ClaimWithMTPProof{
 		//Schema:    authClaim.Schema,
 		Claim: userAuthCoreClaim,
-		MTProof: MTProof{
+		IncProof: MTProof{
 			Proof:     mtpProofUser,
 			TreeState: userAuthTreeState,
 		},
@@ -150,7 +150,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	claimIssuerSignature := BJJSignatureProof{
 		Signature:       claimSignature,
 		IssuerAuthClaim: issuerAuthClaim,
-		IssuerAuthClaimMTP: MTProof{
+		IssuerAuthIncProof: MTProof{
 			TreeState: issuerAuthTreeState,
 			Proof:     mtpProofIssuer,
 		},
