@@ -29,7 +29,7 @@ func TestCircuitMarshal(t *testing.T) {
 		ID: identifier,
 		AuthClaim: ClaimWithMTPProof{
 			Claim: claim,
-			MTProof: MTProof{
+			IncProof: MTProof{
 				Proof:     claimEntryMTP,
 				TreeState: treeState,
 			},

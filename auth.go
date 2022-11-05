@@ -45,7 +45,7 @@ type authCircuitInputs struct {
 // InputsMarshal returns Circom private inputs for auth.circom
 func (a AuthInputs) InputsMarshal() ([]byte, error) {
 
-	if a.AuthClaim.MTProof.Proof == nil {
+	if a.AuthClaim.IncProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}
 
@@ -59,7 +59,7 @@ func (a AuthInputs) InputsMarshal() ([]byte, error) {
 
 	s := authCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
-		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.MTProof.Proof.AllSiblings(),
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.IncProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
@@ -67,11 +67,11 @@ func (a AuthInputs) InputsMarshal() ([]byte, error) {
 		ChallengeSignatureR8X: a.Signature.R8.X.String(),
 		ChallengeSignatureR8Y: a.Signature.R8.Y.String(),
 		ChallengeSignatureS:   a.Signature.S.String(),
-		UserClaimsTreeRoot:    a.AuthClaim.MTProof.TreeState.ClaimsRoot,
+		UserClaimsTreeRoot:    a.AuthClaim.IncProof.TreeState.ClaimsRoot,
 		UserID:                a.ID.BigInt().String(),
-		UserRevTreeRoot:       a.AuthClaim.MTProof.TreeState.RevocationRoot,
-		UserRootsTreeRoot:     a.AuthClaim.MTProof.TreeState.RootOfRoots,
-		UserState:             a.AuthClaim.MTProof.TreeState.State,
+		UserRevTreeRoot:       a.AuthClaim.IncProof.TreeState.RevocationRoot,
+		UserRootsTreeRoot:     a.AuthClaim.IncProof.TreeState.RootOfRoots,
+		UserState:             a.AuthClaim.IncProof.TreeState.State,
 	}
 
 	nodeAuxAuth := GetNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
