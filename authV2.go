@@ -18,7 +18,8 @@ type AuthV2Inputs struct {
 	ID    *core.ID
 	Nonce *big.Int
 
-	AuthClaim ClaimWithGlobalAuthProof
+	AuthClaim   ClaimWithMTPProof
+	GlobalProof GlobalTree
 
 	Signature *babyjub.Signature
 	Challenge *big.Int
@@ -59,26 +60,39 @@ type authV2CircuitInputs struct {
 	GlobalSmtMtpNoAux string           `json:"globalSmtMtpNoAux"`
 }
 
-// InputsMarshal returns Circom private inputs for auth.circom
-func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
+func (a AuthV2Inputs) validate() error {
 
-	if a.AuthClaim.MTProof.Proof == nil {
-		return nil, errors.New(ErrorEmptyAuthClaimProof)
+	if a.ID == nil {
+		return errors.New("id is nil")
+	}
+
+	if a.AuthClaim.IncProof.Proof == nil {
+		return errors.New(ErrorEmptyAuthClaimProof)
 	}
 
 	if a.AuthClaim.NonRevProof.Proof == nil {
-		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
+		return errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
 	if a.Signature == nil {
-		return nil, errors.New(ErrorEmptyChallengeSignature)
+		return errors.New(ErrorEmptyChallengeSignature)
+	}
+
+	return nil
+}
+
+// InputsMarshal returns Circom private inputs for auth.circom
+func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
+
+	if err := a.validate(); err != nil {
+		return nil, err
 	}
 
 	s := authV2CircuitInputs{
 		UserID:        a.ID.BigInt().String(),
 		Nonce:         a.Nonce.String(),
 		UserAuthClaim: a.AuthClaim.Claim,
-		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.MTProof.Proof.AllSiblings(),
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.IncProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
@@ -86,13 +100,12 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 		ChallengeSignatureR8X: a.Signature.R8.X.String(),
 		ChallengeSignatureR8Y: a.Signature.R8.Y.String(),
 		ChallengeSignatureS:   a.Signature.S.String(),
-		UserClaimsTreeRoot:    a.AuthClaim.MTProof.TreeState.ClaimsRoot,
-		UserRevTreeRoot:       a.AuthClaim.MTProof.TreeState.RevocationRoot,
-		UserRootsTreeRoot:     a.AuthClaim.MTProof.TreeState.RootOfRoots,
-		UserState:             a.AuthClaim.MTProof.TreeState.State,
-		GlobalSmtRoot:         a.AuthClaim.GlobalTree.Root,
-		GlobalSmtMtp:          PrepareSiblingsStr(a.AuthClaim.GlobalTree.Proof.AllSiblings(), a.GetMTLevelOnChain()),
-		// TODO: change when pr with tree state will be merged
+		UserClaimsTreeRoot:    a.AuthClaim.IncProof.TreeState.ClaimsRoot,
+		UserRevTreeRoot:       a.AuthClaim.IncProof.TreeState.RevocationRoot,
+		UserRootsTreeRoot:     a.AuthClaim.IncProof.TreeState.RootOfRoots,
+		UserState:             a.AuthClaim.IncProof.TreeState.State,
+		GlobalSmtRoot:         a.GlobalProof.Root,
+		GlobalSmtMtp:          PrepareSiblingsStr(a.GlobalProof.Proof.AllSiblings(), a.GetMTLevelOnChain()),
 	}
 
 	nodeAuxAuth := GetNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
@@ -100,7 +113,7 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
-	globalNodeAux := GetNodeAuxValue(a.AuthClaim.GlobalTree.Proof)
+	globalNodeAux := GetNodeAuxValue(a.GlobalProof.Proof)
 	s.GlobalSmtMtpAuxHi = globalNodeAux.key
 	s.GlobalSmtMtpAuxHv = globalNodeAux.value
 	s.GlobalSmtMtpNoAux = globalNodeAux.noAux
