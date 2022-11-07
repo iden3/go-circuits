@@ -19,7 +19,7 @@ type AuthV2Inputs struct {
 	Nonce *big.Int `json:"nonce"`
 
 	AuthClaim   ClaimWithMTPProof `json:"authClaim"`
-	GlobalProof GlobalTree        `json:"globalProof"`
+	GlobalProof GlobalMTProof     `json:"globalProof"`
 
 	Signature *babyjub.Signature `json:"signature"`
 	Challenge *big.Int           `json:"challenge"`

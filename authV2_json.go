@@ -71,7 +71,7 @@ type jsonInputs struct {
 	ID         *core.ID          `json:"id"`
 	Nonce      *jsonInt          `json:"nonce"`
 	AuthClaim  ClaimWithMTPProof `json:"authClaim"`
-	GlobalTree GlobalTree        `json:"globalTree"`
+	GlobalTree GlobalMTProof     `json:"globalTree"`
 	Signature  *jsonSignature    `json:"signature"`
 	Challenge  *jsonInt          `json:"challenge"`
 }
