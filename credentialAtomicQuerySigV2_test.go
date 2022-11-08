@@ -50,6 +50,7 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 	require.NoError(t, err)
 
 	jsonP, value, err := mz.Proof(context.Background(), path)
+	require.NoError(t, err)
 
 	valueKey, err := value.MtEntry()
 	require.NoError(t, err)
@@ -229,12 +230,4 @@ func hashFromInt(i *big.Int) *merkletree.Hash {
 		panic(err)
 	}
 	return h
-}
-
-func Test(t *testing.T) {
-
-	i, err := merkletree.NewHashFromHex("300be564b8fb84dc6044bff998dc835d8c334cb27220dbd2899c03c0c777470b")
-	require.NoError(t, err)
-	fmt.Println(i.BigInt().String())
-
 }
