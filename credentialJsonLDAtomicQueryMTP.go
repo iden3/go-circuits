@@ -27,7 +27,7 @@ type JsonLDAtomicQueryMTPInputs struct {
 	CurrentTimeStamp int64
 
 	// query
-	Query JsonLDQuery
+	Query Query
 }
 
 // stateTransitionInputsInternal type represents credentialAtomicQueryMTP.circom private inputs required by prover
@@ -110,14 +110,14 @@ func (a JsonLDAtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 		value: &merkletree.HashZero,
 		noAux: "0",
 	}
-	if a.Query.MTP.Existence {
+	if a.Query.ValueProof.MTP.Existence {
 		claimPathNotExists = 0
 	} else {
 		claimPathNotExists = 1
-		claimPathNodeAuxValue = GetNodeAuxValue(a.Query.MTP)
+		claimPathNodeAuxValue = GetNodeAuxValue(a.Query.ValueProof.MTP)
 	}
 
-	queryPathKey, err := a.Query.Path.MtEntry()
+	queryPathKey, err := a.Query.ValueProof.Path.MtEntry()
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -155,13 +155,13 @@ func (a JsonLDAtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 		UserID:             a.ID.BigInt().String(),
 		IssuerID:           a.Claim.IssuerID.BigInt().String(),
 		ClaimPathNotExists: claimPathNotExists,
-		ClaimPathMtp: PrepareSiblingsStr(a.Query.MTP.AllSiblings(),
+		ClaimPathMtp: PrepareSiblingsStr(a.Query.ValueProof.MTP.AllSiblings(),
 			a.GetMTLevel()),
 		ClaimPathMtpNoAux: claimPathNodeAuxValue.noAux,
 		ClaimPathMtpHi:    claimPathNodeAuxValue.key,
 		ClaimPathMtpHv:    claimPathNodeAuxValue.value,
 		ClaimPathKey:      queryPathKey.Text(10),
-		ClaimPathValue:    a.Query.Value.Text(10),
+		ClaimPathValue:    a.Query.ValueProof.Value.Text(10),
 		Operator:          a.Query.Operator,
 		Timestamp:         a.CurrentTimeStamp,
 	}

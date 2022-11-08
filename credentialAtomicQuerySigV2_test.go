@@ -3,6 +3,7 @@ package circuits
 import (
 	"context"
 	"flag"
+	"fmt"
 	"math/big"
 	"os"
 	"testing"
@@ -118,10 +119,12 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 				},
 			},
 		},
-		Query: JsonLDQuery{
-			Path:      path,
-			Value:     valueKey,
-			MTP:       jsonP,
+		Query: Query{
+			ValueProof: &ValueProof{
+				Path:  path,
+				Value: valueKey,
+				MTP:   jsonP,
+			},
 			Operator:  EQ,
 			Values:    valuesBigInt,
 			SlotIndex: 2,
@@ -226,4 +229,12 @@ func hashFromInt(i *big.Int) *merkletree.Hash {
 		panic(err)
 	}
 	return h
+}
+
+func Test(t *testing.T) {
+
+	i, err := merkletree.NewHashFromHex("300be564b8fb84dc6044bff998dc835d8c334cb27220dbd2899c03c0c777470b")
+	require.NoError(t, err)
+	fmt.Println(i.BigInt().String())
+
 }

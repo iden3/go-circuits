@@ -23,7 +23,7 @@ type AtomicQuerySigV2Inputs struct {
 	Claim ClaimWithSigProof // issuerClaim
 
 	// query
-	Query JsonLDQuery
+	Query Query
 
 	CurrentTimeStamp int64
 }
@@ -75,28 +75,50 @@ type atomicQuerySigV2CircuitInputs struct {
 	Value     []string `json:"value"`
 }
 
-// InputsMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
-func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
+func (a AtomicQuerySigV2Inputs) Validate() error {
 
 	if a.Claim.NonRevProof.Proof == nil {
-		return nil, errors.New(ErrorEmptyClaimNonRevProof)
+		return errors.New(ErrorEmptyClaimNonRevProof)
 	}
 
 	if a.Claim.SignatureProof.IssuerAuthIncProof.Proof == nil {
-		return nil, errors.New(ErrorEmptyIssuerAuthClaimProof)
+		return errors.New(ErrorEmptyIssuerAuthClaimProof)
 	}
 
 	if a.Claim.SignatureProof.IssuerAuthNonRevProof.Proof == nil {
-		return nil, errors.New(ErrorEmptyIssuerAuthClaimNonRevProof)
+		return errors.New(ErrorEmptyIssuerAuthClaimNonRevProof)
 	}
 
 	if a.Claim.SignatureProof.Signature == nil {
-		return nil, errors.New(ErrorEmptyClaimSignature)
+		return errors.New(ErrorEmptyClaimSignature)
 	}
 
-	queryPathKey, err := a.Query.Path.MtEntry()
-	if err != nil {
-		return nil, errors.WithStack(err)
+	if a.Query.Values == nil {
+		return errors.New(ErrorEmptQueryValue)
+	}
+	return nil
+}
+
+// InputsMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
+func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
+
+	if err := a.Validate(); err != nil {
+		return nil, err
+	}
+
+	queryPathKey := big.NewInt(0)
+	if a.Query.ValueProof != nil {
+		var qErr error
+		queryPathKey, qErr = a.Query.ValueProof.Path.MtEntry()
+		if qErr != nil {
+			return nil, errors.WithStack(qErr)
+		}
+	}
+
+	if a.Query.ValueProof == nil {
+		a.Query.ValueProof = &ValueProof{}
+		a.Query.ValueProof.Value = big.NewInt(0)
+		a.Query.ValueProof.MTP = &merkletree.Proof{}
 	}
 
 	s := atomicQuerySigV2CircuitInputs{
@@ -117,17 +139,19 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 		IssuerAuthClaim:         a.Claim.SignatureProof.IssuerAuthClaim,
 		IssuerAuthClaimMtp: PrepareSiblingsStr(a.Claim.SignatureProof.IssuerAuthIncProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
+		IssuerAuthClaimsTreeRoot: a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.ClaimsRoot.
+			BigInt().String(),
+		IssuerAuthRevTreeRoot:   a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.RevocationRoot.BigInt().String(),
+		IssuerAuthRootsTreeRoot: a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.RootOfRoots.BigInt().String(),
+
 		IssuerAuthClaimNonRevMtp: PrepareSiblingsStr(a.Claim.SignatureProof.IssuerAuthNonRevProof.Proof.
 			AllSiblings(), a.GetMTLevel()),
-		IssuerAuthClaimsTreeRoot: a.Claim.SignatureProof.IssuerAuthNonRevProof.TreeState.ClaimsRoot.
-			BigInt().String(),
-		IssuerAuthRevTreeRoot:   a.Claim.SignatureProof.IssuerAuthNonRevProof.TreeState.RevocationRoot.BigInt().String(),
-		IssuerAuthRootsTreeRoot: a.Claim.SignatureProof.IssuerAuthNonRevProof.TreeState.RootOfRoots.BigInt().String(),
-		ClaimSchema:             a.Claim.Claim.GetSchemaHash().BigInt().String(),
 
-		ClaimPathMtp: PrepareSiblingsStr(a.Query.MTP.AllSiblings(),
+		ClaimSchema: a.Claim.Claim.GetSchemaHash().BigInt().String(),
+
+		ClaimPathMtp: PrepareSiblingsStr(a.Query.ValueProof.MTP.AllSiblings(),
 			a.GetMTLevel()),
-		ClaimPathValue: a.Query.Value.Text(10),
+		ClaimPathValue: a.Query.ValueProof.Value.Text(10),
 		Operator:       a.Query.Operator,
 		Timestamp:      a.CurrentTimeStamp,
 		// value in this path in merklized json-ld document
@@ -145,8 +169,8 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 	s.IssuerAuthClaimNonRevMtpAuxHv = nodeAuxIssuerAuthNonRev.value
 	s.IssuerAuthClaimNonRevMtpNoAux = nodeAuxIssuerAuthNonRev.noAux
 
-	s.ClaimPathNotExists = boolToInt(a.Query.MTP.Existence)
-	nodAuxJSONLD := GetNodeAuxValue(a.Query.MTP)
+	s.ClaimPathNotExists = boolToInt(a.Query.ValueProof.MTP.Existence)
+	nodAuxJSONLD := GetNodeAuxValue(a.Query.ValueProof.MTP)
 	s.ClaimPathMtpNoAux = nodAuxJSONLD.noAux
 	s.ClaimPathMtpAuxHi = nodAuxJSONLD.key
 	s.ClaimPathMtpAuxHv = nodAuxJSONLD.value
