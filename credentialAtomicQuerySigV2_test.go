@@ -3,7 +3,6 @@ package circuits
 import (
 	"context"
 	"flag"
-	"fmt"
 	"math/big"
 	"os"
 	"testing"
