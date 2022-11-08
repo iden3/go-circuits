@@ -68,12 +68,12 @@ func (s *jsonSignature) MarshalJSON() ([]byte, error) {
 }
 
 type jsonInputs struct {
-	ID         *core.ID          `json:"id"`
-	Nonce      *jsonInt          `json:"nonce"`
-	AuthClaim  ClaimWithMTPProof `json:"authClaim"`
-	GlobalTree GlobalTree        `json:"globalTree"`
-	Signature  *jsonSignature    `json:"signature"`
-	Challenge  *jsonInt          `json:"challenge"`
+	ID          *core.ID          `json:"id"`
+	Nonce       *jsonInt          `json:"nonce"`
+	AuthClaim   ClaimWithMTPProof `json:"authClaim"`
+	GlobalProof GlobalTree        `json:"globalProof"`
+	Signature   *jsonSignature    `json:"signature"`
+	Challenge   *jsonInt          `json:"challenge"`
 }
 
 func newJsonInputs(a AuthV2Inputs) jsonInputs {
@@ -81,7 +81,7 @@ func newJsonInputs(a AuthV2Inputs) jsonInputs {
 	inputs.ID = a.ID
 	inputs.Nonce = (*jsonInt)(a.Nonce)
 	inputs.AuthClaim = a.AuthClaim
-	inputs.GlobalTree = a.GlobalProof
+	inputs.GlobalProof = a.GlobalProof
 	inputs.Signature = (*jsonSignature)(a.Signature)
 	inputs.Challenge = (*jsonInt)(a.Challenge)
 	return inputs
@@ -92,6 +92,7 @@ func (inputs jsonInputs) Unwrap() AuthV2Inputs {
 	a.ID = inputs.ID
 	a.Nonce = (*big.Int)(inputs.Nonce)
 	a.AuthClaim = inputs.AuthClaim
+	a.GlobalProof = inputs.GlobalProof
 	a.Signature = (*babyjub.Signature)(inputs.Signature)
 	a.Challenge = (*big.Int)(inputs.Challenge)
 	return a

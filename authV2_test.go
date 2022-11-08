@@ -74,6 +74,7 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 	circuitInputJSON, err := inputs.InputsMarshal()
 	assert.Nil(t, err)
 
+	//t.Log(string(circuitInputJSON))
 	exp := it.TestData(t, "authV2_inputs", string(circuitInputJSON), *generate)
 	require.JSONEq(t, exp, string(circuitInputJSON))
 
