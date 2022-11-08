@@ -68,6 +68,9 @@ func DefaultJSONUserClaim(subject core.ID) (*merklize.Merklizer, *core.Claim, er
 
 	var schemaHash core.SchemaHash
 	schemaBytes, err := hex.DecodeString("ce6bb12c96bfd1544c02c289c6b4b987")
+	if err != nil {
+		return nil, nil, err
+	}
 	copy(schemaHash[:], schemaBytes)
 
 	nonce := 10
