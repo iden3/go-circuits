@@ -18,8 +18,8 @@ type AuthV2Inputs struct {
 	ID    *core.ID `json:"id"`
 	Nonce *big.Int `json:"nonce"`
 
-	AuthClaim   ClaimWithMTPProof `json:"authClaim"`
-	GlobalProof GlobalMTProof     `json:"globalProof"`
+	AuthClaim ClaimWithMTPProof `json:"authClaim"`
+	GISTProof GISTProof         `json:"gistProof"`
 
 	Signature *babyjub.Signature `json:"signature"`
 	Challenge *big.Int           `json:"challenge"`
@@ -74,7 +74,7 @@ func (a AuthV2Inputs) Validate() error {
 		return errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
-	if a.GlobalProof.Proof == nil {
+	if a.GISTProof.Proof == nil {
 		return errors.New(ErrorEmptyGlobalProof)
 	}
 
@@ -112,8 +112,8 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 		UserRevTreeRoot:       a.AuthClaim.IncProof.TreeState.RevocationRoot,
 		UserRootsTreeRoot:     a.AuthClaim.IncProof.TreeState.RootOfRoots,
 		UserState:             a.AuthClaim.IncProof.TreeState.State,
-		GlobalSmtRoot:         a.GlobalProof.Root,
-		GlobalSmtMtp:          PrepareSiblingsStr(a.GlobalProof.Proof.AllSiblings(), a.GetMTLevelOnChain()),
+		GlobalSmtRoot:         a.GISTProof.Root,
+		GlobalSmtMtp:          PrepareSiblingsStr(a.GISTProof.Proof.AllSiblings(), a.GetMTLevelOnChain()),
 	}
 
 	nodeAuxAuth := GetNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
@@ -121,7 +121,7 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
-	globalNodeAux := GetNodeAuxValue(a.GlobalProof.Proof)
+	globalNodeAux := GetNodeAuxValue(a.GISTProof.Proof)
 	s.GlobalSmtMtpAuxHi = globalNodeAux.key
 	s.GlobalSmtMtpAuxHv = globalNodeAux.value
 	s.GlobalSmtMtpNoAux = globalNodeAux.noAux

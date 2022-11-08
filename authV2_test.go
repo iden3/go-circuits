@@ -59,7 +59,7 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 				TreeState: GetTreeState(user),
 			},
 		},
-		GlobalProof: GlobalMTProof{
+		GISTProof: GISTProof{
 			Root:  gTree.Root(),
 			Proof: globalProof,
 		},

@@ -68,12 +68,12 @@ func (s *jsonSignature) MarshalJSON() ([]byte, error) {
 }
 
 type jsonInputs struct {
-	ID         *core.ID          `json:"id"`
-	Nonce      *jsonInt          `json:"nonce"`
-	AuthClaim  ClaimWithMTPProof `json:"authClaim"`
-	GlobalTree GlobalMTProof     `json:"globalTree"`
-	Signature  *jsonSignature    `json:"signature"`
-	Challenge  *jsonInt          `json:"challenge"`
+	ID        *core.ID          `json:"id"`
+	Nonce     *jsonInt          `json:"nonce"`
+	AuthClaim ClaimWithMTPProof `json:"authClaim"`
+	GISTProof GISTProof         `json:"gistProof"`
+	Signature *jsonSignature    `json:"signature"`
+	Challenge *jsonInt          `json:"challenge"`
 }
 
 func newJsonInputs(a AuthV2Inputs) jsonInputs {
@@ -81,7 +81,7 @@ func newJsonInputs(a AuthV2Inputs) jsonInputs {
 	inputs.ID = a.ID
 	inputs.Nonce = (*jsonInt)(a.Nonce)
 	inputs.AuthClaim = a.AuthClaim
-	inputs.GlobalTree = a.GlobalProof
+	inputs.GISTProof = a.GISTProof
 	inputs.Signature = (*jsonSignature)(a.Signature)
 	inputs.Challenge = (*jsonInt)(a.Challenge)
 	return inputs

@@ -94,7 +94,7 @@ func (a AtomicQuerySigV2Inputs) Validate() error {
 	}
 
 	if a.Query.Values == nil {
-		return errors.New(ErrorEmptQueryValue)
+		return errors.New(ErrorEmptyQueryValue)
 	}
 	return nil
 }

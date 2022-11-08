@@ -121,6 +121,15 @@ type Query struct {
 	ValueProof *ValueProof
 }
 
+func (q Query) validate() error {
+	for i := range q.Values {
+		if q.Values[i] == nil {
+			return errors.New(ErrorEmptyQueryValue)
+		}
+	}
+	return nil
+}
+
 // ValueProof represents a Merkle Proof for a value stored as MT
 type ValueProof struct {
 	Path  merklize.Path

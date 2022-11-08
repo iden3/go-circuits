@@ -3,7 +3,6 @@ package testing
 import (
 	"context"
 	"encoding/hex"
-	"fmt"
 	"math/big"
 	"strings"
 	"time"
@@ -67,11 +66,6 @@ func DefaultJSONUserClaim(subject core.ID) (*merklize.Merklizer, *core.Claim, er
 		return nil, nil, err
 	}
 
-	// issue issuerClaim for user
-	dataSlotA, err := core.NewElemBytesFromInt(mz.Root().BigInt())
-
-	fmt.Println("root", mz.Root().BigInt())
-
 	var schemaHash core.SchemaHash
 	schemaBytes, err := hex.DecodeString("ce6bb12c96bfd1544c02c289c6b4b987")
 	copy(schemaHash[:], schemaBytes)
@@ -81,10 +75,9 @@ func DefaultJSONUserClaim(subject core.ID) (*merklize.Merklizer, *core.Claim, er
 	claim, err := core.NewClaim(
 		schemaHash,
 		core.WithIndexID(subject),
-		core.WithIndexData(dataSlotA, core.ElemBytes{}),
 		core.WithExpirationDate(time.Unix(1669884010, 0)), //Thu Dec 01 2022 08:40:10 GMT+0000
 		core.WithRevocationNonce(uint64(nonce)),
-		core.WithFlagMerklize(core.MerklizePositionIndex))
+		core.WithIndexMerklizedRoot(mz.Root().BigInt()))
 
 	return mz, claim, err
 }
