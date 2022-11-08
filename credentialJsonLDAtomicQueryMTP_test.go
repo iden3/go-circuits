@@ -186,10 +186,12 @@ func TestJsonLDAtomicQuery_PrepareInputs(t *testing.T) {
 	jsonLDValue, err := value.MtEntry()
 	require.NoError(t, err)
 
-	query := JsonLDQuery{
-		Path:     path,
-		Value:    jsonLDValue,
-		MTP:      jsonLDProof,
+	query := Query{
+		ValueProof: &ValueProof{
+			Path:  path,
+			Value: jsonLDValue,
+			MTP:   jsonLDProof,
+		},
 		Values:   []*big.Int{jsonLDValue},
 		Operator: EQ,
 	}

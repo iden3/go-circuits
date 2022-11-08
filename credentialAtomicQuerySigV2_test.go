@@ -2,7 +2,6 @@ package circuits
 
 import (
 	"context"
-	"encoding/json"
 	"flag"
 	"math/big"
 	"os"
@@ -55,20 +54,8 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 	valueKey, err := value.MtEntry()
 	require.NoError(t, err)
 
-	claimJSONLDProof, claimJSONLDProofAux := it.PrepareProof(jsonP)
-
-	pathKey, err := path.MtEntry()
-	//pathKey, err := path.Key()
-	require.NoError(t, err)
-
 	// Sig claim
 	claimSig, err := issuer.SignClaimBBJJ(claim)
-	require.NoError(t, err)
-
-	issuerClaimNonRevMtp, issuerClaimNonRevAux, err := issuer.ClaimRevMTP(claim)
-	require.NoError(t, err)
-
-	issuerAuthClaimMtp, issuerAuthClaimNodeAux, err := issuer.ClaimRevMTP(issuer.AuthClaim)
 	require.NoError(t, err)
 
 	values := []string{valueKey.String(), "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0",
@@ -83,53 +70,6 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 		valuesBigInt[i] = in
 
 	}
-
-	inputs := atomicQuerySigV2CircuitInputs{
-		UserGenesisID:                   user.ID.BigInt().String(),
-		Nonce:                           nonce.String(),
-		ClaimSubjectProfileNonce:        nonceSubject.String(),
-		IssuerID:                        issuer.ID.BigInt().String(),
-		IssuerClaim:                     claim,
-		IssuerClaimNonRevClaimsTreeRoot: issuer.Clt.Root().BigInt().String(),
-		IssuerClaimNonRevRevTreeRoot:    issuer.Ret.Root().BigInt().String(),
-		IssuerClaimNonRevRootsTreeRoot:  issuer.Rot.Root().BigInt().String(),
-		IssuerClaimNonRevState:          issuer.State().BigInt().String(),
-		IssuerClaimNonRevMtp:            issuerClaimNonRevMtp,
-		IssuerClaimNonRevMtpAuxHi:       issuerClaimNonRevAux.Key,
-		IssuerClaimNonRevMtpAuxHv:       issuerClaimNonRevAux.Value,
-		IssuerClaimNonRevMtpNoAux:       issuerClaimNonRevAux.NoAux,
-		IssuerClaimSignatureR8X:         claimSig.R8.X.String(),
-		IssuerClaimSignatureR8Y:         claimSig.R8.Y.String(),
-		IssuerClaimSignatureS:           claimSig.S.String(),
-		IssuerAuthClaim:                 issuer.AuthClaim,
-		IssuerAuthClaimMtp:              issuerAuthClaimMtp,
-		IssuerAuthClaimNonRevMtp:        issuerAuthClaimMtp,
-		IssuerAuthClaimNonRevMtpAuxHi:   issuerAuthClaimNodeAux.Key,
-		IssuerAuthClaimNonRevMtpAuxHv:   issuerAuthClaimNodeAux.Value,
-		IssuerAuthClaimNonRevMtpNoAux:   issuerAuthClaimNodeAux.NoAux,
-		IssuerAuthClaimsTreeRoot:        issuer.Clt.Root().BigInt().String(),
-		IssuerAuthRevTreeRoot:           issuer.Ret.Root().BigInt().String(),
-		IssuerAuthRootsTreeRoot:         issuer.Rot.Root().BigInt().String(),
-		ClaimSchema:                     "180410020913331409885634153623124536270",
-
-		ClaimPathNotExists: 1, // 0 for inclusion, 1 for non-inclusion
-		ClaimPathMtp:       claimJSONLDProof,
-		ClaimPathMtpNoAux:  claimJSONLDProofAux.NoAux, // 1 if aux node is empty, 0 if non-empty or for inclusion proofs
-		ClaimPathMtpAuxHi:  claimJSONLDProofAux.Key,   // 0 for inclusion proof
-		ClaimPathMtpAuxHv:  claimJSONLDProofAux.Value, // 0 for inclusion proof
-		ClaimPathKey:       pathKey.String(),          // hash of path in merklized json-ld document
-		ClaimPathValue:     valueKey.String(),         // value in this path in merklized json-ld document
-		// value in this path in merklized json-ld document
-
-		Operator:  EQ,
-		SlotIndex: 2,
-		Timestamp: timestamp,
-		Value:     values,
-	}
-
-	expJson, err := json.Marshal(inputs)
-	require.NoError(t, err)
-	t.Log(string(expJson))
 
 	issuerClaimNonRevMtpRaw, _, err := issuer.ClaimRevMTPRaw(claim)
 	require.NoError(t, err)
@@ -179,10 +119,12 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 				},
 			},
 		},
-		Query: JsonLDQuery{
-			Path:      path,
-			Value:     valueKey,
-			MTP:       jsonP,
+		Query: Query{
+			ValueProof: &ValueProof{
+				Path:  path,
+				Value: valueKey,
+				MTP:   jsonP,
+			},
 			Operator:  EQ,
 			Values:    valuesBigInt,
 			SlotIndex: 2,
@@ -199,60 +141,86 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 }
 
 func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
-	//userID, err := idFromIntStr("19224224881555258540966250468059781351205177043309252290095510834143232000")
-	//require.NoError(t, err)
-	//
-	//userStateInt, ok := new(big.Int).SetString(
-	//	"7608718875990494885422326673876913565155307854054144181362485232187902102852", 10)
-	//require.True(t, ok)
-	//userState, err := merkletree.NewHashFromBigInt(userStateInt)
-	//require.NoError(t, err)
-	//
-	//schemaInt, ok := new(big.Int).SetString("210459579859058135404770043788028292398", 10)
-	//require.True(t, ok)
-	//schema := core.NewSchemaHashFromInt(schemaInt)
-	//
-	//issuerClaimNonRevStateInt, ok := new(big.Int).SetString("19221836623970007220538457599669851375427558847917606787084815224761802529201", 10)
-	//require.True(t, ok)
-	//issuerClaimNonRevState, err := merkletree.NewHashFromBigInt(issuerClaimNonRevStateInt)
-	//require.Nil(t, err)
-	//
-	//issuerAuthStateInt, ok := new(big.Int).SetString("11672667429383627660992648216772306271234451162443612055001584519010749218959", 10)
-	//require.True(t, ok)
-	//issuerAuthState, err := merkletree.NewHashFromBigInt(issuerAuthStateInt)
-	//require.Nil(t, err)
-	//
-	//issuerID, err := idFromIntStr("24839761684028550613296892625503994006188774664975540620786183594699522048")
-	//require.Nil(t, err)
-	//
-	//values := make([]*big.Int, 64)
-	//for i := 0; i < 64; i++ {
-	//	values[i] = big.NewInt(0)
-	//}
-	//values[0].SetInt64(20000101)
-	//values[63].SetInt64(9999)
-	//
-	//timestamp := int64(1651850376)
-	//
-	//expectedOut := AtomicQuerySigPubSignals{
-	//	UserID:                 userID,
-	//	UserState:              userState,
-	//	Challenge:              big.NewInt(84239),
-	//	ClaimSchema:            schema,
-	//	IssuerID:               issuerID,
-	//	IssuerAuthState:        issuerAuthState,
-	//	IssuerClaimNonRevState: issuerClaimNonRevState,
-	//	SlotIndex:              2,
-	//	Values:                 values,
-	//	Operator:               EQ,
-	//	Timestamp:              timestamp,
-	//}
-	//
-	//out := new(AtomicQuerySigPubSignals)
-	//err = out.PubSignalsUnmarshal([]byte(
-	//	`["11672667429383627660992648216772306271234451162443612055001584519010749218959", "19224224881555258540966250468059781351205177043309252290095510834143232000", "7608718875990494885422326673876913565155307854054144181362485232187902102852", "84239", "24839761684028550613296892625503994006188774664975540620786183594699522048", "19221836623970007220538457599669851375427558847917606787084815224761802529201", "1651850376", "210459579859058135404770043788028292398", "2", "1", "20000101", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "9999"]`))
-	//require.NoError(t, err)
-	//require.Equal(t, expectedOut, *out)
+	out := new(AtomicQuerySigV2PubSignals)
+	err := out.PubSignalsUnmarshal([]byte(
+		`[
+ "1",
+ "24357338057394103910029868244681596615276666879950910837900400354886746113",
+ "941468466445458410186775788257959899059193009206256072692441148778367618811",
+ "21443782015371791400876357388364171246290737482854988499085152504070668289",
+ "941468466445458410186775788257959899059193009206256072692441148778367618811",
+ "1642074362",
+ "180410020913331409885634153623124536270",
+ "1",
+ "4565618812218816904592638866963205946316329857551756884889133933625594842882",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0",
+ "0"
+]`))
+	require.NoError(t, err)
 }
 
 func hashFromInt(i *big.Int) *merkletree.Hash {

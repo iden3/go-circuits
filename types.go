@@ -46,8 +46,9 @@ type TreeState struct {
 	RootOfRoots    *merkletree.Hash `json:"rootOfRoots"`    // root of roots tree root
 }
 
-// GlobalTree represents the state of the global identities tree published on the blockchain
-type GlobalTree struct {
+// GISTProof global identity state tree proof represents the state of the global identities tree published on the
+// blockchain
+type GISTProof struct {
 	Root  *merkletree.Hash  `json:"root"`  // global identities tree root
 	Proof *merkletree.Proof `json:"proof"` // proof of inclusion or non inclusion of the identity to the global identities tree
 }

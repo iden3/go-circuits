@@ -18,13 +18,6 @@ const (
 	NIN
 )
 
-// Query represents basic request to claim slot verification
-type Query struct {
-	SlotIndex int
-	Values    []*big.Int
-	Operator  int
-}
-
 // QueryOperators represents operators for atomic circuits
 var QueryOperators = map[string]int{
 	"$noop": NOOP,
@@ -120,27 +113,36 @@ func FactoryComparer(x *big.Int, y []*big.Int, t int) (Comparer, error) {
 	return cmp, nil
 }
 
-// JsonLDQuery represents basic request to Json-LD claim field
-type JsonLDQuery struct {
-	Path      merklize.Path
-	Value     *big.Int
-	MTP       *merkletree.Proof
-	Operator  int
-	Values    []*big.Int
-	SlotIndex int
+// Query represents basic request to claim field with MTP and without
+type Query struct {
+	Operator   int
+	Values     []*big.Int
+	SlotIndex  int
+	ValueProof *ValueProof
 }
 
-func (q JsonLDQuery) validate() error {
-	if q.Values == nil {
+func (q Query) validate() error {
+	for i := range q.Values {
+		if q.Values[i] == nil {
+			return errors.New(ErrorEmptyQueryValue)
+		}
+	}
+	return nil
+}
+
+// ValueProof represents a Merkle Proof for a value stored as MT
+type ValueProof struct {
+	Path  merklize.Path
+	Value *big.Int
+	MTP   *merkletree.Proof
+}
+
+func (q ValueProof) validate() error {
+	if q.Value == nil {
 		return errors.New(ErrorEmptyJsonLDQueryValue)
 	}
 	if q.MTP == nil {
 		return errors.New(ErrorEmptyJsonLDQueryProof)
-	}
-	for i := range q.Values {
-		if q.Values[i] == nil {
-			return errors.New(ErrorEmptyJsonLDQueryValues)
-		}
 	}
 	return nil
 }
