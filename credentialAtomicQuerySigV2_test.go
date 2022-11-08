@@ -50,6 +50,7 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 	require.NoError(t, err)
 
 	jsonP, value, err := mz.Proof(context.Background(), path)
+	require.NoError(t, err)
 
 	valueKey, err := value.MtEntry()
 	require.NoError(t, err)
@@ -68,6 +69,7 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 	require.NoError(t, err)
 
 	issuerAuthClaimMtp, issuerAuthClaimNodeAux, err := issuer.ClaimRevMTP(issuer.AuthClaim)
+	require.NoError(t, err)
 
 	values := []string{valueKey.String(), "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0",
 		"0", "0",

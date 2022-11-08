@@ -189,10 +189,16 @@ func NewIdentity(privKHex string) (*IdentityTest, error) {
 
 	// create auth claim
 	authClaim, err := AuthClaimFromPubKey(X, Y)
+	if err != nil {
+		return nil, err
+	}
 	it.AuthClaim = authClaim
 
 	// add auth claim to claimsMT
 	hi, hv, err := authClaim.HiHv()
+	if err != nil {
+		return nil, err
+	}
 
 	err = it.Clt.Add(context.Background(), hi, hv)
 	if err != nil {

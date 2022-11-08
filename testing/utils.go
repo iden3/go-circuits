@@ -17,10 +17,16 @@ func TestData(t *testing.T, fileName string, data string, generate bool) string 
 	path := "testdata/" + fileName + ".json"
 
 	f, err := os.OpenFile(path, os.O_RDWR|os.O_CREATE, 0755)
-	defer f.Close()
 	if err != nil {
 		t.Fatalf("Error open a file %s: %s", path, err)
 	}
+
+	defer func() {
+		err := f.Close()
+		if err != nil {
+			t.Error(err)
+		}
+	}()
 
 	if generate {
 		_, err := f.WriteString(data)
