@@ -119,10 +119,12 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 		}
 	}
 
-	if a.Query.ValueProof == nil {
-		a.Query.ValueProof = &ValueProof{}
-		a.Query.ValueProof.Value = big.NewInt(0)
-		a.Query.ValueProof.MTP = &merkletree.Proof{}
+	valueProof := a.Query.ValueProof
+
+	if valueProof == nil {
+		valueProof = &ValueProof{}
+		valueProof.Value = big.NewInt(0)
+		valueProof.MTP = &merkletree.Proof{}
 	}
 
 	s := atomicQuerySigV2CircuitInputs{
@@ -153,9 +155,9 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 
 		ClaimSchema: a.Claim.Claim.GetSchemaHash().BigInt().String(),
 
-		ClaimPathMtp: PrepareSiblingsStr(a.Query.ValueProof.MTP.AllSiblings(),
+		ClaimPathMtp: PrepareSiblingsStr(valueProof.MTP.AllSiblings(),
 			a.GetMTLevel()),
-		ClaimPathValue: a.Query.ValueProof.Value.Text(10),
+		ClaimPathValue: valueProof.Value.Text(10),
 		Operator:       a.Query.Operator,
 		Timestamp:      a.CurrentTimeStamp,
 		// value in this path in merklized json-ld document
@@ -173,8 +175,8 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 	s.IssuerAuthClaimNonRevMtpAuxHv = nodeAuxIssuerAuthNonRev.value
 	s.IssuerAuthClaimNonRevMtpNoAux = nodeAuxIssuerAuthNonRev.noAux
 
-	s.ClaimPathNotExists = boolToInt(a.Query.ValueProof.MTP.Existence)
-	nodAuxJSONLD := GetNodeAuxValue(a.Query.ValueProof.MTP)
+	s.ClaimPathNotExists = boolToInt(valueProof.MTP.Existence)
+	nodAuxJSONLD := GetNodeAuxValue(valueProof.MTP)
 	s.ClaimPathMtpNoAux = nodAuxJSONLD.noAux
 	s.ClaimPathMtpAuxHi = nodAuxJSONLD.key
 	s.ClaimPathMtpAuxHv = nodAuxJSONLD.value
