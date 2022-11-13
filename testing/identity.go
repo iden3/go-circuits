@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/hex"
 	"math/big"
+	"testing"
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
@@ -299,5 +300,19 @@ func (it *IdentityTest) ClaimRevMTP(claim *core.Claim) (sibling []string, nodeAu
 
 	sib, aux := PrepareProof(proof)
 	return sib, &aux, err
+
+}
+
+func (it *IdentityTest) AddClaim(t testing.TB, claim *core.Claim) {
+	// add claim to claimsMT
+	hi, hv, err := claim.HiHv()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = it.Clt.Add(context.Background(), hi, hv)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 }
