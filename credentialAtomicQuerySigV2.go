@@ -205,25 +205,25 @@ type AtomicQuerySigV2PubSignals struct {
 	Value                  []*big.Int       `json:"value"`
 	Timestamp              int64            `json:"timestamp"`
 	Merklized              int              `json:"merklized"`
+	ClaimPathKey           *big.Int         `json:"claimPathKey"`
 	ClaimPathNotExists     int              `json:"claimPathNotExists"` // 0 for inclusion, 1 for non-inclusion
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
 func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
-	/*
-		- merklized
-		- userID
-		- issuerID
-		"issuerAuthState
-		"issuerClaimNonRevState
-		"claimSchema
-		"slotIndex
-		"operator
-		"timestamp
-
-		"claimPathNotExists
-		"value*/
 	// expected order:
+	// merklized
+	// userID
+	// issuerAuthState
+	// issuerID
+	// issuerClaimNonRevState
+	// timestamp
+	// claimSchema
+	// claimPathNotExists
+	// claimPathKey
+	// slotIndex
+	// operator
+	// value
 
 	// 10 is a number of fields in AtomicQuerySigV2PubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
@@ -286,6 +286,30 @@ func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[0])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
+	fieldIdx++
+
+	// - ClaimPathNotExists
+	if ao.ClaimPathNotExists, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
+		return err
+	}
+	fieldIdx++
+
+	// - ClaimPathKey
+	if ao.ClaimPathKey, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid claimPathKey: %s", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	// - slotIndex
+	if ao.SlotIndex, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
+		return err
+	}
+	fieldIdx++
+
+	// - operator
+	if ao.Operator, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
+		return err
+	}
 	fieldIdx++
 
 	//  - values
