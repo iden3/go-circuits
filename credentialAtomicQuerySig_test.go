@@ -112,10 +112,6 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	err = iClaimsTree.Add(ctx, hashIndex, hashValue)
 	require.Nil(t, err)
 
-	proof, _, err := iClaimsTree.GenerateProof(ctx, hashIndex,
-		iClaimsTree.Root())
-	require.Nil(t, err)
-
 	stateAfterClaimAdd, err := merkletree.HashElems(
 		iClaimsTree.Root().BigInt(),
 		merkletree.HashZero.BigInt(),
@@ -138,34 +134,36 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 		big.NewInt(int64(nonce)), issuerRevTree.Root())
 	require.Nil(t, err)
 
-	inputsAuthClaim := Claim{
+	inputsAuthClaim := ClaimWithMTPProof{
 		//Schema:    authClaim.Schema,
-		Claim:     userAuthCoreClaim,
-		Proof:     mtpProofUser,
-		TreeState: userAuthTreeState,
-		NonRevProof: &ClaimNonRevStatus{
+		Claim: userAuthCoreClaim,
+		IncProof: MTProof{
+			Proof:     mtpProofUser,
+			TreeState: userAuthTreeState,
+		},
+		NonRevProof: MTProof{
 			TreeState: userAuthTreeState,
 			Proof:     mtpProofUser,
 		},
 	}
 
 	claimIssuerSignature := BJJSignatureProof{
-		IssuerID:           issuerIdentity,
-		IssuerTreeState:    issuerAuthTreeState,
-		IssuerAuthClaimMTP: mtpProofIssuer,
-		Signature:          claimSignature,
-		IssuerAuthClaim:    issuerAuthClaim,
-		IssuerAuthNonRevProof: ClaimNonRevStatus{
+		Signature:       claimSignature,
+		IssuerAuthClaim: issuerAuthClaim,
+		IssuerAuthIncProof: MTProof{
+			TreeState: issuerAuthTreeState,
+			Proof:     mtpProofIssuer,
+		},
+		IssuerAuthNonRevProof: MTProof{
 			TreeState: issuerAuthTreeState,
 			Proof:     issuerAuthNonRevProof,
 		},
 	}
 
-	inputsUserClaim := Claim{
-		Claim:     issuerCoreClaim,
-		Proof:     proof,
-		TreeState: issuerStateAfterClaimAdd,
-		NonRevProof: &ClaimNonRevStatus{
+	inputsUserClaim := ClaimWithSigProof{
+		Claim: issuerCoreClaim,
+		//TreeState: issuerStateAfterClaimAdd,
+		NonRevProof: MTProof{
 			TreeState: issuerStateAfterClaimAdd,
 			Proof:     proofNotRevoke,
 		},
@@ -202,7 +200,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 
 }
 
-func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
+func TestAtomicQuerySigV2Outputs_CircuitUnmarshal(t *testing.T) {
 	userID, err := idFromIntStr("19224224881555258540966250468059781351205177043309252290095510834143232000")
 	require.NoError(t, err)
 
@@ -257,12 +255,4 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 		`["11672667429383627660992648216772306271234451162443612055001584519010749218959", "19224224881555258540966250468059781351205177043309252290095510834143232000", "7608718875990494885422326673876913565155307854054144181362485232187902102852", "84239", "24839761684028550613296892625503994006188774664975540620786183594699522048", "19221836623970007220538457599669851375427558847917606787084815224761802529201", "1651850376", "210459579859058135404770043788028292398", "2", "1", "20000101", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "9999"]`))
 	require.NoError(t, err)
 	require.Equal(t, expectedOut, *out)
-}
-
-func hashFromInt(i *big.Int) *merkletree.Hash {
-	h, err := merkletree.NewHashFromBigInt(i)
-	if err != nil {
-		panic(err)
-	}
-	return h
 }

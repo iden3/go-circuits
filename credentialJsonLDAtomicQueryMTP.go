@@ -12,8 +12,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// AtomicQueryMTPInputs ZK private inputs for credentialAtomicQueryMTP.circom
-type AtomicQueryMTPInputs struct {
+// JsonLDAtomicQueryMTPInputs ZK private inputs for
+// credentialJsonLDAtomicQueryMTP.circom
+type JsonLDAtomicQueryMTPInputs struct {
 	BaseConfig
 	// auth
 	ID        *core.ID
@@ -26,11 +27,11 @@ type AtomicQueryMTPInputs struct {
 	CurrentTimeStamp int64
 
 	// query
-	Query
+	Query Query
 }
 
 // stateTransitionInputsInternal type represents credentialAtomicQueryMTP.circom private inputs required by prover
-type atomicQueryMTPCircuitInputs struct {
+type jsonLDatomicQueryMTPCircuitInputs struct {
 	UserAuthClaim               *core.Claim      `json:"userAuthClaim"`
 	UserAuthClaimMtp            []string         `json:"userAuthClaimMtp"`
 	UserAuthClaimNonRevMtp      []string         `json:"userAuthClaimNonRevMtp"`
@@ -64,14 +65,20 @@ type atomicQueryMTPCircuitInputs struct {
 	IssuerClaimNonRevMtpNoAux       string           `json:"issuerClaimNonRevMtpNoAux"`
 	ClaimSchema                     string           `json:"claimSchema"`
 	IssuerID                        string           `json:"issuerID"`
+	ClaimPathNotExists              int              `json:"claimPathNotExists"`
+	ClaimPathMtp                    []string         `json:"claimPathMtp"`
+	ClaimPathMtpNoAux               string           `json:"claimPathMtpNoAux"`
+	ClaimPathMtpHi                  *merkletree.Hash `json:"claimPathMtpAuxHi"`
+	ClaimPathMtpHv                  *merkletree.Hash `json:"claimPathMtpAuxHv"`
+	ClaimPathKey                    string           `json:"claimPathKey"`
+	ClaimPathValue                  string           `json:"claimPathValue"`
 	Operator                        int              `json:"operator"`
-	SlotIndex                       int              `json:"slotIndex"`
 	Timestamp                       int64            `json:"timestamp,string"`
 	Value                           []string         `json:"value"`
 }
 
-// InputsMarshal returns Circom private inputs for credentialAtomicQueryMTP.circom
-func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
+// InputsMarshal returns Circom private inputs for credentialJsonLDAtomicQueryMTP.circom
+func (a JsonLDAtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 
 	if a.AuthClaim.IncProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimProof)
@@ -93,27 +100,52 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 		return nil, errors.New(ErrorEmptyChallengeSignature)
 	}
 
-	s := atomicQueryMTPCircuitInputs{
+	if err := a.Query.validate(); err != nil {
+		return nil, err
+	}
+
+	var claimPathNotExists int
+	claimPathNodeAuxValue := NodeAuxValue{
+		key:   &merkletree.HashZero,
+		value: &merkletree.HashZero,
+		noAux: "0",
+	}
+	if a.Query.ValueProof.MTP.Existence {
+		claimPathNotExists = 0
+	} else {
+		claimPathNotExists = 1
+		claimPathNodeAuxValue = GetNodeAuxValue(a.Query.ValueProof.MTP)
+	}
+
+	queryPathKey, err := a.Query.ValueProof.Path.MtEntry()
+	if err != nil {
+		return nil, errors.WithStack(err)
+	}
+
+	s := jsonLDatomicQueryMTPCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
 		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.IncProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
-		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
+		UserAuthClaimNonRevMtp: PrepareSiblingsStr(
+			a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
-		Challenge:                       a.Challenge.String(),
-		ChallengeSignatureR8X:           a.Signature.R8.X.String(),
-		ChallengeSignatureR8Y:           a.Signature.R8.Y.String(),
-		ChallengeSignatureS:             a.Signature.S.String(),
-		IssuerClaim:                     a.Claim.Claim,
-		IssuerClaimClaimsTreeRoot:       a.Claim.IncProof.TreeState.ClaimsRoot,
+		Challenge:             a.Challenge.String(),
+		ChallengeSignatureR8X: a.Signature.R8.X.String(),
+		ChallengeSignatureR8Y: a.Signature.R8.Y.String(),
+		ChallengeSignatureS:   a.Signature.S.String(),
+		IssuerClaim:           a.Claim.Claim,
+		IssuerClaimMtp: PrepareSiblingsStr(a.Claim.IncProof.Proof.AllSiblings(),
+			a.GetMTLevel()),
 		IssuerClaimIdenState:            a.Claim.IncProof.TreeState.State,
-		IssuerClaimMtp:                  PrepareSiblingsStr(a.Claim.IncProof.Proof.AllSiblings(), a.GetMTLevel()),
+		IssuerClaimClaimsTreeRoot:       a.Claim.IncProof.TreeState.ClaimsRoot,
 		IssuerClaimRevTreeRoot:          a.Claim.IncProof.TreeState.RevocationRoot,
 		IssuerClaimRootsTreeRoot:        a.Claim.IncProof.TreeState.RootOfRoots,
 		IssuerClaimNonRevClaimsTreeRoot: a.Claim.NonRevProof.TreeState.ClaimsRoot,
 		IssuerClaimNonRevRevTreeRoot:    a.Claim.NonRevProof.TreeState.RevocationRoot,
 		IssuerClaimNonRevRootsTreeRoot:  a.Claim.NonRevProof.TreeState.RootOfRoots,
 		IssuerClaimNonRevState:          a.Claim.NonRevProof.TreeState.State,
-		IssuerClaimNonRevMtp: PrepareSiblingsStr(a.Claim.NonRevProof.Proof.AllSiblings(),
+		IssuerClaimNonRevMtp: PrepareSiblingsStr(
+			a.Claim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		ClaimSchema:        a.Claim.Claim.GetSchemaHash().BigInt().String(),
 		UserClaimsTreeRoot: a.AuthClaim.IncProof.TreeState.ClaimsRoot,
@@ -122,12 +154,20 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 		UserRootsTreeRoot:  a.AuthClaim.IncProof.TreeState.RootOfRoots,
 		UserID:             a.ID.BigInt().String(),
 		IssuerID:           a.Claim.IssuerID.BigInt().String(),
-		Operator:           a.Operator,
-		SlotIndex:          a.SlotIndex,
-		Timestamp:          a.CurrentTimeStamp,
+		ClaimPathNotExists: claimPathNotExists,
+		ClaimPathMtp: PrepareSiblingsStr(a.Query.ValueProof.MTP.AllSiblings(),
+			a.GetMTLevel()),
+		ClaimPathMtpNoAux: claimPathNodeAuxValue.noAux,
+		ClaimPathMtpHi:    claimPathNodeAuxValue.key,
+		ClaimPathMtpHv:    claimPathNodeAuxValue.value,
+		ClaimPathKey:      queryPathKey.Text(10),
+		ClaimPathValue:    a.Query.ValueProof.Value.Text(10),
+		Operator:          a.Query.Operator,
+		Timestamp:         a.CurrentTimeStamp,
 	}
 
-	values, err := PrepareCircuitArrayValues(a.Values, a.GetValueArrSize())
+	values, err := PrepareCircuitArrayValues(a.Query.Values,
+		a.GetValueArrSize())
 	if err != nil {
 		return nil, err
 	}
@@ -146,8 +186,8 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// AtomicQueryMTPPubSignals public signals
-type AtomicQueryMTPPubSignals struct {
+// JsonLDAtomicQueryMTPPubSignals public signals
+type JsonLDAtomicQueryMTPPubSignals struct {
 	BaseConfig
 	UserID                 *core.ID         `json:"userID"`
 	UserState              *merkletree.Hash `json:"userState"`
@@ -156,14 +196,34 @@ type AtomicQueryMTPPubSignals struct {
 	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 	IssuerID               *core.ID         `json:"issuerID"`
-	SlotIndex              int              `json:"slotIndex"`
+	ClaimPathKey           *merkletree.Hash `json:"claimPathKey"`
 	Values                 []*big.Int       `json:"values"`
 	Operator               int              `json:"operator"`
 	Timestamp              int64            `json:"timestamp"`
 }
 
-// PubSignalsUnmarshal unmarshal credentialAtomicQueryMTP.circom public signals array to AtomicQueryMTPPubSignals
-func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
+// PubSignalsUnmarshal unmarshal credentialJsonLDAtomicQueryMTP.circom public
+// signals array to JsonLDAtomicQueryMTPPubSignals
+func (ao *JsonLDAtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
+	// expected order:
+	//userID
+	//userState
+	//challenge
+	//issuerID
+	//timestamp
+	//claimSchema
+	//claimPathKey
+	//operator
+	//value
+	//  - issuerClaimIdenState
+	//  - issuerID
+	//  - issuerClaimNonRevState
+	//  - timestamp
+	//  - claimSchema
+	//  - claimPathKey
+	//  - operator
+	//  - values
+
 	// 10 is a number of fields in AtomicQueryMTPPubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
@@ -176,64 +236,98 @@ func (ao *AtomicQueryMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 
 	if len(sVals) != fieldLength+ao.GetValueArrSize() {
-		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", fieldLength+ao.GetValueArrSize(), len(sVals))
+		return fmt.Errorf(
+			"invalid number of Output values expected {%d} got {%d} ",
+			fieldLength+ao.GetValueArrSize(), len(sVals))
 	}
 
-	if ao.UserID, err = idFromIntStr(sVals[0]); err != nil {
-		return err
-	}
+	fieldIdx := 0
 
-	if ao.UserState, err = merkletree.NewHashFromString(sVals[1]); err != nil {
+	//  - userID
+	if ao.UserID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
 		return err
 	}
+	fieldIdx++
+
+	//  - userState
+	ao.UserState, err = merkletree.NewHashFromString(sVals[fieldIdx])
+	if err != nil {
+		return fmt.Errorf("can't get userState: %w", err)
+	}
+	fieldIdx++
 
 	var ok bool
-	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
+	//  - challenge
+	if ao.Challenge, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
+	fieldIdx++
 
-	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[3]); err != nil {
+	//  - issuerClaimIdenState
+	ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx])
+	if err != nil {
 		return err
 	}
+	fieldIdx++
 
-	if ao.IssuerID, err = idFromIntStr(sVals[4]); err != nil {
+	//  - issuerID
+	if ao.IssuerID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
+
+		return fmt.Errorf("can't decode issuerID: %w: %v", err, sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	//  - issuerClaimNonRevState
+	ao.IssuerClaimNonRevState, err =
+		merkletree.NewHashFromString(sVals[fieldIdx])
+	if err != nil {
 		return err
 	}
+	fieldIdx++
 
-	if ao.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[5]); err != nil {
+	//  - timestamp
+	ao.Timestamp, err = strconv.ParseInt(sVals[fieldIdx], 10, 64)
+	if err != nil {
 		return err
 	}
+	fieldIdx++
 
-	if ao.Timestamp, err = strconv.ParseInt(sVals[6], 10, 64); err != nil {
-		return err
-	}
-
+	//  - claimSchema
 	var schemaInt *big.Int
-	if schemaInt, ok = big.NewInt(0).SetString(sVals[7], 10); !ok {
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[0])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
+	fieldIdx++
 
-	if ao.SlotIndex, err = strconv.Atoi(sVals[8]); err != nil {
+	//  - claimPathKey
+	ao.ClaimPathKey, err = merkletree.NewHashFromString(sVals[fieldIdx])
+	if err != nil {
 		return err
 	}
+	fieldIdx++
 
-	if ao.Operator, err = strconv.Atoi(sVals[9]); err != nil {
+	//  - operator
+	if ao.Operator, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
 		return err
 	}
+	fieldIdx++
 
-	for i, v := range sVals[fieldLength : fieldLength+ao.GetValueArrSize()] {
-		bi, ok := big.NewInt(0).SetString(v, 10)
+	//  - values
+	var valuesNum = ao.GetValueArrSize()
+	for i := 0; i < valuesNum; i++ {
+		bi, ok := big.NewInt(0).SetString(sVals[fieldIdx], 10)
 		if !ok {
 			return fmt.Errorf("invalid value in index: %d", i)
 		}
 		ao.Values = append(ao.Values, bi)
+		fieldIdx++
 	}
 
 	return nil
 }
 
 // GetObjMap returns struct field as a map
-func (ao AtomicQueryMTPPubSignals) GetObjMap() map[string]interface{} {
+func (ao *JsonLDAtomicQueryMTPPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
 }

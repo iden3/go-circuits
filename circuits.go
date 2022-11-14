@@ -21,6 +21,10 @@ const (
 	AtomicQueryMTPCircuitID CircuitID = "credentialAtomicQueryMTP"
 	// AtomicQuerySigCircuitID is a type for credentialAttrQuerySig.circom
 	AtomicQuerySigCircuitID CircuitID = "credentialAtomicQuerySig"
+	// AtomicQuerySigV2CircuitID is a type for credentialAttrQuerySigV2.circom
+	AtomicQuerySigV2CircuitID CircuitID = "credentialAtomicQuerySigV2"
+	// JsonLDAtomicQueryMTPCircuitID is a type for credentialJsonLDAtomicQueryMTP.circom
+	JsonLDAtomicQueryMTPCircuitID CircuitID = "credentialJsonLDAtomicQueryMTP"
 )
 
 // ErrorCircuitIDNotFound returns if CircuitID is not registered
@@ -70,6 +74,16 @@ func init() {
 	RegisterCircuit(AtomicQuerySigCircuitID, Data{
 		Input:  AtomicQuerySigInputs{},
 		Output: &AtomicQuerySigPubSignals{},
+	})
+
+	RegisterCircuit(AtomicQuerySigV2CircuitID, Data{
+		Input:  AtomicQuerySigV2Inputs{},
+		Output: &AtomicQuerySigV2PubSignals{},
+	})
+
+	RegisterCircuit(JsonLDAtomicQueryMTPCircuitID, Data{
+		Input:  JsonLDAtomicQueryMTPInputs{},
+		Output: &JsonLDAtomicQueryMTPPubSignals{},
 	})
 }
 
@@ -126,7 +140,7 @@ type PubSignals interface {
 }
 
 // KeyLoader interface, if key should be fetched from file system, CDN, IPFS etc,
-//this interface may be implemented for key loading from a specific place
+// this interface may be implemented for key loading from a specific place
 type KeyLoader interface {
 	Load() ([]byte, error)
 }

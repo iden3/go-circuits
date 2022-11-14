@@ -66,17 +66,17 @@ func bigIntArrayToStringArray(array []*big.Int) []string {
 	return res
 }
 
-type nodeAuxValue struct {
+type NodeAuxValue struct {
 	key   *merkletree.Hash
 	value *merkletree.Hash
 	noAux string
 }
 
-func getNodeAuxValue(p *merkletree.Proof) nodeAuxValue {
+func GetNodeAuxValue(p *merkletree.Proof) NodeAuxValue {
 
 	// proof of inclusion
 	if p.Existence {
-		return nodeAuxValue{
+		return NodeAuxValue{
 			key:   &merkletree.HashZero,
 			value: &merkletree.HashZero,
 			noAux: "0",
@@ -85,14 +85,14 @@ func getNodeAuxValue(p *merkletree.Proof) nodeAuxValue {
 
 	// proof of non-inclusion (NodeAux exists)
 	if p.NodeAux != nil && p.NodeAux.Value != nil && p.NodeAux.Key != nil {
-		return nodeAuxValue{
+		return NodeAuxValue{
 			key:   p.NodeAux.Key,
 			value: p.NodeAux.Value,
 			noAux: "0",
 		}
 	}
 	// proof of non-inclusion (NodeAux does not exist)
-	return nodeAuxValue{
+	return NodeAuxValue{
 		key:   &merkletree.HashZero,
 		value: &merkletree.HashZero,
 		noAux: "1",
@@ -128,4 +128,11 @@ func toMap(in interface{}) map[string]interface{} {
 		}
 	}
 	return out
+}
+
+func boolToInt(b bool) int {
+	if b {
+		return 1
+	}
+	return 0
 }
