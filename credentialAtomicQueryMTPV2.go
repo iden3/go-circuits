@@ -168,21 +168,20 @@ type AtomicQueryMTPV2PubSignals struct {
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryMTP.circom public signals array to AtomicQueryMTPPubSignals
 func (ao *AtomicQueryMTPV2PubSignals) PubSignalsUnmarshal(data []byte) error {
-	/*
-		- merklized
-		- userID
-		- issuerID
-		- issuerClaimIdenState
-		- issuerClaimNonRevState
-		- claimSchema
-		- slotIndex
-		- operator
-		- timestamp
-		- claimPathKey
-		- claimPathNotExists
-		- value
-	*/
+
 	// expected order:
+	// merklized
+	// userID
+	// issuerID
+	// issuerClaimIdenState
+	// issuerClaimNonRevState
+	// timestamp
+	// claimSchema
+	// claimPathNotExists
+	// claimPathKey
+	// slotIndex
+	// operator
+	// value
 
 	// 11 is a number of fields in AtomicQueryMTPV2PubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
@@ -253,6 +252,7 @@ func (ao *AtomicQueryMTPV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 	fieldIdx++
 
+	// - ClaimPathKey
 	if ao.ClaimPathKey, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid claimPathKey: %s", sVals[fieldIdx])
 	}
