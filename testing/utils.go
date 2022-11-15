@@ -29,6 +29,8 @@ func TestData(t *testing.T, fileName string, data string, generate bool) string 
 	}()
 
 	if generate {
+		err = f.Truncate(0)
+		_, err = f.Seek(0, 0)
 		_, err := f.WriteString(data)
 		if err != nil {
 			t.Fatalf("Error writing to file %s: %s", path, err)
