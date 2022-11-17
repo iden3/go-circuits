@@ -50,6 +50,7 @@ func TestAttrQueryMTPV2_PrepareInputs(t *testing.T) {
 	issuer.AddClaim(t, claim)
 
 	issuerClaimMtp, _, err := issuer.ClaimMTPRaw(claim)
+	require.NoError(t, err)
 
 	issuerClaimNonRevMtpRaw, _, err := issuer.ClaimRevMTPRaw(claim)
 	require.NoError(t, err)
