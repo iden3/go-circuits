@@ -92,6 +92,7 @@ func (inputs jsonInputs) Unwrap() AuthV2Inputs {
 	a.ID = inputs.ID
 	a.Nonce = (*big.Int)(inputs.Nonce)
 	a.AuthClaim = inputs.AuthClaim
+	a.GISTProof = inputs.GISTProof
 	a.Signature = (*babyjub.Signature)(inputs.Signature)
 	a.Challenge = (*big.Int)(inputs.Challenge)
 	return a
