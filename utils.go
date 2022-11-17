@@ -33,6 +33,16 @@ func PrepareSiblingsStr(siblings []*merkletree.Hash, levels int) []string {
 	return HashToStr(siblings)
 }
 
+// CircomSiblingsFromSiblings returns the full siblings compatible with circom
+func CircomSiblings(proof *merkletree.Proof, levels int) []*merkletree.Hash {
+	siblings := proof.AllSiblings()
+	// Add the rest of empty levels to the siblings
+	for i := len(siblings); i < levels; i++ {
+		siblings = append(siblings, &merkletree.HashZero)
+	}
+	return siblings
+}
+
 func HashToStr(siblings []*merkletree.Hash) []string {
 	siblingsStr := make([]string, len(siblings))
 	for i, sibling := range siblings {
@@ -130,9 +140,9 @@ func toMap(in interface{}) map[string]interface{} {
 	return out
 }
 
-func boolToInt(b bool) int {
+func existenceToInt(b bool) int {
 	if b {
-		return 1
+		return 0
 	}
-	return 0
+	return 1
 }

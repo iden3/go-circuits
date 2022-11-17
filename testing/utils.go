@@ -29,6 +29,14 @@ func TestData(t *testing.T, fileName string, data string, generate bool) string 
 	}()
 
 	if generate {
+		err = f.Truncate(0)
+		if err != nil {
+			t.Fatalf("Error truncate file %s: %s", path, err)
+		}
+		_, err = f.Seek(0, 0)
+		if err != nil {
+			t.Fatalf("Error seek file %s: %s", path, err)
+		}
 		_, err := f.WriteString(data)
 		if err != nil {
 			t.Fatalf("Error writing to file %s: %s", path, err)
@@ -128,6 +136,14 @@ func PrepareSiblingsStr(siblings []*merkletree.Hash, levels int) []string {
 	return HashToStr(siblings)
 }
 
+func PrepareStrArray(siblings []string, levels int) []string {
+	// Add the rest of empty levels to the array
+	for i := len(siblings); i < levels; i++ {
+		siblings = append(siblings, "0")
+	}
+	return siblings
+}
+
 func HashToStr(siblings []*merkletree.Hash) []string {
 	siblingsStr := make([]string, len(siblings))
 	for i, sibling := range siblings {
@@ -143,4 +159,35 @@ func IDFromState(state *big.Int) (*core.ID, error) {
 	}
 	// create new identity
 	return core.IdGenesisFromIdenState(typ, state)
+}
+
+func IDFromStr(t testing.TB, idStr string) *core.ID {
+	t.Helper()
+	strID, b := new(big.Int).SetString(idStr, 10)
+	if !b {
+		t.Fatalf("can not convert {%s} to ID", strID)
+	}
+	id, err := core.IDFromInt(strID)
+	if err != nil {
+		t.Fatalf("can not convert {%s} to ID: %v", strID, err)
+	}
+	return &id
+}
+
+func MTHashFromStr(t testing.TB, hashStr string) *merkletree.Hash {
+	t.Helper()
+	hash, err := merkletree.NewHashFromString(hashStr)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return hash
+}
+
+func CoreSchemaFromStr(t testing.TB, schemaIntStr string) core.SchemaHash {
+	t.Helper()
+	schemaInt, ok := big.NewInt(0).SetString(schemaIntStr, 10)
+	if !ok {
+		t.Fatalf("Error parsing schemaIntStr %s", schemaIntStr)
+	}
+	return core.NewSchemaHashFromInt(schemaInt)
 }

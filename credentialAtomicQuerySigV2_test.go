@@ -2,6 +2,7 @@ package circuits
 
 import (
 	"context"
+	"encoding/json"
 	"flag"
 	"math/big"
 	"os"
@@ -221,6 +222,36 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
  "0"
 ]`))
 	require.NoError(t, err)
+
+	expValue, err := PrepareCircuitArrayValues([]*big.Int{}, 64)
+	require.NoError(t, err)
+
+	claimPathKey, ok := new(big.Int).SetString(
+		"4565618812218816904592638866963205946316329857551756884889133933625594842882", 10)
+	require.True(t, ok)
+
+	exp := AtomicQuerySigV2PubSignals{
+		UserID: it.IDFromStr(
+			t, "24357338057394103910029868244681596615276666879950910837900400354886746113"),
+		IssuerID:               it.IDFromStr(t, "21443782015371791400876357388364171246290737482854988499085152504070668289"),
+		IssuerAuthState:        it.MTHashFromStr(t, "941468466445458410186775788257959899059193009206256072692441148778367618811"),
+		IssuerClaimNonRevState: it.MTHashFromStr(t, "941468466445458410186775788257959899059193009206256072692441148778367618811"),
+		ClaimSchema:            it.CoreSchemaFromStr(t, "180410020913331409885634153623124536270"),
+		SlotIndex:              0,
+		Operator:               0,
+		Value:                  expValue,
+		Timestamp:              int64(1642074362),
+		Merklized:              1,
+		ClaimPathKey:           claimPathKey,
+		ClaimPathNotExists:     1,
+	}
+
+	jsonOut, err := json.Marshal(out)
+	require.NoError(t, err)
+	jsonExp, err := json.Marshal(exp)
+	require.NoError(t, err)
+
+	require.JSONEq(t, string(jsonExp), string(jsonOut))
 }
 
 func hashFromInt(i *big.Int) *merkletree.Hash {

@@ -77,28 +77,6 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 	//t.Log(string(circuitInputJSON))
 	exp := it.TestData(t, "authV2_inputs", string(circuitInputJSON), *generate)
 	require.JSONEq(t, exp, string(circuitInputJSON))
-
-	//t.Log(string(circuitInputJSON))
-	//expectedJSONInputs := `{"userGenesisID":"20920305170169595198233610955511031459141100274346276665183631177096036352","nonce":"10","userAuthClaim":["304427537360709784173770334266246861770","0","17640206035128972995519606214765283372613874593503528180869261482403155458945","20634138280259599560273310290025659992320584624461316485434108770067472477956","15930428023331155902","0","0","0"],"userAuthClaimMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"userAuthClaimNonRevMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"userAuthClaimNonRevMtpAuxHi":"0","userAuthClaimNonRevMtpAuxHv":"0","userAuthClaimNonRevMtpNoAux":"1","challenge":"6110517768249559238193477435454792024732173865488900270849624328650765691494","challengeSignatureR8x":"2273647433349372574162365571517182161856978101733725351784171216877260126349","challengeSignatureR8y":"20921152258050920729820249883788091534543872328111915977763626674391221282579","challengeSignatureS":"1281122186572874955530253539759994983000852038854525332258204958436946993067","userClaimsTreeRoot":"9763429684850732628215303952870004997159843236039795272605841029866455670219","userRevTreeRoot":"0","userRootsTreeRoot":"0","userState":"18656147546666944484453899241916469544090258810192803949522794490493271005313","globalSmtRoot":"8654801164827267300505642792609108116741757079309873831472910903288030796079","globalSmtMtp":["0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0","0"],"globalSmtMtpAuxHi":"24225204644786657620626565452898941426026601178354142146799363069935288320","globalSmtMtpAuxHv":"1257746809182882563786560928809910818663538703587513060503018952434273712929","globalSmtMtpNoAux":"0"}
-	//`
-
-	//var actualInputs map[string]interface{}
-	//err = json.Unmarshal(circuitInputJSON, &actualInputs)
-	//assert.Nil(t, err)
-	//
-	//var expectedInputs map[string]interface{}
-	//err = json.Unmarshal([]byte(expectedJSONInputs), &expectedInputs)
-	//assert.Nil(t, err)
-	//
-	//assert.Equal(t, actualInputs, expectedInputs)
-	//
-	//marshal, err := json.Marshal(inputs)
-	//require.NoError(t, err)
-	//
-	//var inputs2 AuthV2Inputs
-	//json.Unmarshal(marshal, &inputs2)
-	//
-	//require.Equal(t, inputs, inputs2)
 }
 
 func TestAuthV2Inputs_InputsMarshal_fromJson(t *testing.T) {

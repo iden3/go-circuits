@@ -29,7 +29,7 @@ func TestPrepareCircuitArrayValuesErr(t *testing.T) {
 	require.Errorf(t, err, "array size 2 is bigger max expected size 1")
 }
 
-func Test_boolToInt(t *testing.T) {
-	require.True(t, boolToInt(true) == 1)
-	require.True(t, boolToInt(false) == 0)
+func Test_existenceToInt(t *testing.T) {
+	require.True(t, existenceToInt(true) == 0)
+	require.True(t, existenceToInt(false) == 1)
 }

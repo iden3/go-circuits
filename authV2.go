@@ -32,14 +32,14 @@ type authV2CircuitInputs struct {
 	Nonce  string `json:"nonce"`
 
 	// AuthClaim proof of inclusion
-	UserAuthClaim    *core.Claim `json:"userAuthClaim"`
-	UserAuthClaimMtp []string    `json:"userAuthClaimMtp"`
+	UserAuthClaim    *core.Claim        `json:"userAuthClaim"`
+	UserAuthClaimMtp []*merkletree.Hash `json:"userAuthClaimMtp"`
 
 	// AuthClaim non revocation proof
-	UserAuthClaimNonRevMtp      []string         `json:"userAuthClaimNonRevMtp"`
-	UserAuthClaimNonRevMtpAuxHi *merkletree.Hash `json:"userAuthClaimNonRevMtpAuxHi"`
-	UserAuthClaimNonRevMtpAuxHv *merkletree.Hash `json:"userAuthClaimNonRevMtpAuxHv"`
-	UserAuthClaimNonRevMtpNoAux string           `json:"userAuthClaimNonRevMtpNoAux"`
+	UserAuthClaimNonRevMtp      []*merkletree.Hash `json:"userAuthClaimNonRevMtp"`
+	UserAuthClaimNonRevMtpAuxHi *merkletree.Hash   `json:"userAuthClaimNonRevMtpAuxHi"`
+	UserAuthClaimNonRevMtpAuxHv *merkletree.Hash   `json:"userAuthClaimNonRevMtpAuxHv"`
+	UserAuthClaimNonRevMtpNoAux string             `json:"userAuthClaimNonRevMtpNoAux"`
 
 	Challenge             string `json:"challenge"`
 	ChallengeSignatureR8X string `json:"challengeSignatureR8x"`
@@ -53,11 +53,11 @@ type authV2CircuitInputs struct {
 	UserState          *merkletree.Hash `json:"userState"`
 
 	// Global on-cain state
-	GlobalSmtRoot     *merkletree.Hash `json:"globalSmtRoot"`
-	GlobalSmtMtp      []string         `json:"globalSmtMtp"`
-	GlobalSmtMtpAuxHi *merkletree.Hash `json:"globalSmtMtpAuxHi"`
-	GlobalSmtMtpAuxHv *merkletree.Hash `json:"globalSmtMtpAuxHv"`
-	GlobalSmtMtpNoAux string           `json:"globalSmtMtpNoAux"`
+	GISTRoot     *merkletree.Hash   `json:"gistRoot"`
+	GISTMtp      []*merkletree.Hash `json:"gistMtp"`
+	GISTMtpAuxHi *merkletree.Hash   `json:"gistMtpAuxHi"`
+	GISTMtpAuxHv *merkletree.Hash   `json:"gistMtpAuxHv"`
+	GISTMtpNoAux string             `json:"gistMtpNoAux"`
 }
 
 func (a AuthV2Inputs) Validate() error {
@@ -100,10 +100,10 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 		UserID:        a.ID.BigInt().String(),
 		Nonce:         a.Nonce.String(),
 		UserAuthClaim: a.AuthClaim.Claim,
-		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.IncProof.Proof.AllSiblings(),
-			a.GetMTLevel()),
-		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
-			a.GetMTLevel()),
+		UserAuthClaimMtp: merkletree.CircomSiblingsFromSiblings(a.AuthClaim.IncProof.Proof.AllSiblings(),
+			a.GetMTLevel()-1),
+		UserAuthClaimNonRevMtp: merkletree.CircomSiblingsFromSiblings(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
+			a.GetMTLevel()-1),
 		Challenge:             a.Challenge.String(),
 		ChallengeSignatureR8X: a.Signature.R8.X.String(),
 		ChallengeSignatureR8Y: a.Signature.R8.Y.String(),
@@ -112,8 +112,9 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 		UserRevTreeRoot:       a.AuthClaim.IncProof.TreeState.RevocationRoot,
 		UserRootsTreeRoot:     a.AuthClaim.IncProof.TreeState.RootOfRoots,
 		UserState:             a.AuthClaim.IncProof.TreeState.State,
-		GlobalSmtRoot:         a.GISTProof.Root,
-		GlobalSmtMtp:          PrepareSiblingsStr(a.GISTProof.Proof.AllSiblings(), a.GetMTLevelOnChain()),
+		GISTRoot:              a.GISTProof.Root,
+		GISTMtp: merkletree.CircomSiblingsFromSiblings(a.GISTProof.Proof.AllSiblings(),
+			a.GetMTLevelOnChain()-1),
 	}
 
 	nodeAuxAuth := GetNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
@@ -122,9 +123,9 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
 	globalNodeAux := GetNodeAuxValue(a.GISTProof.Proof)
-	s.GlobalSmtMtpAuxHi = globalNodeAux.key
-	s.GlobalSmtMtpAuxHv = globalNodeAux.value
-	s.GlobalSmtMtpNoAux = globalNodeAux.noAux
+	s.GISTMtpAuxHi = globalNodeAux.key
+	s.GISTMtpAuxHv = globalNodeAux.value
+	s.GISTMtpNoAux = globalNodeAux.noAux
 
 	return json.Marshal(s)
 }
@@ -133,7 +134,7 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 type AuthV2PubSignals struct {
 	UserID     *core.ID         `json:"userID"`
 	Challenge  *big.Int         `json:"challenge"`
-	GlobalRoot *merkletree.Hash `json:"GlobalSmtRoot"`
+	GlobalRoot *merkletree.Hash `json:"GISTRoot"`
 }
 
 // PubSignalsUnmarshal unmarshal auth.circom public inputs to AuthPubSignals

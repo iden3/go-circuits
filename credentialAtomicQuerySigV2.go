@@ -119,10 +119,12 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 		}
 	}
 
-	if a.Query.ValueProof == nil {
-		a.Query.ValueProof = &ValueProof{}
-		a.Query.ValueProof.Value = big.NewInt(0)
-		a.Query.ValueProof.MTP = &merkletree.Proof{}
+	valueProof := a.Query.ValueProof
+
+	if valueProof == nil {
+		valueProof = &ValueProof{}
+		valueProof.Value = big.NewInt(0)
+		valueProof.MTP = &merkletree.Proof{}
 	}
 
 	s := atomicQuerySigV2CircuitInputs{
@@ -153,9 +155,9 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 
 		ClaimSchema: a.Claim.Claim.GetSchemaHash().BigInt().String(),
 
-		ClaimPathMtp: PrepareSiblingsStr(a.Query.ValueProof.MTP.AllSiblings(),
+		ClaimPathMtp: PrepareSiblingsStr(valueProof.MTP.AllSiblings(),
 			a.GetMTLevel()),
-		ClaimPathValue: a.Query.ValueProof.Value.Text(10),
+		ClaimPathValue: valueProof.Value.Text(10),
 		Operator:       a.Query.Operator,
 		Timestamp:      a.CurrentTimeStamp,
 		// value in this path in merklized json-ld document
@@ -173,8 +175,8 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 	s.IssuerAuthClaimNonRevMtpAuxHv = nodeAuxIssuerAuthNonRev.value
 	s.IssuerAuthClaimNonRevMtpNoAux = nodeAuxIssuerAuthNonRev.noAux
 
-	s.ClaimPathNotExists = boolToInt(a.Query.ValueProof.MTP.Existence)
-	nodAuxJSONLD := GetNodeAuxValue(a.Query.ValueProof.MTP)
+	s.ClaimPathNotExists = existenceToInt(valueProof.MTP.Existence)
+	nodAuxJSONLD := GetNodeAuxValue(valueProof.MTP)
 	s.ClaimPathMtpNoAux = nodAuxJSONLD.noAux
 	s.ClaimPathMtpAuxHi = nodAuxJSONLD.key
 	s.ClaimPathMtpAuxHv = nodAuxJSONLD.value
@@ -203,25 +205,25 @@ type AtomicQuerySigV2PubSignals struct {
 	Value                  []*big.Int       `json:"value"`
 	Timestamp              int64            `json:"timestamp"`
 	Merklized              int              `json:"merklized"`
+	ClaimPathKey           *big.Int         `json:"claimPathKey"`
 	ClaimPathNotExists     int              `json:"claimPathNotExists"` // 0 for inclusion, 1 for non-inclusion
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
 func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
-	/*
-		- merklized
-		- userID
-		- issuerID
-		"issuerAuthState
-		"issuerClaimNonRevState
-		"claimSchema
-		"slotIndex
-		"operator
-		"timestamp
-
-		"claimPathNotExists
-		"value*/
 	// expected order:
+	// merklized
+	// userID
+	// issuerAuthState
+	// issuerID
+	// issuerClaimNonRevState
+	// timestamp
+	// claimSchema
+	// claimPathNotExists
+	// claimPathKey
+	// slotIndex
+	// operator
+	// value
 
 	// 10 is a number of fields in AtomicQuerySigV2PubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
@@ -284,6 +286,30 @@ func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[0])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
+	fieldIdx++
+
+	// - ClaimPathNotExists
+	if ao.ClaimPathNotExists, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
+		return err
+	}
+	fieldIdx++
+
+	// - ClaimPathKey
+	if ao.ClaimPathKey, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid claimPathKey: %s", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	// - slotIndex
+	if ao.SlotIndex, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
+		return err
+	}
+	fieldIdx++
+
+	// - operator
+	if ao.Operator, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
+		return err
+	}
 	fieldIdx++
 
 	//  - values
