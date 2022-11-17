@@ -140,7 +140,7 @@ func toMap(in interface{}) map[string]interface{} {
 	return out
 }
 
-func boolToInt(b bool) int {
+func existenceToInt(b bool) int {
 	if b {
 		return 0
 	}

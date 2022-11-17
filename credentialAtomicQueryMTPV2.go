@@ -132,7 +132,7 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 	s.IssuerClaimNonRevMtpAuxHv = nodeAux.value
 	s.IssuerClaimNonRevMtpNoAux = nodeAux.noAux
 
-	s.ClaimPathNotExists = boolToInt(valueProof.MTP.Existence)
+	s.ClaimPathNotExists = existenceToInt(valueProof.MTP.Existence)
 	nodAuxJSONLD := GetNodeAuxValue(valueProof.MTP)
 	s.ClaimPathMtpNoAux = nodAuxJSONLD.noAux
 	s.ClaimPathMtpAuxHi = nodAuxJSONLD.key

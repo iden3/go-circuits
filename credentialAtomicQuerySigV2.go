@@ -175,7 +175,7 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 	s.IssuerAuthClaimNonRevMtpAuxHv = nodeAuxIssuerAuthNonRev.value
 	s.IssuerAuthClaimNonRevMtpNoAux = nodeAuxIssuerAuthNonRev.noAux
 
-	s.ClaimPathNotExists = boolToInt(valueProof.MTP.Existence)
+	s.ClaimPathNotExists = existenceToInt(valueProof.MTP.Existence)
 	nodAuxJSONLD := GetNodeAuxValue(valueProof.MTP)
 	s.ClaimPathMtpNoAux = nodAuxJSONLD.noAux
 	s.ClaimPathMtpAuxHi = nodAuxJSONLD.key
