@@ -8,6 +8,7 @@ import (
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-iden3-crypto/babyjub"
+	"github.com/iden3/go-merkletree-sql/v2"
 )
 
 type jsonInt big.Int
@@ -68,19 +69,22 @@ func (s *jsonSignature) MarshalJSON() ([]byte, error) {
 }
 
 type jsonInputs struct {
-	ID        *core.ID          `json:"id"`
-	Nonce     *jsonInt          `json:"nonce"`
-	AuthClaim ClaimWithMTPProof `json:"authClaim"`
-	GISTProof GISTProof         `json:"gistProof"`
-	Signature *jsonSignature    `json:"signature"`
-	Challenge *jsonInt          `json:"challenge"`
+	GenesisID            *core.ID          `json:"genesisID"`
+	ProfileNonce         *jsonInt          `json:"profileNonce"`
+	AuthClaim            *core.Claim       `json:"authClaim"`
+	AuthClaimIncProof    *merkletree.Proof `json:"authClaimIncMtp"`
+	AuthClaimNonRevProof *merkletree.Proof `json:"authClaimNonRevMtp"`
+	TreeState            TreeState         `json:"treeState"` // Identity state
+	GISTProof            GISTProof         `json:"gistProof"`
+	Signature            *jsonSignature    `json:"signature"`
+	Challenge            *jsonInt          `json:"challenge"`
 }
 
 func newJsonInputs(a AuthV2Inputs) jsonInputs {
 	var inputs jsonInputs
-	inputs.ID = a.ID
-	inputs.Nonce = (*jsonInt)(a.Nonce)
-	inputs.AuthClaim = a.AuthClaim
+	inputs.GenesisID = a.GenesisID
+	inputs.ProfileNonce = (*jsonInt)(a.ProfileNonce)
+
 	inputs.GISTProof = a.GISTProof
 	inputs.Signature = (*jsonSignature)(a.Signature)
 	inputs.Challenge = (*jsonInt)(a.Challenge)
@@ -89,8 +93,8 @@ func newJsonInputs(a AuthV2Inputs) jsonInputs {
 
 func (inputs jsonInputs) Unwrap() AuthV2Inputs {
 	var a AuthV2Inputs
-	a.ID = inputs.ID
-	a.Nonce = (*big.Int)(inputs.Nonce)
+	a.GenesisID = inputs.GenesisID
+	a.ProfileNonce = (*big.Int)(inputs.ProfileNonce)
 	a.AuthClaim = inputs.AuthClaim
 	a.GISTProof = inputs.GISTProof
 	a.Signature = (*babyjub.Signature)(inputs.Signature)
