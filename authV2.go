@@ -33,18 +33,18 @@ type AuthV2Inputs struct {
 // authCircuitInputs type reflect auth.circom private inputs required by prover
 type authV2CircuitInputs struct {
 	// ID
-	GenesisID string `json:"genesisID"`
-	Nonce     string `json:"profileNonce"`
+	GenesisID    string `json:"genesisID"`
+	ProfileNonce string `json:"profileNonce"`
 
 	// AuthClaim proof of inclusion
-	UserAuthClaim    *core.Claim        `json:"authClaim"`
-	UserAuthClaimMtp []*merkletree.Hash `json:"authClaimIncMtp"`
+	AuthClaim    *core.Claim        `json:"authClaim"`
+	AuthClaimMtp []*merkletree.Hash `json:"authClaimIncMtp"`
 
 	// AuthClaim non revocation proof
-	UserAuthClaimNonRevMtp      []*merkletree.Hash `json:"authClaimNonRevMtp"`
-	UserAuthClaimNonRevMtpAuxHi *merkletree.Hash   `json:"authClaimNonRevMtpAuxHi"`
-	UserAuthClaimNonRevMtpAuxHv *merkletree.Hash   `json:"authClaimNonRevMtpAuxHv"`
-	UserAuthClaimNonRevMtpNoAux string             `json:"authClaimNonRevMtpNoAux"`
+	AuthClaimNonRevMtp      []*merkletree.Hash `json:"authClaimNonRevMtp"`
+	AuthClaimNonRevMtpAuxHi *merkletree.Hash   `json:"authClaimNonRevMtpAuxHi"`
+	AuthClaimNonRevMtpAuxHv *merkletree.Hash   `json:"authClaimNonRevMtpAuxHv"`
+	AuthClaimNonRevMtpNoAux string             `json:"authClaimNonRevMtpNoAux"`
 
 	Challenge             string `json:"challenge"`
 	ChallengeSignatureR8X string `json:"challengeSignatureR8x"`
@@ -52,10 +52,10 @@ type authV2CircuitInputs struct {
 	ChallengeSignatureS   string `json:"challengeSignatureS"`
 
 	// User State
-	UserClaimsTreeRoot *merkletree.Hash `json:"claimsTreeRoot"`
-	UserRevTreeRoot    *merkletree.Hash `json:"revTreeRoot"`
-	UserRootsTreeRoot  *merkletree.Hash `json:"rootsTreeRoot"`
-	UserState          *merkletree.Hash `json:"state"`
+	ClaimsTreeRoot *merkletree.Hash `json:"claimsTreeRoot"`
+	RevTreeRoot    *merkletree.Hash `json:"revTreeRoot"`
+	RootsTreeRoot  *merkletree.Hash `json:"rootsTreeRoot"`
+	State          *merkletree.Hash `json:"state"`
 
 	// Global on-cain state
 	GISTRoot     *merkletree.Hash   `json:"gistRoot"`
@@ -102,30 +102,30 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 	}
 
 	s := authV2CircuitInputs{
-		GenesisID:     a.GenesisID.BigInt().String(),
-		Nonce:         a.ProfileNonce.String(),
-		UserAuthClaim: a.AuthClaim,
-		UserAuthClaimMtp: merkletree.CircomSiblingsFromSiblings(a.AuthClaimIncMtp.AllSiblings(),
+		GenesisID:    a.GenesisID.BigInt().String(),
+		ProfileNonce: a.ProfileNonce.String(),
+		AuthClaim:    a.AuthClaim,
+		AuthClaimMtp: merkletree.CircomSiblingsFromSiblings(a.AuthClaimIncMtp.AllSiblings(),
 			a.GetMTLevel()-1),
-		UserAuthClaimNonRevMtp: merkletree.CircomSiblingsFromSiblings(a.AuthClaimNonRevMtp.AllSiblings(),
+		AuthClaimNonRevMtp: merkletree.CircomSiblingsFromSiblings(a.AuthClaimNonRevMtp.AllSiblings(),
 			a.GetMTLevel()-1),
 		Challenge:             a.Challenge.String(),
 		ChallengeSignatureR8X: a.Signature.R8.X.String(),
 		ChallengeSignatureR8Y: a.Signature.R8.Y.String(),
 		ChallengeSignatureS:   a.Signature.S.String(),
-		UserClaimsTreeRoot:    a.TreeState.ClaimsRoot,
-		UserRevTreeRoot:       a.TreeState.RevocationRoot,
-		UserRootsTreeRoot:     a.TreeState.RootOfRoots,
-		UserState:             a.TreeState.State,
+		ClaimsTreeRoot:        a.TreeState.ClaimsRoot,
+		RevTreeRoot:           a.TreeState.RevocationRoot,
+		RootsTreeRoot:         a.TreeState.RootOfRoots,
+		State:                 a.TreeState.State,
 		GISTRoot:              a.GISTProof.Root,
 		GISTMtp: merkletree.CircomSiblingsFromSiblings(a.GISTProof.Proof.AllSiblings(),
 			a.GetMTLevelOnChain()-1),
 	}
 
 	nodeAuxAuth := GetNodeAuxValue(a.AuthClaimNonRevMtp)
-	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
-	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
-	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
+	s.AuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
+	s.AuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
+	s.AuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
 	globalNodeAux := GetNodeAuxValue(a.GISTProof.Proof)
 	s.GISTMtpAuxHi = globalNodeAux.key
