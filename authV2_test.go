@@ -46,19 +46,12 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	inputs := AuthV2Inputs{
-		ID:    &user.ID,
-		Nonce: nonce,
-		AuthClaim: ClaimWithMTPProof{
-			Claim: user.AuthClaim,
-			IncProof: MTProof{
-				Proof:     authClaimIncMTP,
-				TreeState: GetTreeState(user),
-			},
-			NonRevProof: MTProof{
-				Proof:     authClaimNonRevMTP,
-				TreeState: GetTreeState(user),
-			},
-		},
+		GenesisID:          &user.ID,
+		ProfileNonce:       nonce,
+		AuthClaim:          user.AuthClaim,
+		AuthClaimIncMtp:    authClaimIncMTP,
+		AuthClaimNonRevMtp: authClaimNonRevMTP,
+		TreeState:          GetTreeState(user),
 		GISTProof: GISTProof{
 			Root:  gTree.Root(),
 			Proof: globalProof,
