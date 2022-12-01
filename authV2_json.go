@@ -69,22 +69,25 @@ func (s *jsonSignature) MarshalJSON() ([]byte, error) {
 }
 
 type jsonInputs struct {
-	GenesisID            *core.ID          `json:"genesisID"`
-	ProfileNonce         *jsonInt          `json:"profileNonce"`
-	AuthClaim            *core.Claim       `json:"authClaim"`
-	AuthClaimIncProof    *merkletree.Proof `json:"authClaimIncMtp"`
-	AuthClaimNonRevProof *merkletree.Proof `json:"authClaimNonRevMtp"`
-	TreeState            TreeState         `json:"treeState"` // Identity state
-	GISTProof            GISTProof         `json:"gistProof"`
-	Signature            *jsonSignature    `json:"signature"`
-	Challenge            *jsonInt          `json:"challenge"`
+	GenesisID          *core.ID          `json:"genesisID"`
+	ProfileNonce       *jsonInt          `json:"profileNonce"`
+	AuthClaim          *core.Claim       `json:"claim"`
+	AuthClaimIncMtp    *merkletree.Proof `json:"authClaimIncMtp"`
+	AuthClaimNonRevMtp *merkletree.Proof `json:"authClaimNonRevMtp"`
+	TreeState          TreeState         `json:"treeState"` // Identity state
+	GISTProof          GISTProof         `json:"gistProof"`
+	Signature          *jsonSignature    `json:"signature"`
+	Challenge          *jsonInt          `json:"challenge"`
 }
 
 func newJsonInputs(a AuthV2Inputs) jsonInputs {
 	var inputs jsonInputs
 	inputs.GenesisID = a.GenesisID
 	inputs.ProfileNonce = (*jsonInt)(a.ProfileNonce)
-
+	inputs.AuthClaim = a.AuthClaim
+	inputs.AuthClaimIncMtp = a.AuthClaimIncMtp
+	inputs.AuthClaimNonRevMtp = a.AuthClaimNonRevMtp
+	inputs.TreeState = a.TreeState
 	inputs.GISTProof = a.GISTProof
 	inputs.Signature = (*jsonSignature)(a.Signature)
 	inputs.Challenge = (*jsonInt)(a.Challenge)
@@ -96,6 +99,9 @@ func (inputs jsonInputs) Unwrap() AuthV2Inputs {
 	a.GenesisID = inputs.GenesisID
 	a.ProfileNonce = (*big.Int)(inputs.ProfileNonce)
 	a.AuthClaim = inputs.AuthClaim
+	a.AuthClaimIncMtp = inputs.AuthClaimIncMtp
+	a.AuthClaimNonRevMtp = inputs.AuthClaimNonRevMtp
+	a.TreeState = inputs.TreeState
 	a.GISTProof = inputs.GISTProof
 	a.Signature = (*babyjub.Signature)(inputs.Signature)
 	a.Challenge = (*big.Int)(inputs.Challenge)
