@@ -82,6 +82,7 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 	require.NoError(t, err)
 
 	in := AtomicQuerySigV2Inputs{
+		RequestID:                big.NewInt(23),
 		ID:                       &user.ID,
 		Nonce:                    nonce,
 		ClaimSubjectProfileNonce: nonceSubject,
