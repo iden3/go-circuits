@@ -21,6 +21,8 @@ type AtomicQueryMTPV2Inputs struct {
 
 	Claim ClaimWithMTPProof // claim issued for user
 
+	RequestID *big.Int
+
 	CurrentTimeStamp int64
 
 	// query
@@ -29,6 +31,8 @@ type AtomicQueryMTPV2Inputs struct {
 
 // stateTransitionInputsInternal type represents credentialAtomicQueryMTP.circom private inputs required by prover
 type atomicQueryMTPV2CircuitInputs struct {
+	RequestID string `json:"requestId"`
+
 	// user data
 	UserGenesisID            string `json:"userGenesisID"`            //
 	Nonce                    string `json:"nonce"`                    //
@@ -74,6 +78,11 @@ type atomicQueryMTPV2CircuitInputs struct {
 
 // Validate validates AtomicQueryMTPPubSignals
 func (a AtomicQueryMTPV2Inputs) Validate() error {
+
+	if a.RequestID == nil {
+		return errors.New(ErrorEmptyRequestID)
+	}
+
 	return nil
 }
 
@@ -104,6 +113,7 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 	}
 
 	s := atomicQueryMTPV2CircuitInputs{
+		RequestID:                       a.RequestID.String(),
 		UserGenesisID:                   a.ID.BigInt().String(),
 		Nonce:                           a.Nonce.String(),
 		ClaimSubjectProfileNonce:        a.ClaimSubjectProfileNonce.String(),
@@ -152,6 +162,7 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 // AtomicQueryMTPPubSignals public signals
 type AtomicQueryMTPV2PubSignals struct {
 	BaseConfig
+	RequestID              *big.Int         `json:"requestId"`
 	UserID                 *core.ID         `json:"userID"`
 	IssuerID               *core.ID         `json:"issuerID"`
 	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
@@ -172,6 +183,7 @@ func (ao *AtomicQueryMTPV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// expected order:
 	// merklized
 	// userID
+	// requestID
 	// issuerID
 	// issuerClaimIdenState
 	// issuerClaimNonRevState
@@ -186,7 +198,7 @@ func (ao *AtomicQueryMTPV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// 11 is a number of fields in AtomicQueryMTPV2PubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 11
+	const fieldLength = 12
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -209,6 +221,13 @@ func (ao *AtomicQueryMTPV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	//  - userID
 	if ao.UserID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
 		return err
+	}
+	fieldIdx++
+
+	// - requestID
+	var ok bool
+	if ao.RequestID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid requestID value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
@@ -238,7 +257,6 @@ func (ao *AtomicQueryMTPV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	fieldIdx++
 
 	//  - claimSchema
-	var ok bool
 	var schemaInt *big.Int
 	if schemaInt, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[fieldIdx])
