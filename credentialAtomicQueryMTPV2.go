@@ -195,7 +195,7 @@ func (ao *AtomicQueryMTPV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// operator
 	// value
 
-	// 11 is a number of fields in AtomicQueryMTPV2PubSignals before values, values is last element in the proof and
+	// 12 is a number of fields in AtomicQueryMTPV2PubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
 	const fieldLength = 12
