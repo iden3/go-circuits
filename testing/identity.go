@@ -214,6 +214,9 @@ func NewIdentity(t testing.TB, privKHex string) *IdentityTest {
 
 	// add auth claim to claimsMT
 	hi, hv, err := authClaim.HiHv()
+	if err != nil {
+		t.Fatalf("Error getting auth claim hashes: %v", err)
+	}
 
 	err = it.Clt.Add(context.Background(), hi, hv)
 	if err != nil {
