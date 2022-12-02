@@ -116,6 +116,9 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 
 	queryPathKey := big.NewInt(0)
 	if a.Query.ValueProof != nil {
+		if err := a.Query.validate(); err != nil {
+			return nil, err
+		}
 		if err := a.Query.ValueProof.validate(); err != nil {
 			return nil, err
 		}
