@@ -30,6 +30,23 @@ func AuthClaimFromPubKey(X, Y *big.Int) (*core.Claim, error) {
 		core.WithRevocationNonce(revNonce.Uint64()))
 }
 
+func AuthV2ClaimFromPubKey(X, Y *big.Int) (*core.Claim, error) {
+	var schemaHash core.SchemaHash
+	schemaEncodedBytes, _ := hex.DecodeString("013fd3f623559d850fb5b02ff012d0e2")
+	copy(schemaHash[:], schemaEncodedBytes)
+
+	// NOTE: We take nonce as hash of public key to make it random
+	// We don't use random number here because this test vectors will be used for tests
+	// and have randomization inside tests is usually a bad idea
+	revNonce, err := poseidon.Hash([]*big.Int{X})
+	if err != nil {
+		return nil, err
+	}
+	return core.NewClaim(schemaHash,
+		core.WithIndexDataInts(X, Y),
+		core.WithRevocationNonce(revNonce.Uint64()))
+}
+
 func Generate(ctx context.Context, privKHex string) (*core.ID,
 	*merkletree.MerkleTree, *merkletree.MerkleTree, *merkletree.MerkleTree,
 	error, *core.Claim, *babyjub.PrivateKey) {
@@ -189,7 +206,7 @@ func NewIdentity(privKHex string) (*IdentityTest, error) {
 	it.PK = key
 
 	// create auth claim
-	authClaim, err := AuthClaimFromPubKey(X, Y)
+	authClaim, err := AuthV2ClaimFromPubKey(X, Y)
 	if err != nil {
 		return nil, err
 	}
