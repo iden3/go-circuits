@@ -18,7 +18,7 @@ type AuthV2Inputs struct {
 	GenesisID    *core.ID `json:"genesisID"`
 	ProfileNonce *big.Int `json:"profileNonce"`
 
-	AuthClaim *core.Claim `json:"claim"`
+	AuthClaim *core.Claim `json:"authClaim"`
 
 	AuthClaimIncMtp    *merkletree.Proof `json:"authClaimIncMtp"`
 	AuthClaimNonRevMtp *merkletree.Proof `json:"authClaimNonRevMtp"`
