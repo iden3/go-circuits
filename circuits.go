@@ -87,11 +87,6 @@ func init() {
 		Input:  AtomicQuerySigV2Inputs{},
 		Output: &AtomicQuerySigV2PubSignals{},
 	})
-
-	RegisterCircuit(JsonLDAtomicQueryMTPCircuitID, Data{
-		Input:  JsonLDAtomicQueryMTPInputs{},
-		Output: &JsonLDAtomicQueryMTPPubSignals{},
-	})
 }
 
 // BaseConfig base circuit's config, provides default configuration for default circuits
