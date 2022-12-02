@@ -1,59 +1,31 @@
 package circuits
 
 import (
-	"context"
 	"encoding/json"
 	"math/big"
 	"testing"
 
 	it "github.com/iden3/go-circuits/testing"
-	"github.com/iden3/go-schema-processor/merklize"
 	"github.com/stretchr/testify/require"
 )
 
 func TestAttrQueryMTPV2_PrepareInputs(t *testing.T) {
 
-	user, err := it.NewIdentity(userPK)
-	require.NoError(t, err)
-	nonce := big.NewInt(0)
+	user := it.NewIdentity(t, userPK)
+	issuer := it.NewIdentity(t, issuerPK)
 
-	issuer, err := it.NewIdentity(issuerPK)
-	require.NoError(t, err)
+	nonce := big.NewInt(0)
 
 	subjectID := user.ID
 	nonceSubject := big.NewInt(0)
 
-	mz, claim, err := it.DefaultJSONUserClaim(subjectID)
-	require.NoError(t, err)
-
-	path, err := merklize.NewPath(
-		"https://www.w3.org/2018/credentials#credentialSubject",
-		"https://w3id.org/citizenship#residentSince")
-	require.NoError(t, err)
-
-	jsonP, value, err := mz.Proof(context.Background(), path)
-	require.NoError(t, err)
-
-	valueKey, err := value.MtEntry()
-	require.NoError(t, err)
-
-	values := it.PrepareStrArray([]string{valueKey.String()}, 64)
-	//string array to big.Int array
-	valuesBigInt := make([]*big.Int, len(values))
-	for i, v := range values {
-		in, b := new(big.Int).SetString(v, 10)
-		require.True(t, b)
-		valuesBigInt[i] = in
-
-	}
+	claim := it.DefaultUserClaim(t, subjectID)
 
 	issuer.AddClaim(t, claim)
 
-	issuerClaimMtp, _, err := issuer.ClaimMTPRaw(claim)
-	require.NoError(t, err)
+	issuerClaimMtp, _ := issuer.ClaimMTPRaw(t, claim)
 
-	issuerClaimNonRevMtpRaw, _, err := issuer.ClaimRevMTPRaw(claim)
-	require.NoError(t, err)
+	issuerClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, claim)
 
 	in := AtomicQueryMTPV2Inputs{
 		RequestID:                big.NewInt(23),
@@ -66,7 +38,7 @@ func TestAttrQueryMTPV2_PrepareInputs(t *testing.T) {
 			IncProof: MTProof{
 				Proof: issuerClaimMtp,
 				TreeState: TreeState{
-					State:          issuer.State(),
+					State:          issuer.State(t),
 					ClaimsRoot:     issuer.Clt.Root(),
 					RevocationRoot: issuer.Ret.Root(),
 					RootOfRoots:    issuer.Rot.Root(),
@@ -74,23 +46,19 @@ func TestAttrQueryMTPV2_PrepareInputs(t *testing.T) {
 			},
 			NonRevProof: MTProof{
 				TreeState: TreeState{
-					State:          issuer.State(),
+					State:          issuer.State(t),
 					ClaimsRoot:     issuer.Clt.Root(),
 					RevocationRoot: issuer.Ret.Root(),
 					RootOfRoots:    issuer.Rot.Root(),
 				},
-				Proof: issuerClaimNonRevMtpRaw,
+				Proof: issuerClaimNonRevMtp,
 			},
 		},
 		Query: Query{
-			ValueProof: &ValueProof{
-				Path:  path,
-				Value: valueKey,
-				MTP:   jsonP,
-			},
-			Operator:  EQ,
-			Values:    valuesBigInt,
-			SlotIndex: 2,
+			ValueProof: nil,
+			Operator:   EQ,
+			Values:     it.PrepareIntArray([]*big.Int{big.NewInt(10)}, 64),
+			SlotIndex:  2,
 		},
 		CurrentTimeStamp: timestamp,
 	}

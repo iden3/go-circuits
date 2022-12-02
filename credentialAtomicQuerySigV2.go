@@ -32,7 +32,7 @@ type AtomicQuerySigV2Inputs struct {
 
 // atomicQuerySigCircuitInputs type represents credentialAtomicQuerySig.circom private inputs required by prover
 type atomicQuerySigV2CircuitInputs struct {
-	RequestID string `json:"requestId"`
+	RequestID string `json:"requestID"`
 
 	// user data
 	UserGenesisID            string `json:"userGenesisID"`
@@ -116,14 +116,11 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 
 	queryPathKey := big.NewInt(0)
 	if a.Query.ValueProof != nil {
-		if err := a.Query.ValueProof.validate(); err != nil {
+		if err := a.Query.validate(); err != nil {
 			return nil, err
 		}
-
-		var qErr error
-		queryPathKey, qErr = a.Query.ValueProof.Path.MtEntry()
-		if qErr != nil {
-			return nil, errors.WithStack(qErr)
+		if err := a.Query.ValueProof.validate(); err != nil {
+			return nil, err
 		}
 	}
 
@@ -131,6 +128,7 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 
 	if valueProof == nil {
 		valueProof = &ValueProof{}
+		valueProof.Path = big.NewInt(0)
 		valueProof.Value = big.NewInt(0)
 		valueProof.MTP = &merkletree.Proof{}
 	}
@@ -204,7 +202,7 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 // AtomicQuerySigV2PubSignals public inputs
 type AtomicQuerySigV2PubSignals struct {
 	BaseConfig
-	RequestID              *big.Int         `json:"requestId"`
+	RequestID              *big.Int         `json:"requestID"`
 	UserID                 *core.ID         `json:"userID"`
 	IssuerID               *core.ID         `json:"issuerID"`
 	IssuerAuthState        *merkletree.Hash `json:"issuerAuthState"`

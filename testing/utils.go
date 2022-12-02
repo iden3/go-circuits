@@ -191,3 +191,11 @@ func CoreSchemaFromStr(t testing.TB, schemaIntStr string) core.SchemaHash {
 	}
 	return core.NewSchemaHashFromInt(schemaInt)
 }
+
+func PrepareIntArray(arr []*big.Int, length int) []*big.Int {
+	// Add the rest of empty levels to the array
+	for i := len(arr); i < length; i++ {
+		arr = append(arr, big.NewInt(0))
+	}
+	return arr
+}

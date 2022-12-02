@@ -31,7 +31,7 @@ type AtomicQueryMTPV2Inputs struct {
 
 // stateTransitionInputsInternal type represents credentialAtomicQueryMTP.circom private inputs required by prover
 type atomicQueryMTPV2CircuitInputs struct {
-	RequestID string `json:"requestId"`
+	RequestID string `json:"requestID"`
 
 	// user data
 	UserGenesisID            string `json:"userGenesisID"`            //
@@ -94,20 +94,18 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 
 	queryPathKey := big.NewInt(0)
 	if a.Query.ValueProof != nil {
-		if err := a.Query.ValueProof.validate(); err != nil {
+		if err := a.Query.validate(); err != nil {
 			return nil, err
 		}
-
-		var qErr error
-		queryPathKey, qErr = a.Query.ValueProof.Path.MtEntry()
-		if qErr != nil {
-			return nil, errors.WithStack(qErr)
+		if err := a.Query.ValueProof.validate(); err != nil {
+			return nil, err
 		}
 	}
 
 	valueProof := a.Query.ValueProof
 	if valueProof == nil {
 		valueProof = &ValueProof{}
+		valueProof.Path = big.NewInt(0)
 		valueProof.Value = big.NewInt(0)
 		valueProof.MTP = &merkletree.Proof{}
 	}
@@ -162,7 +160,7 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 // AtomicQueryMTPPubSignals public signals
 type AtomicQueryMTPV2PubSignals struct {
 	BaseConfig
-	RequestID              *big.Int         `json:"requestId"`
+	RequestID              *big.Int         `json:"requestID"`
 	UserID                 *core.ID         `json:"userID"`
 	IssuerID               *core.ID         `json:"issuerID"`
 	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`

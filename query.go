@@ -4,7 +4,6 @@ import (
 	"math/big"
 
 	"github.com/iden3/go-merkletree-sql/v2"
-	"github.com/iden3/go-schema-processor/merklize"
 	"github.com/pkg/errors"
 )
 
@@ -132,12 +131,15 @@ func (q Query) validate() error {
 
 // ValueProof represents a Merkle Proof for a value stored as MT
 type ValueProof struct {
-	Path  merklize.Path
+	Path  *big.Int
 	Value *big.Int
 	MTP   *merkletree.Proof
 }
 
 func (q ValueProof) validate() error {
+	if q.Path == nil {
+		return errors.New(ErrorEmptyJsonLDQueryPath)
+	}
 	if q.Value == nil {
 		return errors.New(ErrorEmptyJsonLDQueryValue)
 	}

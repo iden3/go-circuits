@@ -181,24 +181,24 @@ type IdentityTest struct {
 	PK        *babyjub.PrivateKey
 }
 
-func NewIdentity(privKHex string) (*IdentityTest, error) {
+func NewIdentity(t testing.TB, privKHex string) *IdentityTest {
 
 	it := IdentityTest{}
 	var err error
 
 	// init claims tree
 
-	it.Clt, err = merkletree.NewMerkleTree(context.Background(), memory.NewMemoryStorage(), 4)
+	it.Clt, err = merkletree.NewMerkleTree(context.Background(), memory.NewMemoryStorage(), 32)
 	if err != nil {
-		return nil, err
+		t.Fatalf("Error creating Claims merkle tree: %v", err)
 	}
-	it.Ret, err = merkletree.NewMerkleTree(context.Background(), memory.NewMemoryStorage(), 4)
+	it.Ret, err = merkletree.NewMerkleTree(context.Background(), memory.NewMemoryStorage(), 32)
 	if err != nil {
-		return nil, err
+		t.Fatalf("Error creating Revocation merkle tree: %v", err)
 	}
-	it.Rot, err = merkletree.NewMerkleTree(context.Background(), memory.NewMemoryStorage(), 4)
+	it.Rot, err = merkletree.NewMerkleTree(context.Background(), memory.NewMemoryStorage(), 32)
 	if err != nil {
-		return nil, err
+		t.Fatalf("Error creating Roots merkle tree: %v", err)
 	}
 
 	// extract pubKey
@@ -208,31 +208,31 @@ func NewIdentity(privKHex string) (*IdentityTest, error) {
 	// create auth claim
 	authClaim, err := AuthV2ClaimFromPubKey(X, Y)
 	if err != nil {
-		return nil, err
+		t.Fatalf("Error creating auth claim: %v", err)
 	}
 	it.AuthClaim = authClaim
 
 	// add auth claim to claimsMT
 	hi, hv, err := authClaim.HiHv()
 	if err != nil {
-		return nil, err
+		t.Fatalf("Error getting auth claim hashes: %v", err)
 	}
 
 	err = it.Clt.Add(context.Background(), hi, hv)
 	if err != nil {
-		return nil, err
+		t.Fatalf("Error adding Auth claim to Claims merkle tree: %v", err)
 	}
 
-	state := it.State()
+	state := it.State(t)
 
 	identifier, err := IDFromState(state.BigInt())
 	if err != nil {
-		return nil, err
+		t.Fatalf("Error generating id from state: %v", err)
 	}
 
 	it.ID = *identifier
 
-	return &it, nil
+	return &it
 }
 
 func (it *IdentityTest) SignBBJJ(challenge []byte) (*babyjub.Signature, error) {
@@ -240,22 +240,22 @@ func (it *IdentityTest) SignBBJJ(challenge []byte) (*babyjub.Signature, error) {
 	return SignBBJJ(it.PK, challenge)
 }
 
-func (it *IdentityTest) State() *merkletree.Hash {
+func (it *IdentityTest) State(t testing.TB) *merkletree.Hash {
 	state, err := core.IdenState(it.Clt.Root().BigInt(), it.Ret.Root().BigInt(), it.Rot.Root().BigInt())
 	if err != nil {
-		panic(err)
+		t.Fatalf("Error generating state: %v", err)
 	}
 	hash, err := merkletree.NewHashFromBigInt(state)
 	if err != nil {
-		panic(err)
+		t.Fatalf("Error generating state hash: %v", err)
 	}
 	return hash
 }
 
-func (it *IdentityTest) AuthMTPStrign() (proof []string, err error) {
-	p, _, err := it.ClaimMTPRaw(it.AuthClaim)
-	return PrepareSiblingsStr(p.AllSiblings(), 32), err
-}
+//func (it *IdentityTest) AuthMTPStrign(t testing.TB) (proof []string) {
+//	p, _ := it.ClaimMTPRaw(t, it.AuthClaim)
+//	return PrepareSiblingsStr(p.AllSiblings(), 32)
+//}
 
 func (it *IdentityTest) SignClaimBBJJ(claim *core.Claim) (*babyjub.Signature, error) {
 	hashIndex, hashValue, err := claim.HiHv()
@@ -273,37 +273,35 @@ func (it *IdentityTest) SignClaimBBJJ(claim *core.Claim) (*babyjub.Signature, er
 }
 
 // ClaimMTPRaw returns the merkle proof of a claim
-func (it *IdentityTest) ClaimMTPRaw(claim *core.Claim) (proof *merkletree.Proof, value *big.Int, err error) {
+func (it *IdentityTest) ClaimMTPRaw(t testing.TB, claim *core.Claim) (proof *merkletree.Proof, value *big.Int) {
 	hi, _, err := claim.HiHv()
 	if err != nil {
-		return nil, nil, err
+		t.Fatalf("Error generating claim hash: %v", err)
 	}
 
-	return it.Clt.GenerateProof(context.Background(), hi, nil)
+	proof, value, err = it.Clt.GenerateProof(context.Background(), hi, nil)
+	if err != nil {
+		t.Fatalf("Error generating claim proof: %v", err)
+	}
+	return proof, value
 }
 
 // ClaimMTP returns processed merkle proof
-func (it *IdentityTest) ClaimMTP(claim *core.Claim) (sibling []string, nodeAux *NodeAuxValue, err error) {
-	// add auth claim to claimsMT
-	hi, _, err := claim.HiHv()
-	if err != nil {
-		return nil, nil, err
-	}
+//func (it *IdentityTest) ClaimMTP(t testing.TB, claim *core.Claim) (sibling []string, nodeAux *NodeAuxValue) {
+//	proof, _ := it.ClaimMTPRaw(t, claim)
+//	sib, aux := PrepareProof(proof)
+//	return sib, &aux
+//}
 
-	proof, _, err := it.Clt.GenerateProof(context.Background(), hi, nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	sib, aux := PrepareProof(proof)
-	return sib, &aux, err
-}
-
-func (it *IdentityTest) ClaimRevMTPRaw(claim *core.Claim) (proof *merkletree.Proof, value *big.Int, err error) {
+func (it *IdentityTest) ClaimRevMTPRaw(t testing.TB, claim *core.Claim) (proof *merkletree.Proof, value *big.Int) {
 	// add auth claim to claimsMT
 	revNonce := claim.GetRevocationNonce()
 
-	return it.Ret.GenerateProof(context.Background(), new(big.Int).SetUint64(revNonce), nil)
+	proof, value, err := it.Ret.GenerateProof(context.Background(), new(big.Int).SetUint64(revNonce), nil)
+	if err != nil {
+		t.Fatalf("Error generating claim proof: %v", err)
+	}
+	return proof, value
 }
 
 func (it *IdentityTest) ClaimRevMTP(claim *core.Claim) (sibling []string, nodeAux *NodeAuxValue, err error) {
@@ -332,4 +330,18 @@ func (it *IdentityTest) AddClaim(t testing.TB, claim *core.Claim) {
 		t.Fatal(err)
 	}
 
+}
+
+func (it *IdentityTest) SignClaim(t testing.TB, claim *core.Claim) *babyjub.Signature {
+	hashIndex, hashValue, err := claim.HiHv()
+	if err != nil {
+		t.Fatalf("can't get hash index/value from claim %v", err)
+	}
+
+	commonHash, err := poseidon.Hash([]*big.Int{hashIndex, hashValue})
+	if err != nil {
+		t.Fatalf("can't hash index and value")
+	}
+
+	return it.PK.SignPoseidon(commonHash)
 }

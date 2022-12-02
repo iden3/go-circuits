@@ -19,27 +19,24 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 	challenge := big.NewInt(10)
 
 	// generate identity
-	user, err := it.NewIdentity(userPK)
-	require.NoError(t, err)
+	user := it.NewIdentity(t, userPK)
 	nonce := big.NewInt(0)
 
-	user2, err := it.NewIdentity(issuerPK)
-	require.NoError(t, err)
+	user2 := it.NewIdentity(t, issuerPK)
 
 	// generate global tree
 	gTree := it.GlobalTree(ctx)
 
-	err = gTree.Add(ctx, user2.ID.BigInt(), user2.State().BigInt())
+	err := gTree.Add(ctx, user2.ID.BigInt(), user2.State(t).BigInt())
 	require.NoError(t, err)
 
 	// prepare inputs
 	globalProof, _, err := gTree.GenerateProof(ctx, user.ID.BigInt(), nil)
 	require.NoError(t, err)
 
-	authClaimIncMTP, _, err := user.ClaimMTPRaw(user.AuthClaim)
-	require.NoError(t, err)
+	authClaimIncMTP, _ := user.ClaimMTPRaw(t, user.AuthClaim)
 
-	authClaimNonRevMTP, _, err := user.ClaimRevMTPRaw(user.AuthClaim)
+	authClaimNonRevMTP, _ := user.ClaimRevMTPRaw(t, user.AuthClaim)
 	require.NoError(t, err)
 
 	signature, err := user.SignBBJJ(challenge.Bytes())
@@ -51,7 +48,7 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 		AuthClaim:          user.AuthClaim,
 		AuthClaimIncMtp:    authClaimIncMTP,
 		AuthClaimNonRevMtp: authClaimNonRevMTP,
-		TreeState:          GetTreeState(user),
+		TreeState:          GetTreeState(t, user),
 		GISTProof: GISTProof{
 			Root:  gTree.Root(),
 			Proof: globalProof,
@@ -59,10 +56,6 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 		Signature: signature,
 		Challenge: challenge,
 	}
-
-	//inputsJsonBytes, err := json.MarshalIndent(inputs, "", "  ")
-	//require.NoError(t, err)
-	//t.Log(string(inputsJsonBytes))
 
 	circuitInputJSON, err := inputs.InputsMarshal()
 	assert.Nil(t, err)
@@ -170,9 +163,9 @@ func TestAuthV2Circuit_CircuitUnmarshal(t *testing.T) {
 	assert.Equal(t, &identifier, ao.UserID)
 }
 
-func GetTreeState(it *it.IdentityTest) TreeState {
+func GetTreeState(t *testing.T, it *it.IdentityTest) TreeState {
 	return TreeState{
-		State:          it.State(),
+		State:          it.State(t),
 		ClaimsRoot:     it.Clt.Root(),
 		RevocationRoot: it.Ret.Root(),
 		RootOfRoots:    it.Rot.Root(),
