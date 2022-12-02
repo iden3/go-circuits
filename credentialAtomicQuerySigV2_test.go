@@ -1,7 +1,6 @@
 package circuits
 
 import (
-	"context"
 	"encoding/json"
 	"flag"
 	"math/big"
@@ -10,7 +9,6 @@ import (
 
 	it "github.com/iden3/go-circuits/testing"
 	"github.com/iden3/go-merkletree-sql/v2"
-	"github.com/iden3/go-schema-processor/merklize"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,55 +29,24 @@ const (
 
 func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 
-	user, err := it.NewIdentity(userPK)
-	require.NoError(t, err)
-	nonce := big.NewInt(0)
+	user := it.NewIdentity(t, userPK)
 
-	issuer, err := it.NewIdentity(issuerPK)
-	require.NoError(t, err)
+	issuer := it.NewIdentity(t, issuerPK)
 
 	subjectID := user.ID
+	nonce := big.NewInt(0)
+
 	nonceSubject := big.NewInt(0)
 
-	mz, claim, err := it.DefaultJSONUserClaim(subjectID)
-	require.NoError(t, err)
-
-	path, err := merklize.NewPath(
-		"https://www.w3.org/2018/credentials#credentialSubject",
-		"https://w3id.org/citizenship#residentSince")
-	require.NoError(t, err)
-
-	jsonP, value, err := mz.Proof(context.Background(), path)
-	require.NoError(t, err)
-
-	valueKey, err := value.MtEntry()
-	require.NoError(t, err)
+	claim := it.DefaultUserClaim(t, subjectID)
 
 	// Sig claim
-	claimSig, err := issuer.SignClaimBBJJ(claim)
-	require.NoError(t, err)
+	claimSig := issuer.SignClaim(t, claim)
 
-	values := []string{valueKey.String(), "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0",
-		"0", "0",
-		"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0",
-		"0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0"}
-	//string array to big.Int array
-	valuesBigInt := make([]*big.Int, len(values))
-	for i, v := range values {
-		in, b := new(big.Int).SetString(v, 10)
-		require.True(t, b)
-		valuesBigInt[i] = in
+	issuerClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, claim)
 
-	}
-
-	issuerClaimNonRevMtpRaw, _, err := issuer.ClaimRevMTPRaw(claim)
-	require.NoError(t, err)
-
-	issuerAuthClaimMtpRaw, _, err := issuer.ClaimMTPRaw(issuer.AuthClaim)
-	require.NoError(t, err)
-
-	issuerAuthClaimNonRevMtpRaw, _, err := issuer.ClaimRevMTPRaw(issuer.AuthClaim)
-	require.NoError(t, err)
+	issuerAuthClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, issuer.AuthClaim)
+	issuerAuthClaimMtp, _ := issuer.ClaimMTPRaw(t, issuer.AuthClaim)
 
 	in := AtomicQuerySigV2Inputs{
 		RequestID:                big.NewInt(23),
@@ -91,45 +58,41 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 			Claim:    claim,
 			NonRevProof: MTProof{
 				TreeState: TreeState{
-					State:          issuer.State(),
+					State:          issuer.State(t),
 					ClaimsRoot:     issuer.Clt.Root(),
 					RevocationRoot: issuer.Ret.Root(),
 					RootOfRoots:    issuer.Rot.Root(),
 				},
-				Proof: issuerClaimNonRevMtpRaw,
+				Proof: issuerClaimNonRevMtp,
 			},
 			SignatureProof: BJJSignatureProof{
 				Signature:       claimSig,
 				IssuerAuthClaim: issuer.AuthClaim,
 				IssuerAuthIncProof: MTProof{
 					TreeState: TreeState{
-						State:          issuer.State(),
+						State:          issuer.State(t),
 						ClaimsRoot:     issuer.Clt.Root(),
 						RevocationRoot: issuer.Ret.Root(),
 						RootOfRoots:    issuer.Rot.Root(),
 					},
-					Proof: issuerAuthClaimMtpRaw,
+					Proof: issuerAuthClaimMtp,
 				},
 				IssuerAuthNonRevProof: MTProof{
 					TreeState: TreeState{
-						State:          issuer.State(),
+						State:          issuer.State(t),
 						ClaimsRoot:     issuer.Clt.Root(),
 						RevocationRoot: issuer.Ret.Root(),
 						RootOfRoots:    issuer.Rot.Root(),
 					},
-					Proof: issuerAuthClaimNonRevMtpRaw,
+					Proof: issuerAuthClaimNonRevMtp,
 				},
 			},
 		},
 		Query: Query{
-			ValueProof: &ValueProof{
-				Path:  path,
-				Value: valueKey,
-				MTP:   jsonP,
-			},
-			Operator:  EQ,
-			Values:    valuesBigInt,
-			SlotIndex: 2,
+			ValueProof: nil,
+			Operator:   EQ,
+			Values:     it.PrepareIntArray([]*big.Int{big.NewInt(10)}, 64),
+			SlotIndex:  2,
 		},
 		CurrentTimeStamp: timestamp,
 	}

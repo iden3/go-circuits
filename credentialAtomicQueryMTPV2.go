@@ -31,7 +31,7 @@ type AtomicQueryMTPV2Inputs struct {
 
 // stateTransitionInputsInternal type represents credentialAtomicQueryMTP.circom private inputs required by prover
 type atomicQueryMTPV2CircuitInputs struct {
-	RequestID string `json:"requestId"`
+	RequestID string `json:"requestID"`
 
 	// user data
 	UserGenesisID            string `json:"userGenesisID"`            //
@@ -162,7 +162,7 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 // AtomicQueryMTPPubSignals public signals
 type AtomicQueryMTPV2PubSignals struct {
 	BaseConfig
-	RequestID              *big.Int         `json:"requestId"`
+	RequestID              *big.Int         `json:"requestID"`
 	UserID                 *core.ID         `json:"userID"`
 	IssuerID               *core.ID         `json:"issuerID"`
 	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
