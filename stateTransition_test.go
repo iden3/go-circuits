@@ -82,18 +82,14 @@ func TestStateTransitionInputs_InputsMarshal(t *testing.T) {
 	signature := userPrivKey.SignPoseidon(hashOldAndNewStates)
 
 	sti := StateTransitionInputs{
-		ID:                id,
-		OldTreeState:      genesisTreeState,
-		NewState:          newState,
-		IsOldStateGenesis: true,
-		AuthClaim: ClaimWithMTPProof{
-			Claim:    authClaim,
-			IncProof: MTProof{Proof: authMTPProof},
-			NonRevProof: MTProof{
-				Proof: authNonRevMTPProof,
-			},
-		},
-		Signature: signature,
+		ID:                 id,
+		OldTreeState:       genesisTreeState,
+		NewState:           newState,
+		IsOldStateGenesis:  true,
+		AuthClaim:          authClaim,
+		AuthClaimIncMtp:    authMTPProof,
+		AuthClaimNonRevMtp: authNonRevMTPProof,
+		Signature:          signature,
 	}
 
 	inputBytes, err := sti.InputsMarshal()
