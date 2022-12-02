@@ -15,6 +15,8 @@ import (
 type AtomicQuerySigV2Inputs struct {
 	BaseConfig
 
+	RequestID *big.Int
+
 	// auth
 	ID                       *core.ID
 	Nonce                    *big.Int
@@ -30,6 +32,8 @@ type AtomicQuerySigV2Inputs struct {
 
 // atomicQuerySigCircuitInputs type represents credentialAtomicQuerySig.circom private inputs required by prover
 type atomicQuerySigV2CircuitInputs struct {
+	RequestID string `json:"requestId"`
+
 	// user data
 	UserGenesisID            string `json:"userGenesisID"`
 	Nonce                    string `json:"nonce"`
@@ -76,6 +80,10 @@ type atomicQuerySigV2CircuitInputs struct {
 }
 
 func (a AtomicQuerySigV2Inputs) Validate() error {
+
+	if a.RequestID == nil {
+		return errors.New(ErrorEmptyRequestID)
+	}
 
 	if a.Claim.NonRevProof.Proof == nil {
 		return errors.New(ErrorEmptyClaimNonRevProof)
@@ -128,6 +136,7 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 	}
 
 	s := atomicQuerySigV2CircuitInputs{
+		RequestID:                       a.RequestID.String(),
 		UserGenesisID:                   a.ID.BigInt().String(),
 		Nonce:                           a.Nonce.String(),
 		ClaimSubjectProfileNonce:        a.ClaimSubjectProfileNonce.String(),
@@ -195,6 +204,7 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 // AtomicQuerySigV2PubSignals public inputs
 type AtomicQuerySigV2PubSignals struct {
 	BaseConfig
+	RequestID              *big.Int         `json:"requestId"`
 	UserID                 *core.ID         `json:"userID"`
 	IssuerID               *core.ID         `json:"issuerID"`
 	IssuerAuthState        *merkletree.Hash `json:"issuerAuthState"`
@@ -215,6 +225,7 @@ func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// merklized
 	// userID
 	// issuerAuthState
+	// requestID
 	// issuerID
 	// issuerClaimNonRevState
 	// timestamp
@@ -225,10 +236,10 @@ func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// operator
 	// value
 
-	// 10 is a number of fields in AtomicQuerySigV2PubSignals before values, values is last element in the proof and
+	// 12 is a number of fields in AtomicQuerySigV2PubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 11
+	const fieldLength = 12
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -260,6 +271,13 @@ func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 	fieldIdx++
 
+	// - requestID
+	var ok bool
+	if ao.RequestID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid requestID value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
 	// - issuerID
 	if ao.IssuerID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
 		return err
@@ -280,7 +298,6 @@ func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	fieldIdx++
 
 	//  - claimSchema
-	var ok bool
 	var schemaInt *big.Int
 	if schemaInt, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[0])

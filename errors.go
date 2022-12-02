@@ -16,4 +16,5 @@ const (
 	ErrorEmptyID                         = "empty ID"
 	ErrorEmptyChallenge                  = "empty challenge"
 	ErrorEmptyGlobalProof                = "empty global identity mtp proof"
+	ErrorEmptyRequestID                  = "empty request ID"
 )
