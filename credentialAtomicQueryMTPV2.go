@@ -97,17 +97,12 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 		if err := a.Query.ValueProof.validate(); err != nil {
 			return nil, err
 		}
-
-		var qErr error
-		queryPathKey, qErr = a.Query.ValueProof.Path.MtEntry()
-		if qErr != nil {
-			return nil, errors.WithStack(qErr)
-		}
 	}
 
 	valueProof := a.Query.ValueProof
 	if valueProof == nil {
 		valueProof = &ValueProof{}
+		valueProof.Path = big.NewInt(0)
 		valueProof.Value = big.NewInt(0)
 		valueProof.MTP = &merkletree.Proof{}
 	}

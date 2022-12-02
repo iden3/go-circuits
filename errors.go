@@ -11,6 +11,7 @@ const (
 	ErrorEmptyIssuerAuthClaimNonRevProof = "empty issuer auth claim non-revocation mtp proof"
 	ErrorEmptyJsonLDQueryProof           = "empty JSON-LD query mtp proof"
 	ErrorEmptyJsonLDQueryValue           = "empty JSON-LD query value"
+	ErrorEmptyJsonLDQueryPath            = "empty JSON-LD query path"
 	ErrorEmptyQueryValue                 = "empty query value"
 	ErrorEmptyJsonLDQueryValues          = "empty JSON-LD query values"
 	ErrorEmptyID                         = "empty ID"
