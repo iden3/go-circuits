@@ -92,7 +92,6 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 		return nil, err
 	}
 
-	queryPathKey := big.NewInt(0)
 	if a.Query.ValueProof != nil {
 		if err := a.Query.validate(); err != nil {
 			return nil, err
@@ -146,7 +145,7 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 	s.ClaimPathMtpAuxHi = nodAuxJSONLD.key
 	s.ClaimPathMtpAuxHv = nodAuxJSONLD.value
 
-	s.ClaimPathKey = queryPathKey.String()
+	s.ClaimPathKey = valueProof.Path.String()
 
 	values, err := PrepareCircuitArrayValues(a.Values, a.GetValueArrSize())
 	if err != nil {
