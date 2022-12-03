@@ -17,11 +17,11 @@ type AtomicQueryMTPInputs struct {
 	BaseConfig
 	// auth
 	ID        *core.ID
-	AuthClaim Claim
+	AuthClaim ClaimWithMTPProof
 	Challenge *big.Int
 	Signature *babyjub.Signature
 
-	Claim // claim issued for user
+	Claim ClaimWithMTPProof // claim issued for user
 
 	CurrentTimeStamp int64
 
@@ -73,19 +73,19 @@ type atomicQueryMTPCircuitInputs struct {
 // InputsMarshal returns Circom private inputs for credentialAtomicQueryMTP.circom
 func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 
-	if a.AuthClaim.Proof == nil {
+	if a.AuthClaim.IncProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}
 
-	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
+	if a.AuthClaim.NonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
-	if a.Claim.Proof == nil {
+	if a.Claim.IncProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyClaimProof)
 	}
 
-	if a.Claim.NonRevProof == nil || a.Claim.NonRevProof.Proof == nil {
+	if a.Claim.NonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyClaimNonRevProof)
 	}
 
@@ -95,7 +95,7 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 
 	s := atomicQueryMTPCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
-		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.IncProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
@@ -104,11 +104,11 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 		ChallengeSignatureR8Y:           a.Signature.R8.Y.String(),
 		ChallengeSignatureS:             a.Signature.S.String(),
 		IssuerClaim:                     a.Claim.Claim,
-		IssuerClaimClaimsTreeRoot:       a.Claim.TreeState.ClaimsRoot,
-		IssuerClaimIdenState:            a.Claim.TreeState.State,
-		IssuerClaimMtp:                  PrepareSiblingsStr(a.Claim.Proof.AllSiblings(), a.GetMTLevel()),
-		IssuerClaimRevTreeRoot:          a.Claim.TreeState.RevocationRoot,
-		IssuerClaimRootsTreeRoot:        a.Claim.TreeState.RootOfRoots,
+		IssuerClaimClaimsTreeRoot:       a.Claim.IncProof.TreeState.ClaimsRoot,
+		IssuerClaimIdenState:            a.Claim.IncProof.TreeState.State,
+		IssuerClaimMtp:                  PrepareSiblingsStr(a.Claim.IncProof.Proof.AllSiblings(), a.GetMTLevel()),
+		IssuerClaimRevTreeRoot:          a.Claim.IncProof.TreeState.RevocationRoot,
+		IssuerClaimRootsTreeRoot:        a.Claim.IncProof.TreeState.RootOfRoots,
 		IssuerClaimNonRevClaimsTreeRoot: a.Claim.NonRevProof.TreeState.ClaimsRoot,
 		IssuerClaimNonRevRevTreeRoot:    a.Claim.NonRevProof.TreeState.RevocationRoot,
 		IssuerClaimNonRevRootsTreeRoot:  a.Claim.NonRevProof.TreeState.RootOfRoots,
@@ -116,12 +116,12 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimNonRevMtp: PrepareSiblingsStr(a.Claim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		ClaimSchema:        a.Claim.Claim.GetSchemaHash().BigInt().String(),
-		UserClaimsTreeRoot: a.AuthClaim.TreeState.ClaimsRoot,
-		UserState:          a.AuthClaim.TreeState.State,
-		UserRevTreeRoot:    a.AuthClaim.TreeState.RevocationRoot,
-		UserRootsTreeRoot:  a.AuthClaim.TreeState.RootOfRoots,
+		UserClaimsTreeRoot: a.AuthClaim.IncProof.TreeState.ClaimsRoot,
+		UserState:          a.AuthClaim.IncProof.TreeState.State,
+		UserRevTreeRoot:    a.AuthClaim.IncProof.TreeState.RevocationRoot,
+		UserRootsTreeRoot:  a.AuthClaim.IncProof.TreeState.RootOfRoots,
 		UserID:             a.ID.BigInt().String(),
-		IssuerID:           a.IssuerID.BigInt().String(),
+		IssuerID:           a.Claim.IssuerID.BigInt().String(),
 		Operator:           a.Operator,
 		SlotIndex:          a.SlotIndex,
 		Timestamp:          a.CurrentTimeStamp,
@@ -133,12 +133,12 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 	}
 	s.Value = bigIntArrayToStringArray(values)
 
-	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.NonRevProof.Proof.NodeAux)
+	nodeAuxAuth := GetNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
 	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
-	nodeAux := getNodeAuxValue(a.Claim.NonRevProof.Proof.NodeAux)
+	nodeAux := GetNodeAuxValue(a.Claim.NonRevProof.Proof)
 	s.IssuerClaimNonRevMtpAuxHi = nodeAux.key
 	s.IssuerClaimNonRevMtpAuxHv = nodeAux.value
 	s.IssuerClaimNonRevMtpNoAux = nodeAux.noAux

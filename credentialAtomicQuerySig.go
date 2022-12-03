@@ -18,11 +18,11 @@ type AtomicQuerySigInputs struct {
 
 	// auth
 	ID        *core.ID
-	AuthClaim Claim
+	AuthClaim ClaimWithMTPProof
 	Challenge *big.Int
 	Signature *babyjub.Signature
 
-	Claim // issuerClaim
+	Claim ClaimWithSigProof // issuerClaim
 
 	Query
 
@@ -83,23 +83,23 @@ type atomicQuerySigCircuitInputs struct {
 // InputsMarshal returns Circom private inputs for credentialAtomicQuerySig.circom
 func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 
-	if a.AuthClaim.Proof == nil {
+	if a.AuthClaim.IncProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}
 
-	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
+	if a.AuthClaim.NonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
-	if a.Claim.NonRevProof == nil || a.Claim.NonRevProof.Proof == nil {
+	if a.Claim.NonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyClaimNonRevProof)
 	}
 
-	if a.SignatureProof.IssuerAuthClaimMTP == nil {
+	if a.Claim.SignatureProof.IssuerAuthIncProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyIssuerAuthClaimProof)
 	}
 
-	if a.SignatureProof.IssuerAuthNonRevProof.Proof == nil {
+	if a.Claim.SignatureProof.IssuerAuthNonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyIssuerAuthClaimNonRevProof)
 	}
 
@@ -107,13 +107,13 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 		return nil, errors.New(ErrorEmptyChallengeSignature)
 	}
 
-	if a.SignatureProof.Signature == nil {
+	if a.Claim.SignatureProof.Signature == nil {
 		return nil, errors.New(ErrorEmptyClaimSignature)
 	}
 
 	s := atomicQuerySigCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
-		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.IncProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
@@ -129,30 +129,34 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimNonRevMtp: PrepareSiblingsStr(a.Claim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		ClaimSchema:             a.Claim.Claim.GetSchemaHash().BigInt().String(),
-		UserClaimsTreeRoot:      a.AuthClaim.TreeState.ClaimsRoot,
-		UserState:               a.AuthClaim.TreeState.State,
-		UserRevTreeRoot:         a.AuthClaim.TreeState.RevocationRoot,
-		UserRootsTreeRoot:       a.AuthClaim.TreeState.RootOfRoots,
+		UserClaimsTreeRoot:      a.AuthClaim.IncProof.TreeState.ClaimsRoot,
+		UserState:               a.AuthClaim.IncProof.TreeState.State,
+		UserRevTreeRoot:         a.AuthClaim.IncProof.TreeState.RevocationRoot,
+		UserRootsTreeRoot:       a.AuthClaim.IncProof.TreeState.RootOfRoots,
 		UserID:                  a.ID.BigInt().String(),
-		IssuerID:                a.IssuerID.BigInt().String(),
+		IssuerID:                a.Claim.IssuerID.BigInt().String(),
 		Operator:                a.Operator,
 		SlotIndex:               a.SlotIndex,
 		Timestamp:               a.CurrentTimeStamp,
-		IssuerClaimSignatureR8X: a.SignatureProof.Signature.R8.X.String(),
-		IssuerClaimSignatureR8Y: a.SignatureProof.Signature.R8.Y.String(),
-		IssuerClaimSignatureS:   a.SignatureProof.Signature.S.String(),
+		IssuerClaimSignatureR8X: a.Claim.SignatureProof.Signature.R8.X.String(),
+		IssuerClaimSignatureR8Y: a.Claim.SignatureProof.Signature.R8.Y.String(),
+		IssuerClaimSignatureS:   a.Claim.SignatureProof.Signature.S.String(),
 
 		IssuerAuthClaimMtp: bigIntArrayToStringArray(
-			PrepareSiblings(a.SignatureProof.IssuerAuthClaimMTP.AllSiblings(), a.GetMTLevel())),
+			PrepareSiblings(
+				a.Claim.SignatureProof.IssuerAuthIncProof.Proof.AllSiblings(),
+				a.GetMTLevel())),
 
-		IssuerAuthClaimsTreeRoot: a.SignatureProof.IssuerTreeState.ClaimsRoot,
-		IssuerAuthRevTreeRoot:    a.SignatureProof.IssuerTreeState.RevocationRoot,
-		IssuerAuthRootsTreeRoot:  a.SignatureProof.IssuerTreeState.RootOfRoots,
+		IssuerAuthClaimsTreeRoot: a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.ClaimsRoot,
+		IssuerAuthRevTreeRoot:    a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.RevocationRoot,
+		IssuerAuthRootsTreeRoot:  a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.RootOfRoots,
 
-		IssuerAuthClaim: a.SignatureProof.IssuerAuthClaim,
+		IssuerAuthClaim: a.Claim.SignatureProof.IssuerAuthClaim,
 
 		IssuerAuthClaimNonRevMtp: bigIntArrayToStringArray(
-			PrepareSiblings(a.SignatureProof.IssuerAuthNonRevProof.Proof.AllSiblings(), a.GetMTLevel())),
+			PrepareSiblings(
+				a.Claim.SignatureProof.IssuerAuthNonRevProof.Proof.AllSiblings(),
+				a.GetMTLevel())),
 	}
 
 	values, err := PrepareCircuitArrayValues(a.Values, a.GetValueArrSize())
@@ -161,17 +165,18 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 	}
 	s.Value = bigIntArrayToStringArray(values)
 
-	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.NonRevProof.Proof.NodeAux)
+	nodeAuxAuth := GetNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
 	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
-	nodeAux := getNodeAuxValue(a.Claim.NonRevProof.Proof.NodeAux)
+	nodeAux := GetNodeAuxValue(a.Claim.NonRevProof.Proof)
 	s.IssuerClaimNonRevMtpAuxHi = nodeAux.key
 	s.IssuerClaimNonRevMtpAuxHv = nodeAux.value
 	s.IssuerClaimNonRevMtpNoAux = nodeAux.noAux
 
-	issuerAuthNodeAux := getNodeAuxValue(a.SignatureProof.IssuerAuthNonRevProof.Proof.NodeAux)
+	issuerAuthNodeAux := GetNodeAuxValue(
+		a.Claim.SignatureProof.IssuerAuthNonRevProof.Proof)
 	s.IssuerAuthClaimNonRevMtpAuxHi = issuerAuthNodeAux.key
 	s.IssuerAuthClaimNonRevMtpAuxHv = issuerAuthNodeAux.value
 	s.IssuerAuthClaimNonRevMtpNoAux = issuerAuthNodeAux.noAux
@@ -179,7 +184,7 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// AtomicQuerySigPubSignals public inputs
+// AtomicQuerySigV2PubSignals public inputs
 type AtomicQuerySigPubSignals struct {
 	BaseConfig
 	UserID                 *core.ID         `json:"userID"`
@@ -197,7 +202,7 @@ type AtomicQuerySigPubSignals struct {
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
 func (ao *AtomicQuerySigPubSignals) PubSignalsUnmarshal(data []byte) error {
-	// 10 is a number of fields in AtomicQuerySigPubSignals before values, values is last element in the proof and
+	// 10 is a number of fields in AtomicQuerySigV2PubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
 	const fieldLength = 10

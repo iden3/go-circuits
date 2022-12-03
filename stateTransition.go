@@ -20,7 +20,9 @@ type StateTransitionInputs struct {
 	NewState          *merkletree.Hash
 	IsOldStateGenesis bool
 
-	AuthClaim Claim
+	AuthClaim          *core.Claim       `json:"claim"`
+	AuthClaimIncMtp    *merkletree.Proof `json:"authClaimIncMtp"`
+	AuthClaimNonRevMtp *merkletree.Proof `json:"authClaimNonRevMtp"`
 
 	Signature *babyjub.Signature
 }
@@ -48,18 +50,18 @@ type stateTransitionInputsInternal struct {
 // CircuitInputMarshal returns Circom private inputs for stateTransition.circom
 func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 
-	if c.AuthClaim.Proof == nil {
+	if c.AuthClaimIncMtp == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}
 
-	if c.AuthClaim.NonRevProof == nil || c.AuthClaim.NonRevProof.Proof == nil {
+	if c.AuthClaimNonRevMtp == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
 	s := stateTransitionInputsInternal{
-		AuthClaim:          *c.AuthClaim.Claim,
-		AuthClaimMtp:       PrepareSiblingsStr(c.AuthClaim.Proof.AllSiblings(), c.GetMTLevel()),
-		AuthClaimNonRevMtp: PrepareSiblingsStr(c.AuthClaim.NonRevProof.Proof.AllSiblings(), c.GetMTLevel()),
+		AuthClaim:          *c.AuthClaim,
+		AuthClaimMtp:       PrepareSiblingsStr(c.AuthClaimIncMtp.AllSiblings(), c.GetMTLevel()),
+		AuthClaimNonRevMtp: PrepareSiblingsStr(c.AuthClaimNonRevMtp.AllSiblings(), c.GetMTLevel()),
 		UserID:             c.ID.BigInt().String(),
 		NewIdState:         c.NewState,
 		ClaimsTreeRoot:     c.OldTreeState.ClaimsRoot,
@@ -77,7 +79,7 @@ func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 		s.IsOldStateGenesis = "0"
 	}
 
-	nodeAuxAuth := getNodeAuxValue(c.AuthClaim.NonRevProof.Proof.NodeAux)
+	nodeAuxAuth := GetNodeAuxValue(c.AuthClaimNonRevMtp)
 	s.AuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.AuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.AuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux

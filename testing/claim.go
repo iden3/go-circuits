@@ -1,0 +1,34 @@
+package testing
+
+import (
+	"encoding/hex"
+	"math/big"
+	"testing"
+	"time"
+
+	core "github.com/iden3/go-iden3-core"
+)
+
+func DefaultUserClaim(t testing.TB, subject core.ID) *core.Claim {
+	dataSlotA, _ := core.NewElemBytesFromInt(big.NewInt(10))
+	nonce := 1
+	var schemaHash core.SchemaHash
+	schemaBytes, err := hex.DecodeString("ce6bb12c96bfd1544c02c289c6b4b987")
+	if err != nil {
+		t.Fatal(err)
+	}
+	copy(schemaHash[:], schemaBytes)
+
+	claim, err := core.NewClaim(
+		schemaHash,
+		core.WithIndexID(subject),
+		core.WithIndexData(dataSlotA, core.ElemBytes{}),
+		core.WithExpirationDate(time.Unix(1669884010, 0)), //Thu Dec 01 2022 08:40:10 GMT+0000
+		core.WithRevocationNonce(uint64(nonce)))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return claim
+
+}

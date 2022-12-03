@@ -13,24 +13,29 @@ type CircuitID string
 const (
 	// AuthCircuitID is a type that must be used for auth.circom
 	AuthCircuitID CircuitID = "auth"
+	// AuthCircuitID is a type that must be used for authV2.circom
+	AuthV2CircuitID CircuitID = "authV2"
 	// StateTransitionCircuitID is a type that must be used for stateTransition.circom
 	StateTransitionCircuitID CircuitID = "stateTransition"
 	// AtomicQueryMTPCircuitID is a type for credentialAtomicQueryMTP.circom
 	AtomicQueryMTPCircuitID CircuitID = "credentialAtomicQueryMTP"
+	// AtomicQueryMTPV2CircuitID is a type for credentialAtomicQueryMTPV2.circom
+	AtomicQueryMTPV2CircuitID CircuitID = "credentialAtomicQueryMTPV2"
 	// AtomicQuerySigCircuitID is a type for credentialAttrQuerySig.circom
 	AtomicQuerySigCircuitID CircuitID = "credentialAtomicQuerySig"
-	// AtomicQueryMTPWithRelayCircuitID is a type for credentialAtomicQueryMTPWithRelay.circom
-	AtomicQueryMTPWithRelayCircuitID CircuitID = "credentialAtomicQueryMTPWithRelay"
-	// AtomicQuerySigWithRelayCircuitID is a type for credentialAttrQuerySigWithRelay.circom
-	AtomicQuerySigWithRelayCircuitID CircuitID = "credentialAtomicQuerySigWithRelay"
+	// AtomicQuerySigV2CircuitID is a type for credentialAttrQuerySigV2.circom
+	AtomicQuerySigV2CircuitID CircuitID = "credentialAtomicQuerySigV2"
+	// JsonLDAtomicQueryMTPCircuitID is a type for credentialJsonLDAtomicQueryMTP.circom
+	JsonLDAtomicQueryMTPCircuitID CircuitID = "credentialJsonLDAtomicQueryMTP"
 )
 
 // ErrorCircuitIDNotFound returns if CircuitID is not registered
 var ErrorCircuitIDNotFound = errors.New("circuit id not supported")
 
 const (
-	defaultMTLevels       = 32 // max MT levels, default value for identity circuits
-	defaultValueArraySize = 64 // max value array size, default value for identity circuits
+	defaultMTLevels        = 32 // max MT levels, default value for identity circuits
+	defaultValueArraySize  = 64 // max value array size, default value for identity circuits
+	defaultMTLevelsOnChain = 32 // max MT levels on chain, default value for identity circuits
 )
 
 var circuitsRegistry = map[CircuitID]Data{}
@@ -53,6 +58,11 @@ func init() {
 		Output: &AuthPubSignals{},
 	})
 
+	RegisterCircuit(AuthV2CircuitID, Data{
+		Input:  AuthV2Inputs{},
+		Output: &AuthV2PubSignals{},
+	})
+
 	RegisterCircuit(StateTransitionCircuitID, Data{
 		Input:  StateTransitionInputs{},
 		Output: &StateTransitionPubSignals{},
@@ -63,13 +73,19 @@ func init() {
 		Output: &AtomicQueryMTPPubSignals{},
 	})
 
-	RegisterCircuit(AtomicQueryMTPWithRelayCircuitID, Data{
-		Input:  AtomicQueryMTPWithRelayInputs{},
-		Output: &AtomicQueryMTPWithRelayPubSignals{},
+	RegisterCircuit(AtomicQueryMTPV2CircuitID, Data{
+		Input:  AtomicQueryMTPV2Inputs{},
+		Output: &AtomicQueryMTPV2PubSignals{},
 	})
+
 	RegisterCircuit(AtomicQuerySigCircuitID, Data{
 		Input:  AtomicQuerySigInputs{},
 		Output: &AtomicQuerySigPubSignals{},
+	})
+
+	RegisterCircuit(AtomicQuerySigV2CircuitID, Data{
+		Input:  AtomicQuerySigV2Inputs{},
+		Output: &AtomicQuerySigV2PubSignals{},
 	})
 }
 
@@ -77,6 +93,7 @@ func init() {
 type BaseConfig struct {
 	MTLevel        int // Max levels of MT
 	ValueArraySize int // Size if value array in identity circuits
+	MTLevelOnChain int // Max levels of MT on chain
 }
 
 // GetMTLevel max circuit MT levels
@@ -93,6 +110,14 @@ func (c BaseConfig) GetValueArrSize() int {
 		return defaultValueArraySize
 	}
 	return c.ValueArraySize
+}
+
+// GetMTLevel max circuit MT levels on chain
+func (c BaseConfig) GetMTLevelOnChain() int {
+	if c.MTLevelOnChain == 0 {
+		return defaultMTLevelsOnChain
+	}
+	return c.MTLevelOnChain
 }
 
 // InputsMarshaller interface implemented by types that can marshal circuit `input` structures
@@ -117,7 +142,7 @@ type PubSignals interface {
 }
 
 // KeyLoader interface, if key should be fetched from file system, CDN, IPFS etc,
-//this interface may be implemented for key loading from a specific place
+// this interface may be implemented for key loading from a specific place
 type KeyLoader interface {
 	Load() ([]byte, error)
 }

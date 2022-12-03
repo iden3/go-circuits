@@ -33,6 +33,16 @@ func PrepareSiblingsStr(siblings []*merkletree.Hash, levels int) []string {
 	return HashToStr(siblings)
 }
 
+// CircomSiblingsFromSiblings returns the full siblings compatible with circom
+func CircomSiblings(proof *merkletree.Proof, levels int) []*merkletree.Hash {
+	siblings := proof.AllSiblings()
+	// Add the rest of empty levels to the siblings
+	for i := len(siblings); i < levels; i++ {
+		siblings = append(siblings, &merkletree.HashZero)
+	}
+	return siblings
+}
+
 func HashToStr(siblings []*merkletree.Hash) []string {
 	siblingsStr := make([]string, len(siblings))
 	for i, sibling := range siblings {
@@ -66,27 +76,37 @@ func bigIntArrayToStringArray(array []*big.Int) []string {
 	return res
 }
 
-type nodeAuxValue struct {
+type NodeAuxValue struct {
 	key   *merkletree.Hash
 	value *merkletree.Hash
 	noAux string
 }
 
-func getNodeAuxValue(a *merkletree.NodeAux) nodeAuxValue {
+func GetNodeAuxValue(p *merkletree.Proof) NodeAuxValue {
 
-	aux := nodeAuxValue{
+	// proof of inclusion
+	if p.Existence {
+		return NodeAuxValue{
+			key:   &merkletree.HashZero,
+			value: &merkletree.HashZero,
+			noAux: "0",
+		}
+	}
+
+	// proof of non-inclusion (NodeAux exists)
+	if p.NodeAux != nil && p.NodeAux.Value != nil && p.NodeAux.Key != nil {
+		return NodeAuxValue{
+			key:   p.NodeAux.Key,
+			value: p.NodeAux.Value,
+			noAux: "0",
+		}
+	}
+	// proof of non-inclusion (NodeAux does not exist)
+	return NodeAuxValue{
 		key:   &merkletree.HashZero,
 		value: &merkletree.HashZero,
 		noAux: "1",
 	}
-
-	if a != nil && a.Value != nil && a.Key != nil {
-		aux.key = a.Key
-		aux.value = a.Value
-		aux.noAux = "0"
-	}
-
-	return aux
 }
 
 func idFromIntStr(s string) (*core.ID, error) {
@@ -118,4 +138,11 @@ func toMap(in interface{}) map[string]interface{} {
 		}
 	}
 	return out
+}
+
+func existenceToInt(b bool) int {
+	if b {
+		return 0
+	}
+	return 1
 }

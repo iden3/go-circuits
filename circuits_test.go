@@ -12,7 +12,7 @@ import (
 
 func TestUnmarshalCircuitOutput(t *testing.T) {
 
-	id, err := core.IDFromString("11AVZrKNJVqDJoyKrdyaAgEynyBEjksV5z2NjZoPxf")
+	id, err := core.IDFromString("1124NoAu14diR5EM1kgUha2uHFkvUrPrTXMtf4tncZ")
 	assert.Nil(t, err)
 
 	challenge := big.NewInt(11)

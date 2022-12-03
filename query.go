@@ -3,6 +3,7 @@ package circuits
 import (
 	"math/big"
 
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 )
 
@@ -15,13 +16,6 @@ const (
 	IN
 	NIN
 )
-
-// Query represents basic request to claim slot verification
-type Query struct {
-	SlotIndex int
-	Values    []*big.Int
-	Operator  int
-}
 
 // QueryOperators represents operators for atomic circuits
 var QueryOperators = map[string]int{
@@ -116,4 +110,41 @@ func FactoryComparer(x *big.Int, y []*big.Int, t int) (Comparer, error) {
 		return nil, errors.New("unknown compare type")
 	}
 	return cmp, nil
+}
+
+// Query represents basic request to claim field with MTP and without
+type Query struct {
+	Operator   int
+	Values     []*big.Int
+	SlotIndex  int
+	ValueProof *ValueProof
+}
+
+func (q Query) validate() error {
+	for i := range q.Values {
+		if q.Values[i] == nil {
+			return errors.New(ErrorEmptyQueryValue)
+		}
+	}
+	return nil
+}
+
+// ValueProof represents a Merkle Proof for a value stored as MT
+type ValueProof struct {
+	Path  *big.Int
+	Value *big.Int
+	MTP   *merkletree.Proof
+}
+
+func (q ValueProof) validate() error {
+	if q.Path == nil {
+		return errors.New(ErrorEmptyJsonLDQueryPath)
+	}
+	if q.Value == nil {
+		return errors.New(ErrorEmptyJsonLDQueryValue)
+	}
+	if q.MTP == nil {
+		return errors.New(ErrorEmptyJsonLDQueryProof)
+	}
+	return nil
 }

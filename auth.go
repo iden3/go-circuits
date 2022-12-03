@@ -17,7 +17,7 @@ type AuthInputs struct {
 
 	ID *core.ID
 
-	AuthClaim Claim
+	AuthClaim ClaimWithMTPProof
 
 	Signature *babyjub.Signature
 	Challenge *big.Int
@@ -45,11 +45,11 @@ type authCircuitInputs struct {
 // InputsMarshal returns Circom private inputs for auth.circom
 func (a AuthInputs) InputsMarshal() ([]byte, error) {
 
-	if a.AuthClaim.Proof == nil {
+	if a.AuthClaim.IncProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimProof)
 	}
 
-	if a.AuthClaim.NonRevProof == nil || a.AuthClaim.NonRevProof.Proof == nil {
+	if a.AuthClaim.NonRevProof.Proof == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
@@ -59,7 +59,7 @@ func (a AuthInputs) InputsMarshal() ([]byte, error) {
 
 	s := authCircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
-		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.Proof.AllSiblings(),
+		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.IncProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
 		UserAuthClaimNonRevMtp: PrepareSiblingsStr(a.AuthClaim.NonRevProof.Proof.AllSiblings(),
 			a.GetMTLevel()),
@@ -67,14 +67,14 @@ func (a AuthInputs) InputsMarshal() ([]byte, error) {
 		ChallengeSignatureR8X: a.Signature.R8.X.String(),
 		ChallengeSignatureR8Y: a.Signature.R8.Y.String(),
 		ChallengeSignatureS:   a.Signature.S.String(),
-		UserClaimsTreeRoot:    a.AuthClaim.TreeState.ClaimsRoot,
+		UserClaimsTreeRoot:    a.AuthClaim.IncProof.TreeState.ClaimsRoot,
 		UserID:                a.ID.BigInt().String(),
-		UserRevTreeRoot:       a.AuthClaim.TreeState.RevocationRoot,
-		UserRootsTreeRoot:     a.AuthClaim.TreeState.RootOfRoots,
-		UserState:             a.AuthClaim.TreeState.State,
+		UserRevTreeRoot:       a.AuthClaim.IncProof.TreeState.RevocationRoot,
+		UserRootsTreeRoot:     a.AuthClaim.IncProof.TreeState.RootOfRoots,
+		UserState:             a.AuthClaim.IncProof.TreeState.State,
 	}
 
-	nodeAuxAuth := getNodeAuxValue(a.AuthClaim.NonRevProof.Proof.NodeAux)
+	nodeAuxAuth := GetNodeAuxValue(a.AuthClaim.NonRevProof.Proof)
 	s.UserAuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	s.UserAuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.UserAuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
