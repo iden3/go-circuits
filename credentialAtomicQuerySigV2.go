@@ -19,7 +19,7 @@ type AtomicQuerySigV2Inputs struct {
 
 	// auth
 	ID                       *core.ID
-	Nonce                    *big.Int
+	ProfileNonce             *big.Int
 	ClaimSubjectProfileNonce *big.Int
 
 	Claim ClaimWithSigProof // issuerClaim
@@ -36,7 +36,7 @@ type atomicQuerySigV2CircuitInputs struct {
 
 	// user data
 	UserGenesisID            string `json:"userGenesisID"`
-	Nonce                    string `json:"nonce"`
+	ProfileNonce             string `json:"profileNonce"`
 	ClaimSubjectProfileNonce string `json:"claimSubjectProfileNonce"`
 
 	IssuerID string `json:"issuerID"`
@@ -135,7 +135,7 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 	s := atomicQuerySigV2CircuitInputs{
 		RequestID:                       a.RequestID.String(),
 		UserGenesisID:                   a.ID.BigInt().String(),
-		Nonce:                           a.Nonce.String(),
+		ProfileNonce:                    a.ProfileNonce.String(),
 		ClaimSubjectProfileNonce:        a.ClaimSubjectProfileNonce.String(),
 		IssuerID:                        a.Claim.IssuerID.BigInt().String(),
 		IssuerClaim:                     a.Claim.Claim,
