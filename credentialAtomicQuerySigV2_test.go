@@ -34,7 +34,7 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 	issuer := it.NewIdentity(t, issuerPK)
 
 	subjectID := user.ID
-	nonce := big.NewInt(0)
+	profileNonce := big.NewInt(0)
 
 	nonceSubject := big.NewInt(0)
 
@@ -51,7 +51,7 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 	in := AtomicQuerySigV2Inputs{
 		RequestID:                big.NewInt(23),
 		ID:                       &user.ID,
-		Nonce:                    nonce,
+		ProfileNonce:             profileNonce,
 		ClaimSubjectProfileNonce: nonceSubject,
 		Claim: ClaimWithSigProof{
 			IssuerID: &issuer.ID,

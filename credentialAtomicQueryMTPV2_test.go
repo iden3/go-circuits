@@ -30,7 +30,7 @@ func TestAttrQueryMTPV2_PrepareInputs(t *testing.T) {
 	in := AtomicQueryMTPV2Inputs{
 		RequestID:                big.NewInt(23),
 		ID:                       &user.ID,
-		Nonce:                    nonce,
+		ProfileNonce:             nonce,
 		ClaimSubjectProfileNonce: nonceSubject,
 		Claim: ClaimWithMTPProof{
 			IssuerID: &issuer.ID,
@@ -66,7 +66,7 @@ func TestAttrQueryMTPV2_PrepareInputs(t *testing.T) {
 	bytesInputs, err := in.InputsMarshal()
 	require.Nil(t, err)
 
-	exp := it.TestData(t, "AttrQueryMTPV2_inputs", string(bytesInputs), *generate)
+	exp := it.TestData(t, "mtpV2_inputs", string(bytesInputs), *generate)
 	t.Log(string(bytesInputs))
 	require.JSONEq(t, exp, string(bytesInputs))
 

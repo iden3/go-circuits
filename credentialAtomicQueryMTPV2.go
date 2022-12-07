@@ -16,7 +16,7 @@ type AtomicQueryMTPV2Inputs struct {
 	BaseConfig
 	// auth
 	ID                       *core.ID
-	Nonce                    *big.Int
+	ProfileNonce             *big.Int
 	ClaimSubjectProfileNonce *big.Int
 
 	Claim ClaimWithMTPProof // claim issued for user
@@ -35,7 +35,7 @@ type atomicQueryMTPV2CircuitInputs struct {
 
 	// user data
 	UserGenesisID            string `json:"userGenesisID"`            //
-	Nonce                    string `json:"nonce"`                    //
+	ProfileNonce             string `json:"profileNonce"`             //
 	ClaimSubjectProfileNonce string `json:"claimSubjectProfileNonce"` //
 
 	IssuerID string `json:"issuerID"`
@@ -112,7 +112,7 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 	s := atomicQueryMTPV2CircuitInputs{
 		RequestID:                       a.RequestID.String(),
 		UserGenesisID:                   a.ID.BigInt().String(),
-		Nonce:                           a.Nonce.String(),
+		ProfileNonce:                    a.ProfileNonce.String(),
 		ClaimSubjectProfileNonce:        a.ClaimSubjectProfileNonce.String(),
 		IssuerID:                        a.Claim.IssuerID.BigInt().String(),
 		IssuerClaim:                     a.Claim.Claim,
