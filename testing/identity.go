@@ -225,9 +225,14 @@ func NewIdentity(t testing.TB, privKHex string) *IdentityTest {
 
 	state := it.State(t)
 
-	identifier, err := IDFromState(state.BigInt())
+	didType, err := core.BuildDIDType(core.DIDMethodIden3, core.Polygon, core.Mumbai)
 	if err != nil {
-		t.Fatalf("Error generating id from state: %v", err)
+		t.Fatalf("Error build did type: %v", err)
+	}
+
+	identifier, err := core.IdGenesisFromIdenState(didType, state.BigInt())
+	if err != nil {
+		t.Fatalf("Error build identifier with did type: %v", err)
 	}
 
 	it.ID = *identifier
