@@ -74,13 +74,13 @@ func TestAttrQueryMTPV2_PrepareInputs(t *testing.T) {
 
 func TestAtomicQueryMTPV2Outputs_CircuitUnmarshal(t *testing.T) {
 	out := new(AtomicQueryMTPV2PubSignals)
-	err := out.PubSignalsUnmarshal([]byte(
-		`[
+	err := out.PubSignalsUnmarshal([]byte(`[
  "0",
  "19104853439462320209059061537253618984153217267677512271018416655565783041",
  "23",
  "23528770672049181535970744460798517976688641688582489375761566420828291073",
  "5687720250943511874245715094520098014548846873346473635855112185560372332782",
+ "1",
  "5687720250943511874245715094520098014548846873346473635855112185560372332782",
  "1642074362",
  "180410020913331409885634153623124536270",
@@ -175,6 +175,7 @@ func TestAtomicQueryMTPV2Outputs_CircuitUnmarshal(t *testing.T) {
 		Merklized:              0,
 		ClaimPathKey:           big.NewInt(0),
 		ClaimPathNotExists:     0,
+		IsRevocationChecked:    1,
 	}
 
 	jsonOut, err := json.Marshal(out)
