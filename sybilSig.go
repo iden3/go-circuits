@@ -165,8 +165,8 @@ type SybilSigPubSignals struct {
 
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 
-	GISTProof GISTProof `json:"gistProof"`
-	CRS       string    `json:"crs"`
+	GISTRoot *merkletree.Hash `json:"gistRoot"`
+	CRS      string           `json:"crs"`
 }
 
 func (s *SybilSigPubSignals) PubSignalsUnmarshal(data []byte) error {
@@ -191,7 +191,7 @@ func (s *SybilSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 
 	s.CRS = sVals[1]
 
-	if s.GISTProof.Root, err = merkletree.NewHashFromString(sVals[2]); err != nil {
+	if s.GISTRoot, err = merkletree.NewHashFromString(sVals[2]); err != nil {
 		return err
 	}
 
