@@ -16,11 +16,15 @@ type SybilMTPInputs struct {
 	ProfileNonce             *big.Int `json:"profileNonce"`
 	ClaimSubjectProfileNonce *big.Int `json:"claimSubjectProfileNonce"`
 
-	UniClaim         ClaimWithMTPProof `json:"uniClaim"`
-	StateSecretClaim ClaimWithMTPProof `json:"stateSecretClaim"`
+	IssuerClaim ClaimWithMTPProof `json:"issuerClaim"`
+	HolderClaim ClaimWithMTPProof `json:"holderClaim"`
 
 	GISTProof GISTProof `json:"gistProof"`
 	CRS       string    `json:"crs"`
+
+	RequestID        string `json:"requestID"`
+	IssuerID         string `json:"issuerID"`
+	CurrentTimestamp string `json:"currentTimestamp"`
 }
 
 type sybilMTPCircuitInputs struct {
@@ -41,7 +45,6 @@ type sybilMTPCircuitInputs struct {
 	IssuerClaimNonRevRootsRoot  *merkletree.Hash `json:"issuerClaimNonRevRootsRoot"`
 	IssuerClaimNonRevState      *merkletree.Hash `json:"IssuerClaimNonRevState"`
 
-	// claim of state-secret (Holder's claim)
 	HolderClaim           *core.Claim        `json:"holderClaim"`
 	HolderClaimMtp        []*merkletree.Hash `json:"holderClaimMtp"`
 	HolderClaimClaimsRoot *merkletree.Hash   `json:"holderClaimClaimsRoot"`
@@ -57,10 +60,13 @@ type sybilMTPCircuitInputs struct {
 
 	CRS string `json:"crs"`
 
-	// user data
 	UserGenesisID            string `json:"userGenesisID"`
 	ProfileNonce             string `json:"profileNonce"`
 	ClaimSubjectProfileNonce string `json:"claimSubjectProfileNonce"`
+
+	RequestID        string `json:"requestID"`
+	IssuerID         string `json:"issuerID"`
+	CurrentTimestamp string `json:"currentTimestamp"`
 }
 
 func (s SybilMTPInputs) Validate() error {
@@ -73,11 +79,11 @@ func (s SybilMTPInputs) Validate() error {
 		return errors.New(ErrorEmptyGlobalProof)
 	}
 
-	if s.UniClaim.Claim == nil {
+	if s.IssuerClaim.Claim == nil {
 		return errors.New(ErrorEmptyGlobalProof)
 	}
 
-	if s.StateSecretClaim.Claim == nil {
+	if s.HolderClaim.Claim == nil {
 		return errors.New(ErrorEmptyGlobalProof)
 	}
 
@@ -90,27 +96,27 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 	}
 
 	mtpInputs := sybilMTPCircuitInputs{
-		IssuerClaim:           s.UniClaim.Claim,
-		IssuerClaimMtp:        CircomSiblings(s.UniClaim.IncProof.Proof, s.GetMTLevel()-1),
-		IssuerClaimClaimsRoot: s.UniClaim.IncProof.TreeState.ClaimsRoot,
-		IssuerClaimRevRoot:    s.UniClaim.IncProof.TreeState.RevocationRoot,
-		IssuerClaimRootsRoot:  s.UniClaim.IncProof.TreeState.RootOfRoots,
-		IssuerClaimIdenState:  s.UniClaim.IncProof.TreeState.State,
+		IssuerClaim:           s.IssuerClaim.Claim,
+		IssuerClaimMtp:        CircomSiblings(s.IssuerClaim.IncProof.Proof, s.GetMTLevel()-1),
+		IssuerClaimClaimsRoot: s.IssuerClaim.IncProof.TreeState.ClaimsRoot,
+		IssuerClaimRevRoot:    s.IssuerClaim.IncProof.TreeState.RevocationRoot,
+		IssuerClaimRootsRoot:  s.IssuerClaim.IncProof.TreeState.RootOfRoots,
+		IssuerClaimIdenState:  s.IssuerClaim.IncProof.TreeState.State,
 
-		IssuerClaimNonRevMtp: CircomSiblings(s.UniClaim.NonRevProof.Proof, s.GetMTLevel()),
+		IssuerClaimNonRevMtp: CircomSiblings(s.IssuerClaim.NonRevProof.Proof, s.GetMTLevel()),
 
-		IssuerClaimNonRevClaimsRoot: s.UniClaim.NonRevProof.TreeState.ClaimsRoot,
-		IssuerClaimNonRevRevRoot:    s.UniClaim.NonRevProof.TreeState.RevocationRoot,
-		IssuerClaimNonRevRootsRoot:  s.UniClaim.NonRevProof.TreeState.RootOfRoots,
-		IssuerClaimNonRevState:      s.UniClaim.NonRevProof.TreeState.State,
+		IssuerClaimNonRevClaimsRoot: s.IssuerClaim.NonRevProof.TreeState.ClaimsRoot,
+		IssuerClaimNonRevRevRoot:    s.IssuerClaim.NonRevProof.TreeState.RevocationRoot,
+		IssuerClaimNonRevRootsRoot:  s.IssuerClaim.NonRevProof.TreeState.RootOfRoots,
+		IssuerClaimNonRevState:      s.IssuerClaim.NonRevProof.TreeState.State,
 
 		// claim of state-secret (Holder's claim)
-		HolderClaim:           s.StateSecretClaim.Claim,
-		HolderClaimMtp:        CircomSiblings(s.StateSecretClaim.IncProof.Proof, s.GetMTLevel()-1),
-		HolderClaimClaimsRoot: s.StateSecretClaim.IncProof.TreeState.ClaimsRoot,
-		HolderClaimRevRoot:    s.StateSecretClaim.IncProof.TreeState.ClaimsRoot,
-		HolderClaimRootsRoot:  s.StateSecretClaim.IncProof.TreeState.ClaimsRoot,
-		HolderClaimIdenState:  s.StateSecretClaim.IncProof.TreeState.ClaimsRoot,
+		HolderClaim:           s.HolderClaim.Claim,
+		HolderClaimMtp:        CircomSiblings(s.HolderClaim.IncProof.Proof, s.GetMTLevel()-1),
+		HolderClaimClaimsRoot: s.HolderClaim.IncProof.TreeState.ClaimsRoot,
+		HolderClaimRevRoot:    s.HolderClaim.IncProof.TreeState.ClaimsRoot,
+		HolderClaimRootsRoot:  s.HolderClaim.IncProof.TreeState.ClaimsRoot,
+		HolderClaimIdenState:  s.HolderClaim.IncProof.TreeState.ClaimsRoot,
 
 		GistRoot: s.GISTProof.Root,
 		GistMtp:  CircomSiblings(s.GISTProof.Proof, s.GetMTLevel()),
@@ -122,15 +128,19 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 		ProfileNonce:             s.ProfileNonce.String(),
 		ClaimSubjectProfileNonce: s.ClaimSubjectProfileNonce.String(),
 	}
-	uniAux := GetNodeAuxValue(s.UniClaim.NonRevProof.Proof)
-	mtpInputs.IssuerClaimNonRevMtpNoAux = uniAux.noAux
-	mtpInputs.IssuerClaimNonRevMtpAuxHi = uniAux.key
-	mtpInputs.IssuerClaimNonRevMtpAuxHv = uniAux.value
+	issuerClaimAux := GetNodeAuxValue(s.IssuerClaim.NonRevProof.Proof)
+	mtpInputs.IssuerClaimNonRevMtpNoAux = issuerClaimAux.noAux
+	mtpInputs.IssuerClaimNonRevMtpAuxHi = issuerClaimAux.key
+	mtpInputs.IssuerClaimNonRevMtpAuxHv = issuerClaimAux.value
 
 	gistAux := GetNodeAuxValue(s.GISTProof.Proof)
 	mtpInputs.GistMtpAuxHi = gistAux.key
 	mtpInputs.GistMtpAuxHv = gistAux.value
 	mtpInputs.GistMtpNoAux = gistAux.noAux
+
+	mtpInputs.RequestID = s.RequestID
+	mtpInputs.IssuerID = s.IssuerID
+	mtpInputs.CurrentTimestamp = s.CurrentTimestamp
 
 	return json.Marshal(mtpInputs)
 }
@@ -138,11 +148,19 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 type SybilMTPPubSignals struct {
 	BaseConfig
 
+	SybilID string `json:"sybilID"`
+	UserID  string `json:"userID"`
+
+	RequestID        string `json:"requestID"`
+	IssuerID         string `json:"issuerID"`
+	CurrentTimestamp string `json:"currentTimestamp"`
+
 	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 
+	CRS string `json:"crs"`
+
 	GISTRoot *merkletree.Hash `json:"gistRoot"`
-	CRS      string           `json:"crs"`
 }
 
 func (s *SybilMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
@@ -152,26 +170,38 @@ func (s *SybilMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	if len(sVals) != 4 {
-		return fmt.Errorf("invalid number of Output values expected {%d} got {%d} ", 4, len(sVals))
+	if len(sVals) != 9 {
+		return fmt.Errorf("invalid number of Output values expected {%d} got {%d} ", 9, len(sVals))
 	}
 
 	// expected order:
-	//	0 - IssuerClaimIdenState,
-	//	1 - IssuerClaimNonRevState,
-	//	2 - crs,
-	//	3 - gistRoot
+	//	0 - userID
+	//	1 - sybilID
+	//	2 - requestID
+	//	3 - issuerID
+	//	4 - currentTimestamp
+	//	5 - issuerClaimIdenState
+	//	6 - issuerClaimNonRevState
+	//	7 - crs
+	//	8 - gistRoot
 
-	if s.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[0]); err != nil {
+	s.UserID = sVals[0]
+	s.SybilID = sVals[1]
+
+	s.RequestID = sVals[2]
+	s.IssuerID = sVals[3]
+	s.CurrentTimestamp = sVals[4]
+
+	if s.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[5]); err != nil {
 		return err
 	}
-	if s.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[1]); err != nil {
+	if s.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[6]); err != nil {
 		return err
 	}
 
-	s.CRS = sVals[2]
+	s.CRS = sVals[7]
 
-	if s.GISTRoot, err = merkletree.NewHashFromString(sVals[3]); err != nil {
+	if s.GISTRoot, err = merkletree.NewHashFromString(sVals[8]); err != nil {
 		return err
 	}
 

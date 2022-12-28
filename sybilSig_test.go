@@ -3,6 +3,7 @@ package circuits
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	it "github.com/iden3/go-circuits/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,6 +21,10 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 	profileNonce := big.NewInt(0)
 
 	nonceSubject := big.NewInt(0)
+
+	requestID := "123"
+	issuerID := "111"
+	currentTimestamp := int64(1642074362)
 
 	claim := it.DefaultUserClaim(t, subjectID)
 
@@ -47,7 +52,7 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 		ID:                       &user.ID,
 		ProfileNonce:             profileNonce,
 		ClaimSubjectProfileNonce: nonceSubject,
-		UniClaim: ClaimWithSigProof{
+		IssuerClaim: ClaimWithSigProof{
 			IssuerID: &issuer.ID,
 			Claim:    claim,
 			NonRevProof: MTProof{
@@ -83,7 +88,7 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 			},
 		},
 		CRS: crs,
-		StateSecretClaim: ClaimWithMTPProof{
+		HolderClaim: ClaimWithMTPProof{
 			Claim: ssClaim,
 			IncProof: MTProof{
 				Proof: userClaimMtp,
@@ -100,6 +105,9 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 			Root:  gTree.Root(),
 			Proof: globalProof,
 		},
+		RequestID:        requestID,
+		IssuerID:         issuerID,
+		CurrentTimestamp: fmt.Sprintf("%d", currentTimestamp),
 	}
 
 	circuitInputJSON, err := in.InputsMarshal()
@@ -114,6 +122,13 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 func TestSybilSigOutputs_CircuitUnmarshal(t *testing.T) {
 	out := new(SybilSigPubSignals)
 	err := out.PubSignalsUnmarshal([]byte(`[
+	 "1223724973193705074823975451411003107344340988105892551868110723839705504514",
+	 "223724973193705074823975451411003107344340988105892551868110723839705504514",
+	 "223724973193705074823975451411003107344340988105892551868110723839705504514",
+	 "123",
+	 "111",
+	 "1642074362",
+
 	 "20177832565449474772630743317224985532862797657496372535616634430055981993180",
 	 "1234",
 	 "12237249731937050748239754514110031073443409881058925518681107238397055045148"
@@ -124,6 +139,12 @@ func TestSybilSigOutputs_CircuitUnmarshal(t *testing.T) {
 		IssuerClaimNonRevState: it.MTHashFromStr(t, "20177832565449474772630743317224985532862797657496372535616634430055981993180"),
 		CRS:                    "1234",
 		GISTRoot:               it.MTHashFromStr(t, "12237249731937050748239754514110031073443409881058925518681107238397055045148"),
+		IssuerID:               "111",
+		RequestID:              "123",
+		CurrentTimestamp:       "1642074362",
+		UserID:                 "1223724973193705074823975451411003107344340988105892551868110723839705504514",
+		SybilID:                "223724973193705074823975451411003107344340988105892551868110723839705504514",
+		IssuerAuthState:        it.MTHashFromStr(t, "223724973193705074823975451411003107344340988105892551868110723839705504514"),
 	}
 
 	jsonOut, err := json.Marshal(out)
