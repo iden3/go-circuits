@@ -12,7 +12,7 @@ import (
 type SybilSigInputs struct {
 	BaseConfig
 
-	ID                       *core.ID `json:"issuerClaim"`
+	ID                       *core.ID `json:"id"`
 	ProfileNonce             *big.Int `json:"profileNonce"`
 	ClaimSubjectProfileNonce *big.Int `json:"claimSubjectProfileNonce"`
 
