@@ -3,7 +3,6 @@ package circuits
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	it "github.com/iden3/go-circuits/testing"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -22,13 +21,12 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 
 	nonceSubject := big.NewInt(0)
 
-	requestID := "123"
-	issuerID := "111"
+	requestID := new(big.Int).SetInt64(123)
+	issuerID := &issuer.ID
 	currentTimestamp := int64(1642074362)
 
 	claim := it.DefaultUserClaim(t, subjectID)
 
-	// Sig claim
 	claimSig := issuer.SignClaim(t, claim)
 
 	issuerClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, claim)
@@ -36,7 +34,7 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 	issuerAuthClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, issuer.AuthClaim)
 	issuerAuthClaimMtp, _ := issuer.ClaimMTPRaw(t, issuer.AuthClaim)
 
-	crs := new(big.Int).SetInt64(1234).String()
+	crs := new(big.Int).SetInt64(1234)
 	ssClaim := it.UserStateSecretClaim(t, new(big.Int).SetInt64(5555))
 	user.AddClaim(t, ssClaim)
 	userClaimMtp, _ := user.ClaimMTPRaw(t, ssClaim)
@@ -105,9 +103,9 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 			Root:  gTree.Root(),
 			Proof: globalProof,
 		},
-		RequestID:        requestID,
-		IssuerID:         issuerID,
-		CurrentTimestamp: fmt.Sprintf("%d", currentTimestamp),
+		RequestID: requestID,
+		IssuerID:  issuerID,
+		Timestamp: currentTimestamp,
 	}
 
 	circuitInputJSON, err := in.InputsMarshal()
@@ -122,11 +120,11 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 func TestSybilSigOutputs_CircuitUnmarshal(t *testing.T) {
 	out := new(SybilSigPubSignals)
 	err := out.PubSignalsUnmarshal([]byte(`[
-	 "1223724973193705074823975451411003107344340988105892551868110723839705504514",
+	 "26109404700696283154998654512117952420503675471097392618762221546565140481",
 	 "223724973193705074823975451411003107344340988105892551868110723839705504514",
 	 "223724973193705074823975451411003107344340988105892551868110723839705504514",
 	 "123",
-	 "111",
+	 "27918766665310231445021466320959318414450284884582375163563581940319453185",
 	 "1642074362",
 
 	 "20177832565449474772630743317224985532862797657496372535616634430055981993180",
@@ -135,14 +133,18 @@ func TestSybilSigOutputs_CircuitUnmarshal(t *testing.T) {
 	]`))
 	require.NoError(t, err)
 
+	user := it.NewIdentity(t, userPK)
+
+	issuer := it.NewIdentity(t, issuerPK)
+
 	exp := SybilSigPubSignals{
 		IssuerClaimNonRevState: it.MTHashFromStr(t, "20177832565449474772630743317224985532862797657496372535616634430055981993180"),
-		CRS:                    "1234",
+		CRS:                    new(big.Int).SetInt64(1234),
 		GISTRoot:               it.MTHashFromStr(t, "12237249731937050748239754514110031073443409881058925518681107238397055045148"),
-		IssuerID:               "111",
-		RequestID:              "123",
-		CurrentTimestamp:       "1642074362",
-		UserID:                 "1223724973193705074823975451411003107344340988105892551868110723839705504514",
+		IssuerID:               &issuer.ID,
+		RequestID:              new(big.Int).SetInt64(123),
+		Timestamp:              1642074362,
+		UserID:                 &user.ID,
 		SybilID:                "223724973193705074823975451411003107344340988105892551868110723839705504514",
 		IssuerAuthState:        it.MTHashFromStr(t, "223724973193705074823975451411003107344340988105892551868110723839705504514"),
 	}

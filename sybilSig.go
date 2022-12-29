@@ -7,6 +7,7 @@ import (
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 	"math/big"
+	"strconv"
 )
 
 type SybilSigInputs struct {
@@ -20,11 +21,11 @@ type SybilSigInputs struct {
 	HolderClaim ClaimWithMTPProof `json:"holderClaim"`
 
 	GISTProof GISTProof `json:"gistProof"`
-	CRS       string    `json:"crs"`
+	CRS       *big.Int  `json:"crs"`
 
-	RequestID        string `json:"requestID"`
-	IssuerID         string `json:"issuerID"`
-	CurrentTimestamp string `json:"currentTimestamp"`
+	RequestID *big.Int `json:"requestID"`
+	IssuerID  *core.ID `json:"issuerID"`
+	Timestamp int64    `json:"timestamp"`
 }
 
 type sybilSigCircuitInputs struct {
@@ -70,16 +71,16 @@ type sybilSigCircuitInputs struct {
 	GistMtpAuxHv *merkletree.Hash   `json:"gistMtpAuxHv"`
 	GistMtpNoAux string             `json:"gistMtpNoAux"`
 
-	CRS string `json:"crs"`
+	CRS *big.Int `json:"crs"`
 
 	// user data
-	UserGenesisID            string `json:"userGenesisID"`
-	ProfileNonce             string `json:"profileNonce"`
-	ClaimSubjectProfileNonce string `json:"claimSubjectProfileNonce"`
+	UserGenesisID            *core.ID `json:"userGenesisID"`
+	ProfileNonce             string   `json:"profileNonce"`
+	ClaimSubjectProfileNonce string   `json:"claimSubjectProfileNonce"`
 
-	RequestID        string `json:"requestID"`
-	IssuerID         string `json:"issuerID"`
-	CurrentTimestamp string `json:"currentTimestamp"`
+	RequestID *big.Int `json:"requestID"`
+	IssuerID  *core.ID `json:"issuerID"`
+	Timestamp int64    `json:"timestamp"`
 }
 
 func (s SybilSigInputs) Validate() error {
@@ -145,7 +146,7 @@ func (s SybilSigInputs) InputsMarshal() ([]byte, error) {
 		CRS: s.CRS,
 
 		// user data
-		UserGenesisID:            s.ID.String(),
+		UserGenesisID:            s.ID,
 		ProfileNonce:             s.ProfileNonce.String(),
 		ClaimSubjectProfileNonce: s.ClaimSubjectProfileNonce.String(),
 	}
@@ -166,7 +167,7 @@ func (s SybilSigInputs) InputsMarshal() ([]byte, error) {
 
 	sigInputs.RequestID = s.RequestID
 	sigInputs.IssuerID = s.IssuerID
-	sigInputs.CurrentTimestamp = s.CurrentTimestamp
+	sigInputs.Timestamp = s.Timestamp
 
 	return json.Marshal(sigInputs)
 }
@@ -174,16 +175,16 @@ func (s SybilSigInputs) InputsMarshal() ([]byte, error) {
 type SybilSigPubSignals struct {
 	BaseConfig
 
-	SybilID string `json:"sybilID"`
-	UserID  string `json:"userID"`
+	SybilID string   `json:"sybilID"`
+	UserID  *core.ID `json:"userID"`
 
-	RequestID        string `json:"requestID"`
-	IssuerID         string `json:"issuerID"`
-	CurrentTimestamp string `json:"currentTimestamp"`
+	RequestID *big.Int `json:"requestID"`
+	IssuerID  *core.ID `json:"issuerID"`
+	Timestamp int64    `json:"timestamp"`
 
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 
-	CRS string `json:"crs"`
+	CRS *big.Int `json:"crs"`
 
 	GISTRoot *merkletree.Hash `json:"gistRoot"`
 
@@ -212,21 +213,35 @@ func (s *SybilSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	//	7 - crs,
 	//	8 - gistRoot,
 
-	s.UserID = sVals[0]
+	if s.UserID, err = idFromIntStr(sVals[0]); err != nil {
+		return err
+	}
 	s.SybilID = sVals[1]
 	if s.IssuerAuthState, err = merkletree.NewHashFromString(sVals[2]); err != nil {
 		return err
 	}
 
-	s.RequestID = sVals[3]
-	s.IssuerID = sVals[4]
-	s.CurrentTimestamp = sVals[5]
+	var ok bool
+	if s.RequestID, ok = big.NewInt(0).SetString(sVals[3], 10); !ok {
+		return fmt.Errorf("invalid requestID value: '%s'", sVals[2])
+	}
+
+	if s.IssuerID, err = idFromIntStr(sVals[4]); err != nil {
+		return err
+	}
+
+	s.Timestamp, err = strconv.ParseInt(sVals[5], 10, 64)
+	if err != nil {
+		return err
+	}
 
 	if s.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[6]); err != nil {
 		return err
 	}
 
-	s.CRS = sVals[7]
+	if s.CRS, ok = big.NewInt(0).SetString(sVals[7], 10); !ok {
+		return fmt.Errorf("invalid CRS value: '%s'", sVals[2])
+	}
 
 	if s.GISTRoot, err = merkletree.NewHashFromString(sVals[8]); err != nil {
 		return err
