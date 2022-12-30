@@ -22,7 +22,8 @@ type AtomicQuerySigV2Inputs struct {
 	ProfileNonce             *big.Int
 	ClaimSubjectProfileNonce *big.Int
 
-	Claim ClaimWithSigProof // issuerClaim
+	Claim                    ClaimWithSigProof // issuerClaim
+	SkipClaimRevocationCheck bool
 
 	// query
 	Query Query
@@ -63,6 +64,8 @@ type atomicQuerySigV2CircuitInputs struct {
 	IssuerAuthClaimsTreeRoot        string           `json:"issuerAuthClaimsTreeRoot"`
 	IssuerAuthRevTreeRoot           string           `json:"issuerAuthRevTreeRoot"`
 	IssuerAuthRootsTreeRoot         string           `json:"issuerAuthRootsTreeRoot"`
+
+	IsRevocationChecked int `json:"isRevocationChecked"`
 	// Query
 	// JSON path
 	ClaimPathNotExists int              `json:"claimPathNotExists"` // 0 for inclusion, 1 for non-inclusion
@@ -168,7 +171,12 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 		Timestamp:      a.CurrentTimeStamp,
 		// value in this path in merklized json-ld document
 
-		SlotIndex: a.Query.SlotIndex,
+		SlotIndex:           a.Query.SlotIndex,
+		IsRevocationChecked: 1,
+	}
+
+	if a.SkipClaimRevocationCheck {
+		s.IsRevocationChecked = 0
 	}
 
 	nodeAuxNonRev := GetNodeAuxValue(a.Claim.NonRevProof.Proof)
@@ -213,7 +221,8 @@ type AtomicQuerySigV2PubSignals struct {
 	Timestamp              int64            `json:"timestamp"`
 	Merklized              int              `json:"merklized"`
 	ClaimPathKey           *big.Int         `json:"claimPathKey"`
-	ClaimPathNotExists     int              `json:"claimPathNotExists"` // 0 for inclusion, 1 for non-inclusion
+	ClaimPathNotExists     int              `json:"claimPathNotExists"`  // 0 for inclusion, 1 for non-inclusion
+	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 revocation not check, // 1 for check revocation
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
@@ -224,6 +233,7 @@ func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// issuerAuthState
 	// requestID
 	// issuerID
+	// isRevocationChecked
 	// issuerClaimNonRevState
 	// timestamp
 	// claimSchema
@@ -236,7 +246,7 @@ func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// 12 is a number of fields in AtomicQuerySigV2PubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 12
+	const fieldLength = 13
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -277,6 +287,12 @@ func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 
 	// - issuerID
 	if ao.IssuerID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
+		return err
+	}
+	fieldIdx++
+
+	// - isRevocationChecked
+	if ao.IsRevocationChecked, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
 		return err
 	}
 	fieldIdx++

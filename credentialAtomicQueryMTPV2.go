@@ -19,7 +19,8 @@ type AtomicQueryMTPV2Inputs struct {
 	ProfileNonce             *big.Int
 	ClaimSubjectProfileNonce *big.Int
 
-	Claim ClaimWithMTPProof // claim issued for user
+	Claim                    ClaimWithMTPProof // claim issued for user
+	SkipClaimRevocationCheck bool
 
 	RequestID *big.Int
 
@@ -56,6 +57,8 @@ type atomicQueryMTPV2CircuitInputs struct {
 	IssuerClaimNonRevMtpAuxHi       *merkletree.Hash   `json:"issuerClaimNonRevMtpAuxHi"`
 	IssuerClaimNonRevMtpAuxHv       *merkletree.Hash   `json:"issuerClaimNonRevMtpAuxHv"`
 	IssuerClaimNonRevMtpNoAux       string             `json:"issuerClaimNonRevMtpNoAux"`
+
+	IsRevocationChecked int `json:"isRevocationChecked"`
 
 	ClaimSchema string `json:"claimSchema"`
 
@@ -132,6 +135,11 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 		Operator:                        a.Operator,
 		SlotIndex:                       a.SlotIndex,
 		Timestamp:                       a.CurrentTimeStamp,
+		IsRevocationChecked:             1,
+	}
+
+	if a.SkipClaimRevocationCheck {
+		s.IsRevocationChecked = 0
 	}
 
 	nodeAux := GetNodeAuxValue(a.Claim.NonRevProof.Proof)
@@ -171,7 +179,8 @@ type AtomicQueryMTPV2PubSignals struct {
 	Timestamp              int64            `json:"timestamp"`
 	Merklized              int              `json:"merklized"`
 	ClaimPathKey           *big.Int         `json:"claimPathKey"`
-	ClaimPathNotExists     int              `json:"claimPathNotExists"` // 0 for inclusion, 1 for non-inclusion
+	ClaimPathNotExists     int              `json:"claimPathNotExists"`  // 0 for inclusion, 1 for non-inclusion
+	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 revocation not check, // 1 for check revocation
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryMTP.circom public signals array to AtomicQueryMTPPubSignals
@@ -183,6 +192,7 @@ func (ao *AtomicQueryMTPV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// requestID
 	// issuerID
 	// issuerClaimIdenState
+	// isRevocationChecked
 	// issuerClaimNonRevState
 	// timestamp
 	// claimSchema
@@ -192,10 +202,10 @@ func (ao *AtomicQueryMTPV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// operator
 	// value
 
-	// 12 is a number of fields in AtomicQueryMTPV2PubSignals before values, values is last element in the proof and
+	// 13 is a number of fields in AtomicQueryMTPV2PubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 12
+	const fieldLength = 13
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -236,6 +246,12 @@ func (ao *AtomicQueryMTPV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 
 	// - issuerClaimIdenState
 	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
+		return err
+	}
+	fieldIdx++
+
+	// - isRevocationChecked
+	if ao.IsRevocationChecked, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
 		return err
 	}
 	fieldIdx++
