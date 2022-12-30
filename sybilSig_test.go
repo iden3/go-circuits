@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	it "github.com/iden3/go-circuits/testing"
+	core "github.com/iden3/go-iden3-core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"math/big"
@@ -128,6 +129,7 @@ func TestSybilSigOutputs_CircuitUnmarshal(t *testing.T) {
 	 "1642074362",
 
 	 "20177832565449474772630743317224985532862797657496372535616634430055981993180",
+     "180410020913331409885634153623124536270",
 	 "1234",
 	 "12237249731937050748239754514110031073443409881058925518681107238397055045148"
 	]`))
@@ -137,6 +139,11 @@ func TestSybilSigOutputs_CircuitUnmarshal(t *testing.T) {
 
 	issuer := it.NewIdentity(t, issuerPK)
 
+	issuerClaimSchema, ok := new(big.Int).SetString("180410020913331409885634153623124536270", 10)
+	if ok == false {
+		t.Fatalf("new(big.Int).SetString has faild")
+	}
+
 	exp := SybilSigPubSignals{
 		IssuerClaimNonRevState: it.MTHashFromStr(t, "20177832565449474772630743317224985532862797657496372535616634430055981993180"),
 		CRS:                    new(big.Int).SetInt64(1234),
@@ -145,6 +152,7 @@ func TestSybilSigOutputs_CircuitUnmarshal(t *testing.T) {
 		RequestID:              new(big.Int).SetInt64(123),
 		Timestamp:              1642074362,
 		UserID:                 &user.ID,
+		IssuerClaimSchema:      core.NewSchemaHashFromInt(issuerClaimSchema),
 		SybilID:                "223724973193705074823975451411003107344340988105892551868110723839705504514",
 		IssuerAuthState:        it.MTHashFromStr(t, "223724973193705074823975451411003107344340988105892551868110723839705504514"),
 	}

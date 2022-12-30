@@ -57,6 +57,8 @@ type sybilSigCircuitInputs struct {
 	IssuerClaimSignatureR8Y string `json:"issuerClaimSignatureR8y"`
 	IssuerClaimSignatureS   string `json:"issuerClaimSignatureS"`
 
+	IssuerClaimSchema string `json:"issuerClaimSchema"`
+
 	// claim of state-secret (Holder's claim)
 	HolderClaim           *core.Claim        `json:"holderClaim"`
 	HolderClaimMtp        []*merkletree.Hash `json:"holderClaimMtp"`
@@ -132,6 +134,8 @@ func (s SybilSigInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimNonRevRootsRoot:  s.IssuerClaim.NonRevProof.TreeState.RootOfRoots,
 		IssuerClaimNonRevState:      s.IssuerClaim.NonRevProof.TreeState.State,
 
+		IssuerClaimSchema: s.IssuerClaim.Claim.GetSchemaHash().BigInt().String(),
+
 		// claim of state-secret (Holder's claim)
 		HolderClaim:           s.HolderClaim.Claim,
 		HolderClaimMtp:        CircomSiblings(s.HolderClaim.IncProof.Proof, s.GetMTLevel()-1),
@@ -184,6 +188,8 @@ type SybilSigPubSignals struct {
 
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 
+	IssuerClaimSchema core.SchemaHash `json:"issuerClaimSchema"`
+
 	CRS *big.Int `json:"crs"`
 
 	GISTRoot *merkletree.Hash `json:"gistRoot"`
@@ -198,8 +204,8 @@ func (s *SybilSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	if len(sVals) != 9 {
-		return fmt.Errorf("invalid number of Output values expected {%d} got {%d} ", 9, len(sVals))
+	if len(sVals) != 10 {
+		return fmt.Errorf("invalid number of Output values expected {%d} got {%d} ", 10, len(sVals))
 	}
 
 	// expected order:
@@ -210,8 +216,9 @@ func (s *SybilSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	//	4 - issuerID,
 	//	5 - timestamp,
 	//	6 - issuerClaimNonRevState,
-	//	7 - crs,
-	//	8 - gistRoot,
+	//  7 - issuerClaimSchema
+	//	8 - crs,
+	//	9 - gistRoot,
 
 	if s.UserID, err = idFromIntStr(sVals[0]); err != nil {
 		return err
@@ -239,11 +246,17 @@ func (s *SybilSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	if s.CRS, ok = big.NewInt(0).SetString(sVals[7], 10); !ok {
+	var schemaInt *big.Int
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[7], 10); !ok {
+		return fmt.Errorf("invalid schema value: '%s'", sVals[7])
+	}
+	s.IssuerClaimSchema = core.NewSchemaHashFromInt(schemaInt)
+
+	if s.CRS, ok = big.NewInt(0).SetString(sVals[8], 10); !ok {
 		return fmt.Errorf("invalid CRS value: '%s'", sVals[2])
 	}
 
-	if s.GISTRoot, err = merkletree.NewHashFromString(sVals[8]); err != nil {
+	if s.GISTRoot, err = merkletree.NewHashFromString(sVals[9]); err != nil {
 		return err
 	}
 
