@@ -153,7 +153,7 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 type SybilMTPPubSignals struct {
 	BaseConfig
 
-	SybilID string   `json:"sybilID"`
+	SybilID *big.Int `json:"sybilID"`
 	UserID  *core.ID `json:"userID"`
 
 	RequestID *big.Int `json:"requestID"`
@@ -199,9 +199,11 @@ func (s *SybilMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	s.SybilID = sVals[1]
-
 	var ok bool
+	if s.SybilID, ok = big.NewInt(0).SetString(sVals[1], 10); !ok {
+		return fmt.Errorf("invalid SybilID value: '%s'", sVals[1])
+	}
+
 	if s.RequestID, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
 		return fmt.Errorf("invalid requestID value: '%s'", sVals[2])
 	}

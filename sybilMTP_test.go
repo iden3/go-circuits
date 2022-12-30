@@ -129,6 +129,11 @@ func TestSybilMTPOutputs_CircuitUnmarshal(t *testing.T) {
 		t.Fatalf("new(big.Int).SetString has faild")
 	}
 
+	sybilID, ok := new(big.Int).SetString("223724973193705074823975451411003107344340988105892551868110723839705504514", 10)
+	if ok == false {
+		t.Fatalf("new(big.Int).SetString has faild")
+	}
+
 	exp := SybilMTPPubSignals{
 		IssuerClaimNonRevState: it.MTHashFromStr(t, "19157496396839393206871475267813888069926627705277243727237933406423274512449"),
 		CRS:                    new(big.Int).SetInt64(1234),
@@ -139,7 +144,7 @@ func TestSybilMTPOutputs_CircuitUnmarshal(t *testing.T) {
 		Timestamp:              1642074362,
 		UserID:                 &user.ID,
 		IssuerClaimSchema:      core.NewSchemaHashFromInt(issuerClaimSchema),
-		SybilID:                "223724973193705074823975451411003107344340988105892551868110723839705504514",
+		SybilID:                sybilID,
 	}
 
 	jsonOut, err := json.Marshal(out)

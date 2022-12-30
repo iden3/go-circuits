@@ -144,6 +144,11 @@ func TestSybilSigOutputs_CircuitUnmarshal(t *testing.T) {
 		t.Fatalf("new(big.Int).SetString has faild")
 	}
 
+	sybilID, ok := new(big.Int).SetString("223724973193705074823975451411003107344340988105892551868110723839705504514", 10)
+	if ok == false {
+		t.Fatalf("new(big.Int).SetString has faild")
+	}
+
 	exp := SybilSigPubSignals{
 		IssuerClaimNonRevState: it.MTHashFromStr(t, "20177832565449474772630743317224985532862797657496372535616634430055981993180"),
 		CRS:                    new(big.Int).SetInt64(1234),
@@ -153,7 +158,7 @@ func TestSybilSigOutputs_CircuitUnmarshal(t *testing.T) {
 		Timestamp:              1642074362,
 		UserID:                 &user.ID,
 		IssuerClaimSchema:      core.NewSchemaHashFromInt(issuerClaimSchema),
-		SybilID:                "223724973193705074823975451411003107344340988105892551868110723839705504514",
+		SybilID:                sybilID,
 		IssuerAuthState:        it.MTHashFromStr(t, "223724973193705074823975451411003107344340988105892551868110723839705504514"),
 	}
 
