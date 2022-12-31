@@ -192,8 +192,9 @@ func (s *SybilMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	//  8 - crs
 	//  9 - gistRoot
 
-	s.UserID = new(core.ID)
-	err = s.UserID.UnmarshalText([]byte(sVals[0]))
+	if s.UserID, err = idFromIntStr(sVals[0]); err != nil {
+		return err
+	}
 	if err != nil {
 		return err
 	}

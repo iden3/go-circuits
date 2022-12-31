@@ -29,8 +29,6 @@ type SybilSigInputs struct {
 }
 
 type sybilSigCircuitInputs struct {
-
-	// claim of uniqueness
 	IssuerAuthClaim      *core.Claim        `json:"issuerAuthClaim"`
 	IssuerAuthClaimMtp   []*merkletree.Hash `json:"issuerAuthClaimMtp"`
 	IssuerAuthClaimsRoot *merkletree.Hash   `json:"issuerAuthClaimsRoot"`
@@ -59,7 +57,6 @@ type sybilSigCircuitInputs struct {
 
 	IssuerClaimSchema string `json:"issuerClaimSchema"`
 
-	// claim of state-secret (Holder's claim)
 	HolderClaim           *core.Claim        `json:"holderClaim"`
 	HolderClaimMtp        []*merkletree.Hash `json:"holderClaimMtp"`
 	HolderClaimClaimsRoot *merkletree.Hash   `json:"holderClaimClaimsRoot"`
@@ -136,7 +133,6 @@ func (s SybilSigInputs) InputsMarshal() ([]byte, error) {
 
 		IssuerClaimSchema: s.IssuerClaim.Claim.GetSchemaHash().BigInt().String(),
 
-		// claim of state-secret (Holder's claim)
 		HolderClaim:           s.HolderClaim.Claim,
 		HolderClaimMtp:        CircomSiblings(s.HolderClaim.IncProof.Proof, s.GetMTLevel()-1),
 		HolderClaimClaimsRoot: s.HolderClaim.IncProof.TreeState.ClaimsRoot,
@@ -149,7 +145,6 @@ func (s SybilSigInputs) InputsMarshal() ([]byte, error) {
 
 		CRS: s.CRS,
 
-		// user data
 		UserGenesisID:            s.ID,
 		ProfileNonce:             s.ProfileNonce.String(),
 		ClaimSubjectProfileNonce: s.ClaimSubjectProfileNonce.String(),
@@ -226,7 +221,7 @@ func (s *SybilSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	if err != nil {
 		return err
 	}
-	
+
 	var ok bool
 	if s.SybilID, ok = big.NewInt(0).SetString(sVals[1], 10); !ok {
 		return fmt.Errorf("invalid SybilID value: '%s'", sVals[1])
