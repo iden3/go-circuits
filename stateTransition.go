@@ -89,9 +89,10 @@ func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 
 // StateTransitionPubSignals stateTransition.circom public inputs
 type StateTransitionPubSignals struct {
-	UserID       *core.ID         `json:"userID"`
-	OldUserState *merkletree.Hash `json:"oldUserState"`
-	NewUserState *merkletree.Hash `json:"newUserState"`
+	UserID            *core.ID         `json:"userID"`
+	OldUserState      *merkletree.Hash `json:"oldUserState"`
+	NewUserState      *merkletree.Hash `json:"newUserState"`
+	IsOldStateGenesis bool             `json:"isOldStateGenesis"`
 }
 
 // PubSignalsUnmarshal unmarshal stateTransition.circom public signals
@@ -102,8 +103,8 @@ func (s *StateTransitionPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return err
 	}
 
-	if len(sVals) != 3 {
-		return fmt.Errorf("invalid number of Output values expected {%d} got {%d} ", 3, len(sVals))
+	if len(sVals) != 4 {
+		return fmt.Errorf("invalid number of Output values expected {%d} got {%d} ", 4, len(sVals))
 	}
 
 	if s.UserID, err = idFromIntStr(sVals[0]); err != nil {
@@ -115,6 +116,16 @@ func (s *StateTransitionPubSignals) PubSignalsUnmarshal(data []byte) error {
 	if s.NewUserState, err = merkletree.NewHashFromString(sVals[2]); err != nil {
 		return err
 	}
+
+	switch sVals[3] {
+	case "1":
+		s.IsOldStateGenesis = true
+	case "0":
+		s.IsOldStateGenesis = false
+	default:
+		return fmt.Errorf("invalid value for IsOldStateGenesis {%s}", sVals[3])
+	}
+
 	return nil
 }
 
