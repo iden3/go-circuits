@@ -86,7 +86,7 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 			},
 		},
 		CRS: crs,
-		HolderClaim: ClaimWithMTPProof{
+		StateCommitmentClaim: ClaimWithMTPProof{
 			Claim: ssClaim,
 			IncProof: MTProof{
 				Proof: userClaimMtp,

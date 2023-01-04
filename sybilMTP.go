@@ -13,18 +13,18 @@ import (
 type SybilMTPInputs struct {
 	BaseConfig
 
-	ID                       *core.ID `json:"id"`
-	ProfileNonce             *big.Int `json:"profileNonce"`
-	ClaimSubjectProfileNonce *big.Int `json:"claimSubjectProfileNonce"`
+	ID                       *core.ID
+	ProfileNonce             *big.Int
+	ClaimSubjectProfileNonce *big.Int
 
-	IssuerClaim ClaimWithMTPProof `json:"issuerClaim"`
-	HolderClaim ClaimWithMTPProof `json:"holderClaim"`
+	IssuerClaim          ClaimWithMTPProof
+	StateCommitmentClaim ClaimWithMTPProof
 
-	GISTProof GISTProof `json:"gistProof"`
-	CRS       *big.Int  `json:"crs"`
+	GISTProof GISTProof
+	CRS       *big.Int
 
-	RequestID *big.Int `json:"requestID"`
-	Timestamp int64    `json:"timestamp"`
+	RequestID *big.Int
+	Timestamp int64
 }
 
 type sybilMTPCircuitInputs struct {
@@ -47,12 +47,12 @@ type sybilMTPCircuitInputs struct {
 
 	IssuerClaimSchema string `json:"issuerClaimSchema"`
 
-	HolderClaim           *core.Claim        `json:"holderClaim"`
-	HolderClaimMtp        []*merkletree.Hash `json:"holderClaimMtp"`
-	HolderClaimClaimsRoot *merkletree.Hash   `json:"holderClaimClaimsRoot"`
-	HolderClaimRevRoot    *merkletree.Hash   `json:"holderClaimRevRoot"`
-	HolderClaimRootsRoot  *merkletree.Hash   `json:"holderClaimRootsRoot"`
-	HolderClaimIdenState  *merkletree.Hash   `json:"holderClaimIdenState"`
+	StateCommitmentClaim           *core.Claim        `json:"stateCommitmentClaim"`
+	StateCommitmentClaimMtp        []*merkletree.Hash `json:"stateCommitmentClaimMtp"`
+	StateCommitmentClaimClaimsRoot *merkletree.Hash   `json:"stateCommitmentClaimClaimsRoot"`
+	StateCommitmentClaimRevRoot    *merkletree.Hash   `json:"stateCommitmentClaimRevRoot"`
+	StateCommitmentClaimRootsRoot  *merkletree.Hash   `json:"stateCommitmentClaimRootsRoot"`
+	StateCommitmentClaimIdenState  *merkletree.Hash   `json:"stateCommitmentClaimIdenState"`
 
 	GistRoot     *merkletree.Hash   `json:"gistRoot"`
 	GistMtp      []*merkletree.Hash `json:"gistMtp"`
@@ -85,7 +85,7 @@ func (s SybilMTPInputs) Validate() error {
 		return errors.New(ErrorEmptyGlobalProof)
 	}
 
-	if s.HolderClaim.Claim == nil {
+	if s.StateCommitmentClaim.Claim == nil {
 		return errors.New(ErrorEmptyGlobalProof)
 	}
 
@@ -114,20 +114,18 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 
 		IssuerClaimSchema: s.IssuerClaim.Claim.GetSchemaHash().BigInt().String(),
 
-		// claim of state-secret (Holder's claim)
-		HolderClaim:           s.HolderClaim.Claim,
-		HolderClaimMtp:        CircomSiblings(s.HolderClaim.IncProof.Proof, s.GetMTLevel()),
-		HolderClaimClaimsRoot: s.HolderClaim.IncProof.TreeState.ClaimsRoot,
-		HolderClaimRevRoot:    s.HolderClaim.IncProof.TreeState.ClaimsRoot,
-		HolderClaimRootsRoot:  s.HolderClaim.IncProof.TreeState.ClaimsRoot,
-		HolderClaimIdenState:  s.HolderClaim.IncProof.TreeState.ClaimsRoot,
+		StateCommitmentClaim:           s.StateCommitmentClaim.Claim,
+		StateCommitmentClaimMtp:        CircomSiblings(s.StateCommitmentClaim.IncProof.Proof, s.GetMTLevel()),
+		StateCommitmentClaimClaimsRoot: s.StateCommitmentClaim.IncProof.TreeState.ClaimsRoot,
+		StateCommitmentClaimRevRoot:    s.StateCommitmentClaim.IncProof.TreeState.ClaimsRoot,
+		StateCommitmentClaimRootsRoot:  s.StateCommitmentClaim.IncProof.TreeState.ClaimsRoot,
+		StateCommitmentClaimIdenState:  s.StateCommitmentClaim.IncProof.TreeState.ClaimsRoot,
 
 		GistRoot: s.GISTProof.Root,
 		GistMtp:  CircomSiblings(s.GISTProof.Proof, s.GetMTLevel()),
 
 		CRS: s.CRS,
 
-		// user data
 		UserGenesisID:            s.ID.BigInt().String(),
 		ProfileNonce:             s.ProfileNonce.String(),
 		ClaimSubjectProfileNonce: s.ClaimSubjectProfileNonce.String(),
