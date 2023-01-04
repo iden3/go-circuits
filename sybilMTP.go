@@ -34,7 +34,7 @@ type sybilMTPCircuitInputs struct {
 	IssuerClaimClaimsRoot *merkletree.Hash   `json:"issuerClaimClaimsRoot"`
 	IssuerClaimRevRoot    *merkletree.Hash   `json:"issuerClaimRevRoot"`
 	IssuerClaimRootsRoot  *merkletree.Hash   `json:"issuerClaimRootsRoot"`
-	IssuerClaimIdenState  *merkletree.Hash   `json:"IssuerClaimIdenState"`
+	IssuerClaimIdenState  *merkletree.Hash   `json:"issuerClaimIdenState"`
 
 	IssuerClaimNonRevMtp      []*merkletree.Hash `json:"issuerClaimNonRevMtp"`
 	IssuerClaimNonRevMtpNoAux string             `json:"issuerClaimNonRevMtpNoAux"`
@@ -44,7 +44,7 @@ type sybilMTPCircuitInputs struct {
 	IssuerClaimNonRevClaimsRoot *merkletree.Hash `json:"issuerClaimNonRevClaimsRoot"`
 	IssuerClaimNonRevRevRoot    *merkletree.Hash `json:"issuerClaimNonRevRevRoot"`
 	IssuerClaimNonRevRootsRoot  *merkletree.Hash `json:"issuerClaimNonRevRootsRoot"`
-	IssuerClaimNonRevState      *merkletree.Hash `json:"IssuerClaimNonRevState"`
+	IssuerClaimNonRevState      *merkletree.Hash `json:"issuerClaimNonRevState"`
 
 	IssuerClaimSchema string `json:"issuerClaimSchema"`
 
@@ -100,7 +100,7 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 
 	mtpInputs := sybilMTPCircuitInputs{
 		IssuerClaim:           s.IssuerClaim.Claim,
-		IssuerClaimMtp:        CircomSiblings(s.IssuerClaim.IncProof.Proof, s.GetMTLevel()-1),
+		IssuerClaimMtp:        CircomSiblings(s.IssuerClaim.IncProof.Proof, s.GetMTLevel()),
 		IssuerClaimClaimsRoot: s.IssuerClaim.IncProof.TreeState.ClaimsRoot,
 		IssuerClaimRevRoot:    s.IssuerClaim.IncProof.TreeState.RevocationRoot,
 		IssuerClaimRootsRoot:  s.IssuerClaim.IncProof.TreeState.RootOfRoots,
@@ -117,7 +117,7 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 
 		// claim of state-secret (Holder's claim)
 		HolderClaim:           s.HolderClaim.Claim,
-		HolderClaimMtp:        CircomSiblings(s.HolderClaim.IncProof.Proof, s.GetMTLevel()-1),
+		HolderClaimMtp:        CircomSiblings(s.HolderClaim.IncProof.Proof, s.GetMTLevel()),
 		HolderClaimClaimsRoot: s.HolderClaim.IncProof.TreeState.ClaimsRoot,
 		HolderClaimRevRoot:    s.HolderClaim.IncProof.TreeState.ClaimsRoot,
 		HolderClaimRootsRoot:  s.HolderClaim.IncProof.TreeState.ClaimsRoot,
