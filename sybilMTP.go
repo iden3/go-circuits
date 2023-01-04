@@ -193,7 +193,7 @@ func (s *SybilMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	//  9 - gistRoot
 
 	if s.UserID, err = idFromIntStr(sVals[0]); err != nil {
-		return err
+		return fmt.Errorf("invalid UserID value: '%s'", sVals[0])
 	}
 
 	var ok bool
