@@ -2,6 +2,7 @@ package circuits
 
 const (
 	ErrorEmptyAuthClaimProof             = "empty auth claim mtp proof"
+	ErrorEmptyAuthClaimInNewStateProof   = "empty auth claim in new state mtp proof"
 	ErrorEmptyAuthClaimNonRevProof       = "empty auth claim non-revocation mtp proof"
 	ErrorEmptyChallengeSignature         = "empty challenge signature"
 	ErrorEmptyClaimSignature             = "empty claim signature"
