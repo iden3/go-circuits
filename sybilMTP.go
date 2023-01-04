@@ -24,7 +24,6 @@ type SybilMTPInputs struct {
 	CRS       *big.Int  `json:"crs"`
 
 	RequestID *big.Int `json:"requestID"`
-	IssuerID  *core.ID `json:"issuerID"`
 	Timestamp int64    `json:"timestamp"`
 }
 
@@ -63,12 +62,12 @@ type sybilMTPCircuitInputs struct {
 
 	CRS *big.Int `json:"crs"`
 
-	UserGenesisID            *core.ID `json:"userGenesisID"`
-	ProfileNonce             string   `json:"profileNonce"`
-	ClaimSubjectProfileNonce string   `json:"claimSubjectProfileNonce"`
+	UserGenesisID            string `json:"userGenesisID"`
+	ProfileNonce             string `json:"profileNonce"`
+	ClaimSubjectProfileNonce string `json:"claimSubjectProfileNonce"`
 
 	RequestID *big.Int `json:"requestID"`
-	IssuerID  *core.ID `json:"issuerID"`
+	IssuerID  string   `json:"issuerID"`
 	Timestamp int64    `json:"timestamp"`
 }
 
@@ -129,7 +128,7 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 		CRS: s.CRS,
 
 		// user data
-		UserGenesisID:            s.ID,
+		UserGenesisID:            s.ID.BigInt().String(),
 		ProfileNonce:             s.ProfileNonce.String(),
 		ClaimSubjectProfileNonce: s.ClaimSubjectProfileNonce.String(),
 	}
@@ -144,7 +143,7 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 	mtpInputs.GistMtpNoAux = gistAux.noAux
 
 	mtpInputs.RequestID = s.RequestID
-	mtpInputs.IssuerID = s.IssuerID
+	mtpInputs.IssuerID = s.IssuerClaim.IssuerID.BigInt().String()
 	mtpInputs.Timestamp = s.Timestamp
 
 	return json.Marshal(mtpInputs)

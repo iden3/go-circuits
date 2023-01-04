@@ -23,7 +23,6 @@ func TestSybilMTP_PrepareInputs(t *testing.T) {
 	nonceSubject := big.NewInt(0)
 
 	requestID := new(big.Int).SetInt64(123)
-	issuerID := &issuer.ID
 	currentTimestamp := int64(1642074362)
 
 	claim := it.DefaultUserClaim(t, subjectID)
@@ -91,7 +90,6 @@ func TestSybilMTP_PrepareInputs(t *testing.T) {
 			Proof: globalProof,
 		},
 		RequestID: requestID,
-		IssuerID:  issuerID,
 		Timestamp: currentTimestamp,
 	}
 

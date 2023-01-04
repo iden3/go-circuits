@@ -24,7 +24,6 @@ type SybilSigInputs struct {
 	CRS       *big.Int  `json:"crs"`
 
 	RequestID *big.Int `json:"requestID"`
-	IssuerID  *core.ID `json:"issuerID"`
 	Timestamp int64    `json:"timestamp"`
 }
 
@@ -73,12 +72,12 @@ type sybilSigCircuitInputs struct {
 	CRS *big.Int `json:"crs"`
 
 	// user data
-	UserGenesisID            *core.ID `json:"userGenesisID"`
-	ProfileNonce             string   `json:"profileNonce"`
-	ClaimSubjectProfileNonce string   `json:"claimSubjectProfileNonce"`
+	UserGenesisID            string `json:"userGenesisID"`
+	ProfileNonce             string `json:"profileNonce"`
+	ClaimSubjectProfileNonce string `json:"claimSubjectProfileNonce"`
 
 	RequestID *big.Int `json:"requestID"`
-	IssuerID  *core.ID `json:"issuerID"`
+	IssuerID  string   `json:"issuerID"`
 	Timestamp int64    `json:"timestamp"`
 }
 
@@ -145,7 +144,7 @@ func (s SybilSigInputs) InputsMarshal() ([]byte, error) {
 
 		CRS: s.CRS,
 
-		UserGenesisID:            s.ID,
+		UserGenesisID:            s.ID.BigInt().String(),
 		ProfileNonce:             s.ProfileNonce.String(),
 		ClaimSubjectProfileNonce: s.ClaimSubjectProfileNonce.String(),
 	}
@@ -165,7 +164,7 @@ func (s SybilSigInputs) InputsMarshal() ([]byte, error) {
 	sigInputs.IssuerAuthClaimNonRevMtpAuxHv = issuerAuthAux.value
 
 	sigInputs.RequestID = s.RequestID
-	sigInputs.IssuerID = s.IssuerID
+	sigInputs.IssuerID = s.IssuerClaim.IssuerID.BigInt().String()
 	sigInputs.Timestamp = s.Timestamp
 
 	return json.Marshal(sigInputs)
