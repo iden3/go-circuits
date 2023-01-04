@@ -195,13 +195,6 @@ func (s *SybilMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	if s.UserID, err = idFromIntStr(sVals[0]); err != nil {
 		return err
 	}
-	if err != nil {
-		return err
-	}
-
-	if s.UserID, err = idFromIntStr(sVals[0]); err != nil {
-		return err
-	}
 
 	var ok bool
 	if s.SybilID, ok = big.NewInt(0).SetString(sVals[1], 10); !ok {
