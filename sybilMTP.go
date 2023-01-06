@@ -117,9 +117,9 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 		StateCommitmentClaim:           s.StateCommitmentClaim.Claim,
 		StateCommitmentClaimMtp:        CircomSiblings(s.StateCommitmentClaim.IncProof.Proof, s.GetMTLevel()),
 		StateCommitmentClaimClaimsRoot: s.StateCommitmentClaim.IncProof.TreeState.ClaimsRoot,
-		StateCommitmentClaimRevRoot:    s.StateCommitmentClaim.IncProof.TreeState.ClaimsRoot,
-		StateCommitmentClaimRootsRoot:  s.StateCommitmentClaim.IncProof.TreeState.ClaimsRoot,
-		StateCommitmentClaimIdenState:  s.StateCommitmentClaim.IncProof.TreeState.ClaimsRoot,
+		StateCommitmentClaimRevRoot:    s.StateCommitmentClaim.IncProof.TreeState.RevocationRoot,
+		StateCommitmentClaimRootsRoot:  s.StateCommitmentClaim.IncProof.TreeState.RootOfRoots,
+		StateCommitmentClaimIdenState:  s.StateCommitmentClaim.IncProof.TreeState.State,
 
 		GistRoot: s.GISTProof.Root,
 		GistMtp:  CircomSiblings(s.GISTProof.Proof, s.GetMTLevel()),
