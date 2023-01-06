@@ -130,15 +130,15 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 		ProfileNonce:             s.ProfileNonce.String(),
 		ClaimSubjectProfileNonce: s.ClaimSubjectProfileNonce.String(),
 	}
-	issuerClaimAux := GetNodeAuxValue(s.IssuerClaim.NonRevProof.Proof)
-	mtpInputs.IssuerClaimNonRevMtpNoAux = issuerClaimAux.noAux
-	mtpInputs.IssuerClaimNonRevMtpAuxHi = issuerClaimAux.key
-	mtpInputs.IssuerClaimNonRevMtpAuxHv = issuerClaimAux.value
+	nodeAuxAuth := GetNodeAuxValue(s.IssuerClaim.NonRevProof.Proof)
+	mtpInputs.IssuerClaimNonRevMtpNoAux = nodeAuxAuth.noAux
+	mtpInputs.IssuerClaimNonRevMtpAuxHi = nodeAuxAuth.key
+	mtpInputs.IssuerClaimNonRevMtpAuxHv = nodeAuxAuth.value
 
-	gistAux := GetNodeAuxValue(s.GISTProof.Proof)
-	mtpInputs.GistMtpAuxHi = gistAux.key
-	mtpInputs.GistMtpAuxHv = gistAux.value
-	mtpInputs.GistMtpNoAux = gistAux.noAux
+	globalNodeAux := GetNodeAuxValue(s.GISTProof.Proof)
+	mtpInputs.GistMtpAuxHi = globalNodeAux.key
+	mtpInputs.GistMtpAuxHv = globalNodeAux.value
+	mtpInputs.GistMtpNoAux = globalNodeAux.noAux
 
 	mtpInputs.RequestID = s.RequestID
 	mtpInputs.IssuerID = s.IssuerClaim.IssuerID.BigInt().String()
@@ -189,47 +189,68 @@ func (s *SybilMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	//  8 - crs
 	//  9 - gistRoot
 
-	if s.UserID, err = idFromIntStr(sVals[0]); err != nil {
-		return fmt.Errorf("invalid UserID value: '%s'", sVals[0])
+	fieldIdx := 0
+
+	if s.UserID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
+		return fmt.Errorf("invalid UserID value: '%s'", sVals[fieldIdx])
 	}
+
+	fieldIdx++
 
 	var ok bool
-	if s.SybilID, ok = big.NewInt(0).SetString(sVals[1], 10); !ok {
-		return fmt.Errorf("invalid SybilID value: '%s'", sVals[1])
+	if s.SybilID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid SybilID value: '%s'", sVals[fieldIdx])
 	}
 
-	if s.RequestID, ok = big.NewInt(0).SetString(sVals[2], 10); !ok {
-		return fmt.Errorf("invalid requestID value: '%s'", sVals[2])
+	fieldIdx++
+
+	if s.RequestID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid requestID value: '%s'", sVals[fieldIdx])
 	}
 
-	if s.IssuerID, err = idFromIntStr(sVals[3]); err != nil {
-		return err
+	fieldIdx++
+
+	if s.IssuerID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
+		return fmt.Errorf("invalid IssuerID value: '%s'", sVals[fieldIdx])
 	}
 
-	s.Timestamp, err = strconv.ParseInt(sVals[4], 10, 64)
+	fieldIdx++
+
+	s.Timestamp, err = strconv.ParseInt(sVals[fieldIdx], 10, 64)
 	if err != nil {
-		return err
+		return fmt.Errorf("invalid Timestamp value: '%s'", sVals[fieldIdx])
 	}
 
-	if s.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[5]); err != nil {
-		return err
+	fieldIdx++
+
+	if s.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
+		return fmt.Errorf("invalid IssuerClaimIdenState value: '%s'", sVals[fieldIdx])
 	}
-	if s.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[6]); err != nil {
-		return err
+
+	fieldIdx++
+
+	if s.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
+		return fmt.Errorf("invalid IssuerClaimNonRevState value: '%s'", sVals[fieldIdx])
 	}
+
+	fieldIdx++
 
 	var schemaInt *big.Int
-	if schemaInt, ok = big.NewInt(0).SetString(sVals[7], 10); !ok {
-		return fmt.Errorf("invalid schema value: '%s'", sVals[7])
+	if schemaInt, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid schema value: '%s'", sVals[fieldIdx])
 	}
 	s.IssuerClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
-	if s.CRS, ok = big.NewInt(0).SetString(sVals[8], 10); !ok {
-		return fmt.Errorf("invalid CRS value: '%s'", sVals[2])
+	fieldIdx++
+
+	if s.CRS, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid CRS value: '%s'", sVals[fieldIdx])
 	}
 
-	if s.GISTRoot, err = merkletree.NewHashFromString(sVals[9]); err != nil {
-		return err
+	fieldIdx++
+
+	if s.GISTRoot, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
+		return fmt.Errorf("invalid GISTRoot value: '%s'", sVals[fieldIdx])
 	}
 
 	return nil
