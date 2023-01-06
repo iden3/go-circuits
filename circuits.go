@@ -28,10 +28,10 @@ const (
 	// JsonLDAtomicQueryMTPCircuitID is a type for credentialJsonLDAtomicQueryMTP.circom
 	JsonLDAtomicQueryMTPCircuitID CircuitID = "credentialJsonLDAtomicQueryMTP"
 	// SybilMTPCircuitID is a type for sybilMTP.circom
-	SybilMTPCircuitID CircuitID = "sybilMTP"
+	SybilMTPCircuitID CircuitID = "sybilResCredentialAtomicQueryMTP"
 
 	// SybilSigCircuitID is a type for sybilSig.circom
-	SybilSigCircuitID CircuitID = "sybilSig"
+	SybilSigCircuitID CircuitID = "sybilResCredentialAtomicQuerySigV2"
 )
 
 // ErrorCircuitIDNotFound returns if CircuitID is not registered
