@@ -29,7 +29,6 @@ const (
 	JsonLDAtomicQueryMTPCircuitID CircuitID = "credentialJsonLDAtomicQueryMTP"
 	// SybilMTPCircuitID is a type for sybilMTP.circom
 	SybilMTPCircuitID CircuitID = "sybilResCredentialAtomicQueryMTP"
-
 	// SybilSigCircuitID is a type for sybilSig.circom
 	SybilSigCircuitID CircuitID = "sybilResCredentialAtomicQuerySigV2"
 )
