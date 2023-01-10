@@ -54,7 +54,7 @@ type sybilSigCircuitInputs struct {
 	IssuerClaimSignatureR8Y string `json:"issuerClaimSignatureR8y"`
 	IssuerClaimSignatureS   string `json:"issuerClaimSignatureS"`
 
-	IssuerClaimSchema string `json:"issuerClaimSchema"`
+	ClaimSchema string `json:"claimSchema"`
 
 	StateCommitmentClaim           *core.Claim        `json:"stateCommitmentClaim"`
 	StateCommitmentClaimMtp        []*merkletree.Hash `json:"stateCommitmentClaimMtp"`
@@ -130,7 +130,7 @@ func (s SybilSigInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimNonRevRootsRoot:  s.IssuerClaim.NonRevProof.TreeState.RootOfRoots,
 		IssuerClaimNonRevState:      s.IssuerClaim.NonRevProof.TreeState.State,
 
-		IssuerClaimSchema: s.IssuerClaim.Claim.GetSchemaHash().BigInt().String(),
+		ClaimSchema: s.IssuerClaim.Claim.GetSchemaHash().BigInt().String(),
 
 		StateCommitmentClaim:           s.StateCommitmentClaim.Claim,
 		StateCommitmentClaimMtp:        CircomSiblings(s.StateCommitmentClaim.IncProof.Proof, s.GetMTLevel()),
@@ -182,7 +182,7 @@ type SybilSigPubSignals struct {
 
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 
-	IssuerClaimSchema core.SchemaHash `json:"issuerClaimSchema"`
+	ClaimSchema core.SchemaHash `json:"claimSchema"`
 
 	CRS *big.Int `json:"crs"`
 
@@ -265,9 +265,9 @@ func (s *SybilSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 
 	var schemaInt *big.Int
 	if schemaInt, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid IssuerClaimSchema value: '%s'", sVals[fieldIdx])
+		return fmt.Errorf("invalid ClaimSchema value: '%s'", sVals[fieldIdx])
 	}
-	s.IssuerClaimSchema = core.NewSchemaHashFromInt(schemaInt)
+	s.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 
 	fieldIdx++
 

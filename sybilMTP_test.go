@@ -141,7 +141,7 @@ func TestSybilMTPOutputs_CircuitUnmarshal(t *testing.T) {
 		RequestID:              new(big.Int).SetInt64(123),
 		Timestamp:              1642074362,
 		UserID:                 &user.ID,
-		IssuerClaimSchema:      core.NewSchemaHashFromInt(issuerClaimSchema),
+		ClaimSchema:            core.NewSchemaHashFromInt(issuerClaimSchema),
 		SybilID:                sybilID,
 	}
 
