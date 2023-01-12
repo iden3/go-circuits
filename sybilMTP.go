@@ -122,7 +122,8 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 		StateCommitmentClaimIdenState:  s.StateCommitmentClaim.IncProof.TreeState.State,
 
 		GistRoot: s.GISTProof.Root,
-		GistMtp:  CircomSiblings(s.GISTProof.Proof, s.GetMTLevel()),
+		GistMtp: merkletree.CircomSiblingsFromSiblings(s.GISTProof.Proof.AllSiblings(),
+			s.GetMTLevelOnChain()-1),
 
 		CRS: s.CRS,
 
