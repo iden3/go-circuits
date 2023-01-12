@@ -203,16 +203,16 @@ func (s *SybilSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 
 	// expected order:
-	//	0 - userID,
-	//	1 - sybilID,
-	//	2 - issuerAuthState,
-	//	3 - requestID,
-	//	4 - issuerID,
-	//	5 - timestamp,
-	//	6 - issuerClaimNonRevState,
-	//  7 - issuerClaimSchema
-	//	8 - crs,
-	//	9 - gistRoot,
+	// 0 - userID
+	// 1 - sybilID
+	// 2 - issuerAuthState
+	// 3 - requestID
+	// 4 - issuerID
+	// 5 - timestamp
+	// 6 - issuerClaimNonRevState
+	// 7 - issuerClaimSchema
+	// 8 - crs
+	// 9 - gistRoot
 
 	fieldIdx := 0
 

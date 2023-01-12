@@ -178,16 +178,16 @@ func (s *SybilMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 
 	// expected order:
-	//	0 - userID
-	//	1 - sybilID
-	//	2 - requestID
-	//	3 - issuerID
-	//	4 - currentTimestamp
-	//	5 - issuerClaimIdenState
-	//	6 - issuerClaimNonRevState
-	//  7 - issuerClaimSchema
-	//  8 - crs
-	//  9 - gistRoot
+	// 0 - userID
+	// 1 - sybilID
+	// 2 - requestID
+	// 3 - issuerID
+	// 4 - currentTimestamp
+	// 5 - issuerClaimIdenState
+	// 6 - issuerClaimNonRevState
+	// 7 - issuerClaimSchema
+	// 8 - crs
+	// 9 - gistRoot
 
 	fieldIdx := 0
 
