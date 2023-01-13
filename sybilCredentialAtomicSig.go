@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-type SybilSigInputs struct {
+type SybilAtomicSigInputs struct {
 	BaseConfig
 
 	ID                       *core.ID
@@ -27,7 +27,7 @@ type SybilSigInputs struct {
 	Timestamp int64
 }
 
-type sybilSigCircuitInputs struct {
+type sybilAtomicSigCircuitInputs struct {
 	IssuerAuthClaim      *core.Claim        `json:"issuerAuthClaim"`
 	IssuerAuthClaimMtp   []*merkletree.Hash `json:"issuerAuthClaimMtp"`
 	IssuerAuthClaimsRoot *merkletree.Hash   `json:"issuerAuthClaimsRoot"`
@@ -81,7 +81,7 @@ type sybilSigCircuitInputs struct {
 	Timestamp int64    `json:"timestamp"`
 }
 
-func (s SybilSigInputs) Validate() error {
+func (s SybilAtomicSigInputs) Validate() error {
 	if s.ID == nil {
 		return errors.New(ErrorEmptyID)
 	}
@@ -101,12 +101,12 @@ func (s SybilSigInputs) Validate() error {
 	return nil
 }
 
-func (s SybilSigInputs) InputsMarshal() ([]byte, error) {
+func (s SybilAtomicSigInputs) InputsMarshal() ([]byte, error) {
 	if err := s.Validate(); err != nil {
 		return nil, err
 	}
 
-	sigInputs := sybilSigCircuitInputs{
+	sigInputs := sybilAtomicSigCircuitInputs{
 		IssuerAuthClaim: s.IssuerClaim.SignatureProof.IssuerAuthClaim,
 		IssuerAuthClaimMtp: CircomSiblings(s.IssuerClaim.SignatureProof.IssuerAuthIncProof.Proof,
 			s.GetMTLevel()),
@@ -170,7 +170,7 @@ func (s SybilSigInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(sigInputs)
 }
 
-type SybilSigPubSignals struct {
+type SybilAtomicSigPubSignals struct {
 	BaseConfig
 
 	SybilID *big.Int `json:"sybilID"`
@@ -191,7 +191,7 @@ type SybilSigPubSignals struct {
 	IssuerAuthState *merkletree.Hash `json:"issuerAuthState"`
 }
 
-func (s *SybilSigPubSignals) PubSignalsUnmarshal(data []byte) error {
+func (s *SybilAtomicSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
@@ -284,6 +284,6 @@ func (s *SybilSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	return nil
 }
 
-func (s SybilSigPubSignals) GetObjMap() map[string]interface{} {
+func (s SybilAtomicSigPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(s)
 }

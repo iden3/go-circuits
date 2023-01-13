@@ -93,13 +93,13 @@ func init() {
 	})
 
 	RegisterCircuit(SybilMTPCircuitID, Data{
-		Input:  SybilMTPInputs{},
-		Output: &SybilMTPPubSignals{},
+		Input:  SybilAtomicMTPInputs{},
+		Output: &SybilAtomicMTPPubSignals{},
 	})
 
 	RegisterCircuit(SybilSigCircuitID, Data{
-		Input:  SybilSigInputs{},
-		Output: &SybilSigPubSignals{},
+		Input:  SybilAtomicSigInputs{},
+		Output: &SybilAtomicSigPubSignals{},
 	})
 }
 

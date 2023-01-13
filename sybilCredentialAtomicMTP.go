@@ -10,7 +10,7 @@ import (
 	"strconv"
 )
 
-type SybilMTPInputs struct {
+type SybilAtomicMTPInputs struct {
 	BaseConfig
 
 	ID                       *core.ID
@@ -27,7 +27,7 @@ type SybilMTPInputs struct {
 	Timestamp int64
 }
 
-type sybilMTPCircuitInputs struct {
+type sybilAtomicMTPCircuitInputs struct {
 	IssuerClaim           *core.Claim        `json:"issuerClaim"`
 	IssuerClaimMtp        []*merkletree.Hash `json:"issuerClaimMtp"`
 	IssuerClaimClaimsRoot *merkletree.Hash   `json:"issuerClaimClaimsRoot"`
@@ -71,7 +71,7 @@ type sybilMTPCircuitInputs struct {
 	Timestamp int64    `json:"timestamp"`
 }
 
-func (s SybilMTPInputs) Validate() error {
+func (s SybilAtomicMTPInputs) Validate() error {
 
 	if s.ID == nil {
 		return errors.New(ErrorEmptyID)
@@ -92,12 +92,12 @@ func (s SybilMTPInputs) Validate() error {
 	return nil
 }
 
-func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
+func (s SybilAtomicMTPInputs) InputsMarshal() ([]byte, error) {
 	if err := s.Validate(); err != nil {
 		return nil, err
 	}
 
-	mtpInputs := sybilMTPCircuitInputs{
+	mtpInputs := sybilAtomicMTPCircuitInputs{
 		IssuerClaim:           s.IssuerClaim.Claim,
 		IssuerClaimMtp:        CircomSiblings(s.IssuerClaim.IncProof.Proof, s.GetMTLevel()),
 		IssuerClaimClaimsRoot: s.IssuerClaim.IncProof.TreeState.ClaimsRoot,
@@ -148,7 +148,7 @@ func (s SybilMTPInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(mtpInputs)
 }
 
-type SybilMTPPubSignals struct {
+type SybilAtomicMTPPubSignals struct {
 	BaseConfig
 
 	SybilID *big.Int `json:"sybilID"`
@@ -167,7 +167,7 @@ type SybilMTPPubSignals struct {
 	GISTRoot *merkletree.Hash `json:"gistRoot"`
 }
 
-func (s *SybilMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
+func (s *SybilAtomicMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
@@ -257,6 +257,6 @@ func (s *SybilMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	return nil
 }
 
-func (s SybilMTPPubSignals) GetObjMap() map[string]interface{} {
+func (s SybilAtomicMTPPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(s)
 }
