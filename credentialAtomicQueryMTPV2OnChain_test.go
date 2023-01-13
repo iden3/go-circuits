@@ -35,6 +35,7 @@ func TestAttrQueryMTPV2OnChain_PrepareInputs(t *testing.T) {
 	require.NoError(t, err)
 
 	signature, err := user.SignBBJJ(challenge.Bytes())
+	require.NoError(t, err)
 	issuer := it.NewIdentity(t, issuerPK)
 
 	subjectID := user.ID

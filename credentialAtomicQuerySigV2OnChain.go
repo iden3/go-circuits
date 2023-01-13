@@ -440,7 +440,6 @@ func (ao *AtomicQuerySigV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) er
 	if ao.Operator, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
 		return err
 	}
-	fieldIdx++
 
 	return nil
 }

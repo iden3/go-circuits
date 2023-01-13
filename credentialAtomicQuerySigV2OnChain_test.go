@@ -46,6 +46,7 @@ func TestAttrQuerySigV2OnChain_PrepareInputs(t *testing.T) {
 	require.NoError(t, err)
 	challenge := big.NewInt(10)
 	signature, err := user.SignBBJJ(challenge.Bytes())
+	require.NoError(t, err)
 
 	in := AtomicQuerySigV2OnChainInputs{
 		RequestID:                big.NewInt(23),
