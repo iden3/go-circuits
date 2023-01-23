@@ -8,6 +8,8 @@ const (
 	ErrorEmptyClaimProof                 = "empty claim mtp proof"
 	ErrorEmptyClaimNonRevProof           = "empty claim non-revocation mtp proof"
 	ErrorEmptyIssuerAuthClaimProof       = "empty issuer auth claim mtp proof"
+	ErrorEmptyIssuerClaim                = "empty issuer claim"
+	ErrorEmptyStateCommitmentClaim       = "empty state commitment claim"
 	ErrorEmptyIssuerAuthClaimNonRevProof = "empty issuer auth claim non-revocation mtp proof"
 	ErrorEmptyJsonLDQueryProof           = "empty JSON-LD query mtp proof"
 	ErrorEmptyJsonLDQueryValue           = "empty JSON-LD query value"
@@ -16,6 +18,6 @@ const (
 	ErrorEmptyJsonLDQueryValues          = "empty JSON-LD query values"
 	ErrorEmptyID                         = "empty ID"
 	ErrorEmptyChallenge                  = "empty challenge"
-	ErrorEmptyGlobalProof                = "empty global identity mtp proof"
+	ErrorEmptyGISTProof                  = "empty GIST identity mtp proof"
 	ErrorEmptyRequestID                  = "empty request ID"
 )
