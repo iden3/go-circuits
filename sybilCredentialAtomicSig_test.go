@@ -35,15 +35,15 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 	issuerAuthClaimMtp, _ := issuer.ClaimMTPRaw(t, issuer.AuthClaim)
 
 	crs := new(big.Int).SetInt64(1234)
-	ssClaim := it.UserStateSecretClaim(t, new(big.Int).SetInt64(5555))
-	user.AddClaim(t, ssClaim)
-	userClaimMtp, _ := user.ClaimMTPRaw(t, ssClaim)
+	commClaim := it.UserStateCommitmentClaim(t, new(big.Int).SetInt64(5555))
+	user.AddClaim(t, commClaim)
+	userClaimMtp, _ := user.ClaimMTPRaw(t, commClaim)
 
-	gTree := it.GlobalTree(context.Background())
+	gTree := it.GISTTree(context.Background())
 	err := gTree.Add(context.Background(), user.ID.BigInt(), user.State(t).BigInt())
 	require.NoError(t, err)
 
-	globalProof, _, err := gTree.GenerateProof(context.Background(), user.ID.BigInt(), nil)
+	gistProof, _, err := gTree.GenerateProof(context.Background(), user.ID.BigInt(), nil)
 	require.NoError(t, err)
 
 	in := SybilAtomicSigInputs{
@@ -87,7 +87,7 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 		},
 		CRS: crs,
 		StateCommitmentClaim: ClaimWithMTPProof{
-			Claim: ssClaim,
+			Claim: commClaim,
 			IncProof: MTProof{
 				Proof: userClaimMtp,
 				TreeState: TreeState{
@@ -101,7 +101,7 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 		},
 		GISTProof: GISTProof{
 			Root:  gTree.Root(),
-			Proof: globalProof,
+			Proof: gistProof,
 		},
 		RequestID: requestID,
 		Timestamp: currentTimestamp,

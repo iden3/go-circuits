@@ -78,15 +78,15 @@ func (s SybilAtomicMTPInputs) Validate() error {
 	}
 
 	if s.GISTProof.Proof == nil {
-		return errors.New(ErrorEmptyGlobalProof)
+		return errors.New(ErrorEmptyGISTProof)
 	}
 
 	if s.IssuerClaim.Claim == nil {
-		return errors.New(ErrorEmptyGlobalProof)
+		return errors.New(ErrorEmptyIssuerClaim)
 	}
 
 	if s.StateCommitmentClaim.Claim == nil {
-		return errors.New(ErrorEmptyGlobalProof)
+		return errors.New(ErrorEmptyStateCommitmentClaim)
 	}
 
 	return nil
@@ -136,10 +136,10 @@ func (s SybilAtomicMTPInputs) InputsMarshal() ([]byte, error) {
 	mtpInputs.IssuerClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	mtpInputs.IssuerClaimNonRevMtpAuxHv = nodeAuxAuth.value
 
-	globalNodeAux := GetNodeAuxValue(s.GISTProof.Proof)
-	mtpInputs.GistMtpAuxHi = globalNodeAux.key
-	mtpInputs.GistMtpAuxHv = globalNodeAux.value
-	mtpInputs.GistMtpNoAux = globalNodeAux.noAux
+	gistNodeAux := GetNodeAuxValue(s.GISTProof.Proof)
+	mtpInputs.GistMtpAuxHi = gistNodeAux.key
+	mtpInputs.GistMtpAuxHv = gistNodeAux.value
+	mtpInputs.GistMtpNoAux = gistNodeAux.noAux
 
 	mtpInputs.RequestID = s.RequestID
 	mtpInputs.IssuerID = s.IssuerClaim.IssuerID.BigInt().String()

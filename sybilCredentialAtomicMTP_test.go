@@ -34,15 +34,15 @@ func TestSybilMTP_PrepareInputs(t *testing.T) {
 	issuerClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, claim)
 
 	crs := new(big.Int).SetInt64(1234)
-	ssClaim := it.UserStateSecretClaim(t, new(big.Int).SetInt64(5555))
+	ssClaim := it.UserStateCommitmentClaim(t, new(big.Int).SetInt64(5555))
 	user.AddClaim(t, ssClaim)
 	userClaimMtp, _ := user.ClaimMTPRaw(t, ssClaim)
 
-	gTree := it.GlobalTree(context.Background())
+	gTree := it.GISTTree(context.Background())
 	err := gTree.Add(context.Background(), user.ID.BigInt(), user.State(t).BigInt())
 	require.NoError(t, err)
 
-	globalProof, _, err := gTree.GenerateProof(context.Background(), user.ID.BigInt(), nil)
+	gistProof, _, err := gTree.GenerateProof(context.Background(), user.ID.BigInt(), nil)
 	require.NoError(t, err)
 
 	in := SybilAtomicMTPInputs{
@@ -87,7 +87,7 @@ func TestSybilMTP_PrepareInputs(t *testing.T) {
 		},
 		GISTProof: GISTProof{
 			Root:  gTree.Root(),
-			Proof: globalProof,
+			Proof: gistProof,
 		},
 		RequestID: requestID,
 		Timestamp: currentTimestamp,

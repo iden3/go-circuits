@@ -87,15 +87,15 @@ func (s SybilAtomicSigInputs) Validate() error {
 	}
 
 	if s.GISTProof.Proof == nil {
-		return errors.New(ErrorEmptyGlobalProof)
+		return errors.New(ErrorEmptyGISTProof)
 	}
 
 	if s.IssuerClaim.Claim == nil {
-		return errors.New(ErrorEmptyGlobalProof)
+		return errors.New(ErrorEmptyGISTProof)
 	}
 
 	if s.StateCommitmentClaim.Claim == nil {
-		return errors.New(ErrorEmptyGlobalProof)
+		return errors.New(ErrorEmptyGISTProof)
 	}
 
 	return nil
@@ -153,10 +153,10 @@ func (s SybilAtomicSigInputs) InputsMarshal() ([]byte, error) {
 	sigInputs.IssuerClaimNonRevMtpAuxHi = nodeAuxAuth.key
 	sigInputs.IssuerClaimNonRevMtpAuxHv = nodeAuxAuth.value
 
-	globalNodeAux := GetNodeAuxValue(s.GISTProof.Proof)
-	sigInputs.GistMtpAuxHi = globalNodeAux.key
-	sigInputs.GistMtpAuxHv = globalNodeAux.value
-	sigInputs.GistMtpNoAux = globalNodeAux.noAux
+	gistNodeAux := GetNodeAuxValue(s.GISTProof.Proof)
+	sigInputs.GistMtpAuxHi = gistNodeAux.key
+	sigInputs.GistMtpAuxHv = gistNodeAux.value
+	sigInputs.GistMtpNoAux = gistNodeAux.noAux
 
 	issuerAuthAux := GetNodeAuxValue(s.IssuerClaim.SignatureProof.IssuerAuthNonRevProof.Proof)
 	sigInputs.IssuerAuthClaimNonRevMtpNoAux = issuerAuthAux.noAux

@@ -160,13 +160,13 @@ func claimsIndexValueHashes(c core.Claim) (*big.Int, *big.Int, error) {
 	return indexHash, valueHash, err
 }
 
-func GlobalTree(ctx context.Context) *merkletree.MerkleTree {
+func GISTTree(ctx context.Context) *merkletree.MerkleTree {
 	// init global tree
-	globalTree, err := merkletree.NewMerkleTree(ctx, memory.NewMemoryStorage(), 32)
+	gistTree, err := merkletree.NewMerkleTree(ctx, memory.NewMemoryStorage(), 32)
 	if err != nil {
 		panic(err)
 	}
-	return globalTree
+	return gistTree
 }
 
 type IdentityTest struct {
