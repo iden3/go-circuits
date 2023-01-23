@@ -161,7 +161,7 @@ func claimsIndexValueHashes(c core.Claim) (*big.Int, *big.Int, error) {
 }
 
 func GISTTree(ctx context.Context) *merkletree.MerkleTree {
-	// init global tree
+	// init GIST
 	gistTree, err := merkletree.NewMerkleTree(ctx, memory.NewMemoryStorage(), 32)
 	if err != nil {
 		panic(err)

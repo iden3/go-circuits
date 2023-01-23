@@ -24,7 +24,7 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 
 	user2 := it.NewIdentity(t, issuerPK)
 
-	// generate global tree
+	// generate gist tree
 	gTree := it.GISTTree(ctx)
 
 	err := gTree.Add(ctx, user2.ID.BigInt(), user2.State(t).BigInt())
