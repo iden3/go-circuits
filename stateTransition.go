@@ -17,12 +17,13 @@ type StateTransitionInputs struct {
 	ID *core.ID
 
 	OldTreeState      TreeState
-	NewState          *merkletree.Hash
+	NewTreeState      TreeState
 	IsOldStateGenesis bool
 
-	AuthClaim          *core.Claim       `json:"claim"`
-	AuthClaimIncMtp    *merkletree.Proof `json:"authClaimIncMtp"`
-	AuthClaimNonRevMtp *merkletree.Proof `json:"authClaimNonRevMtp"`
+	AuthClaim               *core.Claim       `json:"claim"`
+	AuthClaimIncMtp         *merkletree.Proof `json:"authClaimIncMtp"`
+	AuthClaimNonRevMtp      *merkletree.Proof `json:"authClaimNonRevMtp"`
+	AuthClaimNewStateIncMtp *merkletree.Proof `json:"authClaimNewStateIncMtp"`
 
 	Signature *babyjub.Signature
 }
@@ -45,13 +46,21 @@ type stateTransitionInputsInternal struct {
 	SignatureR8X            string           `json:"signatureR8x"`
 	SignatureR8Y            string           `json:"signatureR8y"`
 	SignatureS              string           `json:"signatureS"`
+	NewAuthClaimMtp         []string         `json:"newAuthClaimMtp"`
+	NewClaimsTreeRoot       *merkletree.Hash `json:"newClaimsTreeRoot"`
+	NewRevTreeRoot          *merkletree.Hash `json:"newRevTreeRoot"`
+	NewRootsTreeRoot        *merkletree.Hash `json:"newRootsTreeRoot"`
 }
 
-// CircuitInputMarshal returns Circom private inputs for stateTransition.circom
+// InputsMarshal returns Circom private inputs for stateTransition.circom
 func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 
 	if c.AuthClaimIncMtp == nil {
 		return nil, errors.New(ErrorEmptyAuthClaimProof)
+	}
+
+	if c.AuthClaimNewStateIncMtp == nil {
+		return nil, errors.New(ErrorEmptyAuthClaimInNewStateProof)
 	}
 
 	if c.AuthClaimNonRevMtp == nil {
@@ -63,7 +72,7 @@ func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 		AuthClaimMtp:       PrepareSiblingsStr(c.AuthClaimIncMtp.AllSiblings(), c.GetMTLevel()),
 		AuthClaimNonRevMtp: PrepareSiblingsStr(c.AuthClaimNonRevMtp.AllSiblings(), c.GetMTLevel()),
 		UserID:             c.ID.BigInt().String(),
-		NewIdState:         c.NewState,
+		NewIdState:         c.NewTreeState.State,
 		ClaimsTreeRoot:     c.OldTreeState.ClaimsRoot,
 		OldIdState:         c.OldTreeState.State,
 		RevTreeRoot:        c.OldTreeState.RevocationRoot,
@@ -71,6 +80,10 @@ func (c StateTransitionInputs) InputsMarshal() ([]byte, error) {
 		SignatureR8X:       c.Signature.R8.X.String(),
 		SignatureR8Y:       c.Signature.R8.Y.String(),
 		SignatureS:         c.Signature.S.String(),
+		NewAuthClaimMtp:    PrepareSiblingsStr(c.AuthClaimNewStateIncMtp.AllSiblings(), c.GetMTLevel()),
+		NewClaimsTreeRoot:  c.NewTreeState.ClaimsRoot,
+		NewRevTreeRoot:     c.NewTreeState.RevocationRoot,
+		NewRootsTreeRoot:   c.NewTreeState.RootOfRoots,
 	}
 
 	if c.IsOldStateGenesis {
