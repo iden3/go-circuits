@@ -80,7 +80,7 @@ func (a AuthV2Inputs) Validate() error {
 	}
 
 	if a.GISTProof.Proof == nil {
-		return errors.New(ErrorEmptyGlobalProof)
+		return errors.New(ErrorEmptyGISTProof)
 	}
 
 	if a.Signature == nil {
@@ -127,19 +127,19 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 	s.AuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
 	s.AuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
-	globalNodeAux := GetNodeAuxValue(a.GISTProof.Proof)
-	s.GISTMtpAuxHi = globalNodeAux.key
-	s.GISTMtpAuxHv = globalNodeAux.value
-	s.GISTMtpNoAux = globalNodeAux.noAux
+	gistNodeAux := GetNodeAuxValue(a.GISTProof.Proof)
+	s.GISTMtpAuxHi = gistNodeAux.key
+	s.GISTMtpAuxHv = gistNodeAux.value
+	s.GISTMtpNoAux = gistNodeAux.noAux
 
 	return json.Marshal(s)
 }
 
 // AuthV2PubSignals auth.circom public signals
 type AuthV2PubSignals struct {
-	UserID     *core.ID         `json:"userID"`
-	Challenge  *big.Int         `json:"challenge"`
-	GlobalRoot *merkletree.Hash `json:"GISTRoot"`
+	UserID    *core.ID         `json:"userID"`
+	Challenge *big.Int         `json:"challenge"`
+	GISTRoot  *merkletree.Hash `json:"GISTRoot"`
 }
 
 // PubSignalsUnmarshal unmarshal auth.circom public inputs to AuthPubSignals
@@ -163,7 +163,7 @@ func (a *AuthV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid challenge value: '%s'", sVals[0])
 	}
 
-	if a.GlobalRoot, err = merkletree.NewHashFromString(sVals[2]); err != nil {
+	if a.GISTRoot, err = merkletree.NewHashFromString(sVals[2]); err != nil {
 		return err
 	}
 

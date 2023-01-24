@@ -24,14 +24,14 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 
 	user2 := it.NewIdentity(t, issuerPK)
 
-	// generate global tree
-	gTree := it.GlobalTree(ctx)
+	// generate gist tree
+	gTree := it.GISTTree(ctx)
 
 	err := gTree.Add(ctx, user2.ID.BigInt(), user2.State(t).BigInt())
 	require.NoError(t, err)
 
 	// prepare inputs
-	globalProof, _, err := gTree.GenerateProof(ctx, user.ID.BigInt(), nil)
+	gistProof, _, err := gTree.GenerateProof(ctx, user.ID.BigInt(), nil)
 	require.NoError(t, err)
 
 	authClaimIncMTP, _ := user.ClaimMTPRaw(t, user.AuthClaim)
@@ -51,7 +51,7 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 		TreeState:          GetTreeState(t, user),
 		GISTProof: GISTProof{
 			Root:  gTree.Root(),
-			Proof: globalProof,
+			Proof: gistProof,
 		},
 		Signature: signature,
 		Challenge: challenge,
@@ -159,7 +159,7 @@ func TestAuthV2Circuit_CircuitUnmarshal(t *testing.T) {
 	err = ao.PubSignalsUnmarshal(bytesOut)
 	assert.NoError(t, err)
 	assert.Equal(t, challenge, ao.Challenge)
-	assert.Equal(t, state, ao.GlobalRoot)
+	assert.Equal(t, state, ao.GISTRoot)
 	assert.Equal(t, &identifier, ao.UserID)
 }
 
