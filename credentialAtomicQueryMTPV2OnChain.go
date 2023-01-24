@@ -135,7 +135,7 @@ func (a AtomicQueryMTPV2OnChainInputs) Validate() error {
 	}
 
 	if a.GISTProof.Proof == nil {
-		return errors.New(ErrorEmptyGlobalProof)
+		return errors.New(ErrorEmptyGISTProof)
 	}
 
 	if a.Signature == nil {

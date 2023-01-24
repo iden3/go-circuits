@@ -31,6 +31,10 @@ const (
 	AtomicQuerySigV2OnChainCircuitID CircuitID = "credentialAtomicQuerySigV2OnChain"
 	// JsonLDAtomicQueryMTPCircuitID is a type for credentialJsonLDAtomicQueryMTP.circom
 	JsonLDAtomicQueryMTPCircuitID CircuitID = "credentialJsonLDAtomicQueryMTP"
+	// SybilMTPCircuitID is a type for sybilMTP.circom
+	SybilMTPCircuitID CircuitID = "sybilCredentialAtomicMTP"
+	// SybilSigCircuitID is a type for sybilSig.circom
+	SybilSigCircuitID CircuitID = "sybilCredentialAtomicSig"
 )
 
 // ErrorCircuitIDNotFound returns if CircuitID is not registered
@@ -100,6 +104,16 @@ func init() {
 	RegisterCircuit(AtomicQueryMTPV2OnChainCircuitID, Data{
 		Input:  AtomicQueryMTPV2OnChainInputs{},
 		Output: &AtomicQueryMTPV2OnChainPubSignals{},
+	})
+
+	RegisterCircuit(SybilMTPCircuitID, Data{
+		Input:  SybilAtomicMTPInputs{},
+		Output: &SybilAtomicMTPPubSignals{},
+	})
+
+	RegisterCircuit(SybilSigCircuitID, Data{
+		Input:  SybilAtomicSigInputs{},
+		Output: &SybilAtomicSigPubSignals{},
 	})
 }
 

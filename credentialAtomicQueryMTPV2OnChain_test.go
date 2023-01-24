@@ -20,7 +20,7 @@ func TestAttrQueryMTPV2OnChain_PrepareInputs(t *testing.T) {
 	user2 := it.NewIdentity(t, issuerPK)
 
 	// generate global tree
-	gTree := it.GlobalTree(context.Background())
+	gTree := it.GISTTree(context.Background())
 
 	err := gTree.Add(context.Background(), user2.ID.BigInt(), user2.State(t).BigInt())
 	require.NoError(t, err)

@@ -32,7 +32,7 @@ func TestAttrQuerySigV2OnChain_PrepareInputs(t *testing.T) {
 	issuerAuthClaimMtp, _ := issuer.ClaimMTPRaw(t, issuer.AuthClaim)
 
 	// generate global tree
-	gTree := it.GlobalTree(context.Background())
+	gTree := it.GISTTree(context.Background())
 
 	err := gTree.Add(context.Background(), issuer.ID.BigInt(), issuer.State(t).BigInt())
 	require.NoError(t, err)
