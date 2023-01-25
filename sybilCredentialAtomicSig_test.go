@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	it "github.com/iden3/go-circuits/testing"
 	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"math/big"
@@ -35,14 +34,17 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 	issuerAuthClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, issuer.AuthClaim)
 	issuerAuthClaimMtp, _ := issuer.ClaimMTPRaw(t, issuer.AuthClaim)
 
-	crs, err := merkletree.NewHashFromString("249532670194878832589534456260980839355904887861263878269048090946773573111")
-	require.NoError(t, err)
+	crs, ok := new(big.Int).SetString("249532670194878832589534456260980839355904887861263878269048090946773573111", 10)
+	if ok == false {
+		t.Fatal("failed to set crs")
+	}
+
 	commClaim := it.UserStateCommitmentClaim(t, new(big.Int).SetInt64(5555))
 	user.AddClaim(t, commClaim)
 	userClaimMtp, _ := user.ClaimMTPRaw(t, commClaim)
 
 	gTree := it.GISTTree(context.Background())
-	err = gTree.Add(context.Background(), user.ID.BigInt(), user.State(t).BigInt())
+	err := gTree.Add(context.Background(), user.ID.BigInt(), user.State(t).BigInt())
 	require.NoError(t, err)
 
 	gistProof, _, err := gTree.GenerateProof(context.Background(), user.ID.BigInt(), nil)
@@ -149,9 +151,14 @@ func TestSybilSigOutputs_CircuitUnmarshal(t *testing.T) {
 		t.Fatalf("new(big.Int).SetString has faild")
 	}
 
+	crs, ok := new(big.Int).SetString("249532670194878832589534456260980839355904887861263878269048090946773573111", 10)
+	if ok == false {
+		t.Fatal("failed to set crs")
+	}
+
 	exp := SybilAtomicSigPubSignals{
 		IssuerClaimNonRevState: it.MTHashFromStr(t, "20177832565449474772630743317224985532862797657496372535616634430055981993180"),
-		CRS:                    it.MTHashFromStr(t, "249532670194878832589534456260980839355904887861263878269048090946773573111"),
+		CRS:                    crs,
 		GISTRoot:               it.MTHashFromStr(t, "12237249731937050748239754514110031073443409881058925518681107238397055045148"),
 		IssuerID:               &issuer.ID,
 		RequestID:              new(big.Int).SetInt64(123),

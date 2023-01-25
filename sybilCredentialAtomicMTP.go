@@ -21,7 +21,7 @@ type SybilAtomicMTPInputs struct {
 	StateCommitmentClaim ClaimWithMTPProof
 
 	GISTProof GISTProof
-	CRS       *merkletree.Hash
+	CRS       *big.Int
 
 	RequestID *big.Int
 	Timestamp int64
@@ -60,7 +60,7 @@ type sybilAtomicMTPCircuitInputs struct {
 	GistMtpAuxHv *merkletree.Hash   `json:"gistMtpAuxHv"`
 	GistMtpNoAux string             `json:"gistMtpNoAux"`
 
-	CRS *merkletree.Hash `json:"crs"`
+	CRS string `json:"crs"`
 
 	UserGenesisID            string `json:"userGenesisID"`
 	ProfileNonce             string `json:"profileNonce"`
@@ -125,7 +125,7 @@ func (s SybilAtomicMTPInputs) InputsMarshal() ([]byte, error) {
 		GistMtp: merkletree.CircomSiblingsFromSiblings(s.GISTProof.Proof.AllSiblings(),
 			s.GetMTLevelOnChain()-1),
 
-		CRS: s.CRS,
+		CRS: s.CRS.String(),
 
 		UserGenesisID:            s.ID.BigInt().String(),
 		ProfileNonce:             s.ProfileNonce.String(),
@@ -162,7 +162,7 @@ type SybilAtomicMTPPubSignals struct {
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 	ClaimSchema            core.SchemaHash  `json:"claimSchema"`
 
-	CRS *merkletree.Hash `json:"crs"`
+	CRS *big.Int `json:"crs"`
 
 	GISTRoot *merkletree.Hash `json:"gistRoot"`
 }
@@ -221,8 +221,8 @@ func (s *SybilAtomicMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	fieldIdx++
 
 	//crs
-	if s.CRS, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
-		return fmt.Errorf("invalid CRS value: '%s'", sVals[fieldIdx])
+	if s.CRS, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid schema value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
