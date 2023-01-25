@@ -179,34 +179,40 @@ func (s *SybilAtomicMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 
 	// expected order:
+	// 0 - userID
+	// 1 - sybilID
+	// 2 - issuerClaimIdenState
+	// 3 - issuerClaimNonRevState
+	// 4 - claimSchema
+	// 5 - gistRoot
+	// 6 - crs
+	// 7 - requestID
+	// 8 - issuerID
+	// 9 - timestamp
+
 	fieldIdx := 0
 
-	//userID
 	if s.UserID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid UserID value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
-	//sybilID
 	var ok bool
 	if s.SybilID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid SybilID value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
-	//issuerClaimIdenState
 	if s.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid IssuerClaimIdenState value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
-	//issuerClaimNonRevState
 	if s.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid IssuerClaimNonRevState value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
-	//claimSchema
 	var schemaInt *big.Int
 	if schemaInt, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[fieldIdx])
@@ -214,31 +220,26 @@ func (s *SybilAtomicMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	s.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 	fieldIdx++
 
-	//gistRoot
 	if s.GISTRoot, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid GISTRoot value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
-	//crs
 	if s.CRS, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
-	//requestID
 	if s.RequestID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid requestID value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
-	//issuerID
 	if s.IssuerID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid IssuerID value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
-	//timestamp
 	s.Timestamp, err = strconv.ParseInt(sVals[fieldIdx], 10, 64)
 	if err != nil {
 		return fmt.Errorf("invalid Timestamp value: '%s'", sVals[fieldIdx])
