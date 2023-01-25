@@ -33,10 +33,14 @@ func TestSybilMTP_PrepareInputs(t *testing.T) {
 
 	issuerClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, claim)
 
-	crs := new(big.Int).SetInt64(1234)
-	ssClaim := it.UserStateCommitmentClaim(t, new(big.Int).SetInt64(5555))
-	user.AddClaim(t, ssClaim)
-	userClaimMtp, _ := user.ClaimMTPRaw(t, ssClaim)
+	crs, ok := new(big.Int).SetString("249532670194878832589534456260980839355904887861263878269048090946773573111", 10)
+	if ok == false {
+		t.Fatal("failed to set crs")
+	}
+
+	commClaim := it.UserStateCommitmentClaim(t, new(big.Int).SetInt64(5555))
+	user.AddClaim(t, commClaim)
+	userClaimMtp, _ := user.ClaimMTPRaw(t, commClaim)
 
 	gTree := it.GISTTree(context.Background())
 	err := gTree.Add(context.Background(), user.ID.BigInt(), user.State(t).BigInt())
@@ -73,7 +77,7 @@ func TestSybilMTP_PrepareInputs(t *testing.T) {
 		},
 		CRS: crs,
 		StateCommitmentClaim: ClaimWithMTPProof{
-			Claim: ssClaim,
+			Claim: commClaim,
 			IncProof: MTProof{
 				Proof: userClaimMtp,
 				TreeState: TreeState{
@@ -104,17 +108,18 @@ func TestSybilMTP_PrepareInputs(t *testing.T) {
 
 func TestSybilMTPOutputs_CircuitUnmarshal(t *testing.T) {
 	out := new(SybilAtomicMTPPubSignals)
+
 	err := out.PubSignalsUnmarshal([]byte(`[
 		 "26109404700696283154998654512117952420503675471097392618762221546565140481",
 		 "223724973193705074823975451411003107344340988105892551868110723839705504514",
-		 "123",
-		 "27918766665310231445021466320959318414450284884582375163563581940319453185",
-	     "1642074362",
 		 "19157496396839393206871475267813888069926627705277243727237933406423274512449",
 		 "19157496396839393206871475267813888069926627705277243727237933406423274512449",
 		 "180410020913331409885634153623124536270",
-		 "1234",
-		 "12237249731937050748239754514110031073443409881058925518681107238397055045148"
+		 "12237249731937050748239754514110031073443409881058925518681107238397055045148",
+		 "249532670194878832589534456260980839355904887861263878269048090946773573111",
+		 "123",
+		 "27918766665310231445021466320959318414450284884582375163563581940319453185",
+	     "1642074362"
 	]`))
 	require.NoError(t, err)
 
@@ -132,9 +137,14 @@ func TestSybilMTPOutputs_CircuitUnmarshal(t *testing.T) {
 		t.Fatalf("new(big.Int).SetString has faild")
 	}
 
+	crs, ok := new(big.Int).SetString("249532670194878832589534456260980839355904887861263878269048090946773573111", 10)
+	if ok == false {
+		t.Fatal("failed to set crs")
+	}
+
 	exp := SybilAtomicMTPPubSignals{
 		IssuerClaimNonRevState: it.MTHashFromStr(t, "19157496396839393206871475267813888069926627705277243727237933406423274512449"),
-		CRS:                    new(big.Int).SetInt64(1234),
+		CRS:                    crs,
 		GISTRoot:               it.MTHashFromStr(t, "12237249731937050748239754514110031073443409881058925518681107238397055045148"),
 		IssuerClaimIdenState:   it.MTHashFromStr(t, "19157496396839393206871475267813888069926627705277243727237933406423274512449"),
 		IssuerID:               &issuer.ID,

@@ -69,7 +69,7 @@ type sybilAtomicSigCircuitInputs struct {
 	GistMtpAuxHv *merkletree.Hash   `json:"gistMtpAuxHv"`
 	GistMtpNoAux string             `json:"gistMtpNoAux"`
 
-	CRS *big.Int `json:"crs"`
+	CRS string `json:"crs"`
 
 	// user data
 	UserGenesisID            string `json:"userGenesisID"`
@@ -142,7 +142,7 @@ func (s SybilAtomicSigInputs) InputsMarshal() ([]byte, error) {
 		GistRoot: s.GISTProof.Root,
 		GistMtp:  CircomSiblings(s.GISTProof.Proof, s.GetMTLevel()),
 
-		CRS: s.CRS,
+		CRS: s.CRS.String(),
 
 		UserGenesisID:            s.ID.BigInt().String(),
 		ProfileNonce:             s.ProfileNonce.String(),
@@ -203,18 +203,29 @@ func (s *SybilAtomicSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 
 	// expected order:
-	// 0 - userID
+	// 0 - issuerAuthState
 	// 1 - sybilID
-	// 2 - issuerAuthState
-	// 3 - requestID
-	// 4 - issuerID
-	// 5 - timestamp
-	// 6 - issuerClaimNonRevState
-	// 7 - issuerClaimSchema
-	// 8 - crs
-	// 9 - gistRoot
+	// 2 - userID
+	// 3 - issuerClaimNonRevState
+	// 4 - claimSchema
+	// 5 - gistRoot
+	// 6 - crs
+	// 7 - requestID
+	// 8 - issuerID
+	// 9 - timestamp
 
 	fieldIdx := 0
+
+	if s.IssuerAuthState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
+		return fmt.Errorf("invalid IssuerAuthState value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	var ok bool
+	if s.SybilID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid SybilID value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
 
 	if s.UserID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
 		return err
@@ -222,45 +233,11 @@ func (s *SybilAtomicSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 	if err != nil {
 		return fmt.Errorf("invalid UserID value: '%s'", sVals[fieldIdx])
 	}
-
-	fieldIdx++
-
-	var ok bool
-	if s.SybilID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid SybilID value: '%s'", sVals[fieldIdx])
-	}
-
-	fieldIdx++
-
-	if s.IssuerAuthState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
-		return fmt.Errorf("invalid IssuerAuthState value: '%s'", sVals[fieldIdx])
-	}
-
-	fieldIdx++
-
-	if s.RequestID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid requestID value: '%s'", sVals[fieldIdx])
-	}
-
-	fieldIdx++
-
-	if s.IssuerID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
-		return fmt.Errorf("invalid IssuerID value: '%s'", sVals[fieldIdx])
-	}
-
-	fieldIdx++
-
-	s.Timestamp, err = strconv.ParseInt(sVals[fieldIdx], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid Timestamp value: '%s'", sVals[fieldIdx])
-	}
-
 	fieldIdx++
 
 	if s.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid IssuerClaimNonRevState value: '%s'", sVals[fieldIdx])
 	}
-
 	fieldIdx++
 
 	var schemaInt *big.Int
@@ -268,17 +245,31 @@ func (s *SybilAtomicSigPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid ClaimSchema value: '%s'", sVals[fieldIdx])
 	}
 	s.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
-
-	fieldIdx++
-
-	if s.CRS, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid CRS value: '%s'", sVals[fieldIdx])
-	}
-
 	fieldIdx++
 
 	if s.GISTRoot, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid GISTRoot value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	if s.CRS, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid schema value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	if s.RequestID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid requestID value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	if s.IssuerID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
+		return fmt.Errorf("invalid IssuerID value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	s.Timestamp, err = strconv.ParseInt(sVals[fieldIdx], 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid Timestamp value: '%s'", sVals[fieldIdx])
 	}
 
 	return nil

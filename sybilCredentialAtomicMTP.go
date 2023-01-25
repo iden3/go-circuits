@@ -60,7 +60,7 @@ type sybilAtomicMTPCircuitInputs struct {
 	GistMtpAuxHv *merkletree.Hash   `json:"gistMtpAuxHv"`
 	GistMtpNoAux string             `json:"gistMtpNoAux"`
 
-	CRS *big.Int `json:"crs"`
+	CRS string `json:"crs"`
 
 	UserGenesisID            string `json:"userGenesisID"`
 	ProfileNonce             string `json:"profileNonce"`
@@ -125,7 +125,7 @@ func (s SybilAtomicMTPInputs) InputsMarshal() ([]byte, error) {
 		GistMtp: merkletree.CircomSiblingsFromSiblings(s.GISTProof.Proof.AllSiblings(),
 			s.GetMTLevelOnChain()-1),
 
-		CRS: s.CRS,
+		CRS: s.CRS.String(),
 
 		UserGenesisID:            s.ID.BigInt().String(),
 		ProfileNonce:             s.ProfileNonce.String(),
@@ -181,59 +181,36 @@ func (s *SybilAtomicMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	// expected order:
 	// 0 - userID
 	// 1 - sybilID
-	// 2 - requestID
-	// 3 - issuerID
-	// 4 - currentTimestamp
-	// 5 - issuerClaimIdenState
-	// 6 - issuerClaimNonRevState
-	// 7 - issuerClaimSchema
-	// 8 - crs
-	// 9 - gistRoot
+	// 2 - issuerClaimIdenState
+	// 3 - issuerClaimNonRevState
+	// 4 - claimSchema
+	// 5 - gistRoot
+	// 6 - crs
+	// 7 - requestID
+	// 8 - issuerID
+	// 9 - timestamp
 
 	fieldIdx := 0
 
 	if s.UserID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid UserID value: '%s'", sVals[fieldIdx])
 	}
-
 	fieldIdx++
 
 	var ok bool
 	if s.SybilID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid SybilID value: '%s'", sVals[fieldIdx])
 	}
-
-	fieldIdx++
-
-	if s.RequestID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid requestID value: '%s'", sVals[fieldIdx])
-	}
-
-	fieldIdx++
-
-	if s.IssuerID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
-		return fmt.Errorf("invalid IssuerID value: '%s'", sVals[fieldIdx])
-	}
-
-	fieldIdx++
-
-	s.Timestamp, err = strconv.ParseInt(sVals[fieldIdx], 10, 64)
-	if err != nil {
-		return fmt.Errorf("invalid Timestamp value: '%s'", sVals[fieldIdx])
-	}
-
 	fieldIdx++
 
 	if s.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid IssuerClaimIdenState value: '%s'", sVals[fieldIdx])
 	}
-
 	fieldIdx++
 
 	if s.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid IssuerClaimNonRevState value: '%s'", sVals[fieldIdx])
 	}
-
 	fieldIdx++
 
 	var schemaInt *big.Int
@@ -241,17 +218,31 @@ func (s *SybilAtomicMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[fieldIdx])
 	}
 	s.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
-
-	fieldIdx++
-
-	if s.CRS, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid CRS value: '%s'", sVals[fieldIdx])
-	}
-
 	fieldIdx++
 
 	if s.GISTRoot, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid GISTRoot value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	if s.CRS, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid schema value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	if s.RequestID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid requestID value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	if s.IssuerID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
+		return fmt.Errorf("invalid IssuerID value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	s.Timestamp, err = strconv.ParseInt(sVals[fieldIdx], 10, 64)
+	if err != nil {
+		return fmt.Errorf("invalid Timestamp value: '%s'", sVals[fieldIdx])
 	}
 
 	return nil
