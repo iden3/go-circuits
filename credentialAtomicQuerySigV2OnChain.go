@@ -301,15 +301,12 @@ type AtomicQuerySigV2OnChainPubSignals struct {
 	IssuerID               *core.ID         `json:"issuerID"`
 	IssuerAuthState        *merkletree.Hash `json:"issuerAuthState"`
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
-	ClaimSchema            core.SchemaHash  `json:"claimSchema"`
-	SlotIndex              int              `json:"slotIndex"`
-	Operator               int              `json:"operator"`
 	Timestamp              int64            `json:"timestamp"`
 	Merklized              int              `json:"merklized"`
 	ClaimPathKey           *big.Int         `json:"claimPathKey"`
 	ClaimPathNotExists     int              `json:"claimPathNotExists"`  // 0 for inclusion, 1 for non-inclusion
 	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 revocation not check, // 1 for check revocation
-	ValueHash              *big.Int         `json:"valueHash"`
+	QueryHash              *big.Int         `json:"circuitQueryHash"`
 	Challenge              *big.Int         `json:"challenge"`
 	GlobalRoot             *merkletree.Hash `json:"gistRoot"`
 }
@@ -355,7 +352,7 @@ func (ao *AtomicQuerySigV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) er
 	var ok bool
 
 	//  - valueHash
-	if ao.ValueHash, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+	if ao.QueryHash, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid value hash value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
@@ -410,14 +407,6 @@ func (ao *AtomicQuerySigV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) er
 	}
 	fieldIdx++
 
-	//  - claimSchema
-	var schemaInt *big.Int
-	if schemaInt, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid schema value: '%s'", sVals[0])
-	}
-	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
-	fieldIdx++
-
 	// - ClaimPathNotExists
 	if ao.ClaimPathNotExists, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
 		return err
@@ -427,18 +416,6 @@ func (ao *AtomicQuerySigV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) er
 	// - ClaimPathKey
 	if ao.ClaimPathKey, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid claimPathKey: %s", sVals[fieldIdx])
-	}
-	fieldIdx++
-
-	// - slotIndex
-	if ao.SlotIndex, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
-		return err
-	}
-	fieldIdx++
-
-	// - operator
-	if ao.Operator, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
-		return err
 	}
 
 	return nil

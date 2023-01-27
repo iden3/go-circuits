@@ -3,6 +3,7 @@ package circuits
 import (
 	"context"
 	"encoding/json"
+	"github.com/iden3/go-iden3-crypto/poseidon"
 	"math/big"
 	"testing"
 
@@ -108,7 +109,7 @@ func TestAtomicQueryMTPVOnChain2Outputs_CircuitUnmarshal(t *testing.T) {
 	err := out.PubSignalsUnmarshal([]byte(`[
  "0",
  "26109404700696283154998654512117952420503675471097392618762221546565140481",
- "21701357532168553861786923689186952125413047360846218786397269136818954569377",
+ "20569118755491694835833503588348972645662557826880109345882671441370970894820",
  "23",
  "10",
  "11098939821764568131087645431296528907277253709936443029379587475821759259406",
@@ -117,11 +118,8 @@ func TestAtomicQueryMTPVOnChain2Outputs_CircuitUnmarshal(t *testing.T) {
  "1",
  "19157496396839393206871475267813888069926627705277243727237933406423274512449",
  "1642074362",
- "180410020913331409885634153623124536270",
  "1",
- "0",
- "2",
- "1"
+ "0"
 ]`))
 	require.NoError(t, err)
 	challenge := big.NewInt(10)
@@ -129,6 +127,16 @@ func TestAtomicQueryMTPVOnChain2Outputs_CircuitUnmarshal(t *testing.T) {
 	value, err := PrepareCircuitArrayValues([]*big.Int{big.NewInt(10)}, 64)
 	require.NoError(t, err)
 	valueHash, err := PoseidonHashValue(value)
+	require.NoError(t, err)
+	schema := it.CoreSchemaFromStr(t, "180410020913331409885634153623124536270")
+	slotIndex := 2
+	operator := 1
+	queryHash, err := poseidon.Hash([]*big.Int{
+		schema.BigInt(),
+		big.NewInt(int64(slotIndex)),
+		big.NewInt(int64(operator)),
+		valueHash,
+	})
 	require.NoError(t, err)
 
 	exp := AtomicQueryMTPV2OnChainPubSignals{
@@ -140,10 +148,7 @@ func TestAtomicQueryMTPVOnChain2Outputs_CircuitUnmarshal(t *testing.T) {
 		IssuerClaimIdenState: it.MTHashFromStr(t,
 			"19157496396839393206871475267813888069926627705277243727237933406423274512449"),
 		IssuerClaimNonRevState: it.MTHashFromStr(t, "19157496396839393206871475267813888069926627705277243727237933406423274512449"),
-		ClaimSchema:            it.CoreSchemaFromStr(t, "180410020913331409885634153623124536270"),
-		SlotIndex:              2,
-		Operator:               1,
-		ValueHash:              valueHash,
+		QueryHash:              queryHash,
 		Timestamp:              int64(1642074362),
 		Merklized:              0,
 		ClaimPathKey:           big.NewInt(0),
