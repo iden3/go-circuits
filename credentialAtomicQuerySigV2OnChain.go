@@ -313,22 +313,20 @@ type AtomicQuerySigV2OnChainPubSignals struct {
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
 func (ao *AtomicQuerySigV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) error {
-	//merklized
-	//userID
-	//valueHash
-	//issuerAuthState
-	//requestID
-	//challenge
-	//gistRoot
-	//issuerID
-	//isRevocationChecked
-	//issuerClaimNonRevState
-	//timestamp
-	//claimSchema
-	//claimPathNotExists
-	//claimPathKey
-	//slotIndex
-	//operator
+	// expected order:
+	// merklized
+	// userID
+	// circuitQueryHash
+	// issuerAuthState
+	// requestID
+	// challenge
+	// gistRoot
+	// issuerID
+	// isRevocationChecked
+	// issuerClaimNonRevState
+	// timestamp
+	// claimPathNotExists
+	// claimPathKey
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)

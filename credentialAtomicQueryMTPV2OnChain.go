@@ -273,22 +273,19 @@ type AtomicQueryMTPV2OnChainPubSignals struct {
 func (ao *AtomicQueryMTPV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) error {
 
 	// expected order:
-	//merklized
-	//userID
-	//valueHash
-	//requestID
-	//challenge
-	//gistRoot
-	//issuerID
-	//issuerClaimIdenState
-	//isRevocationChecked
-	//issuerClaimNonRevState
-	//timestamp
-	//claimSchema
-	//claimPathNotExists
-	//claimPathKey
-	//slotIndex
-	//operator
+	// merklized
+	// userID
+	// circuitQueryHash
+	// requestID
+	// challenge
+	// gistRoot
+	// issuerID
+	// issuerClaimIdenState
+	// isRevocationChecked
+	// issuerClaimNonRevState
+	// timestamp
+	// claimPathNotExists
+	// claimPathKey
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
