@@ -92,6 +92,13 @@ func Test_PoseidonValueHash(t *testing.T) {
 			}),
 			expected: "20400040500897583745843009878988256314335038853985262692600694741116813247201",
 		},
+		{
+			name: "PoseidonValueHash 16 vals",
+			input: getBigintArray(16, func(idx int) int {
+				return idx + 1
+			}),
+			expected: "5605330091169856132381694679994923791994681609858984566508182442210285386845",
+		},
 	}
 
 	for _, tc := range testCases {

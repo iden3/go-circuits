@@ -185,7 +185,12 @@ func PoseidonHashValue(values []*big.Int) (*big.Int, error) {
 	restLength := l - hashFnBatchSize
 	if restLength > BatchSize {
 		r := restLength % BatchSize
-		diff := BatchSize - r
+		var diff int
+		if r == 0 {
+			diff = 0
+		} else {
+			diff = BatchSize - r
+		}
 		iterationCount = (restLength + diff) / BatchSize
 	}
 
