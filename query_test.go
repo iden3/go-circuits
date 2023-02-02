@@ -61,10 +61,40 @@ func TestScalarCompare(t *testing.T) {
 			expected: false,
 		},
 		{
-			name:     "testing unknown operator",
+			name:     "testing $in should fail",
 			x:        big.NewInt(0),
 			y:        big.NewInt(1),
-			operator: 5, // unknown operator.
+			operator: IN,
+			expected: false,
+			withErr:  true,
+		},
+		{
+			name:     "testing $nin should faile",
+			x:        big.NewInt(0),
+			y:        big.NewInt(1),
+			operator: NIN,
+			expected: false,
+			withErr:  true,
+		},
+		{
+			name:     "testing $ne operator where x == y",
+			x:        big.NewInt(0),
+			y:        big.NewInt(0),
+			operator: NE,
+			expected: false,
+		},
+		{
+			name:     "testing $ne operator where x != y",
+			x:        big.NewInt(10),
+			y:        big.NewInt(0),
+			operator: NE,
+			expected: true,
+		},
+		{
+			name:     "testing unknown operator should fail",
+			x:        big.NewInt(0),
+			y:        big.NewInt(1),
+			operator: 7, // unknown operator.
 			expected: false,
 			withErr:  true,
 		},

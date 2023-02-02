@@ -79,5 +79,6 @@ At the moment you have to fill all needed attributes for a specific Inputs, take
         "$gt":   GT,
         "$in":   IN,
         "$nin":  NIN,
+        "$ne":   NE,
     }
     ```

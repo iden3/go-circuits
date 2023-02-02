@@ -21,12 +21,20 @@ const (
 	AtomicQueryMTPCircuitID CircuitID = "credentialAtomicQueryMTP"
 	// AtomicQueryMTPV2CircuitID is a type for credentialAtomicQueryMTPV2.circom
 	AtomicQueryMTPV2CircuitID CircuitID = "credentialAtomicQueryMTPV2"
+	// AtomicQueryMTPV2OnChainCircuitID is a type for credentialAtomicQueryMTPV2OnChain.circom
+	AtomicQueryMTPV2OnChainCircuitID CircuitID = "credentialAtomicQueryMTPV2OnChain"
 	// AtomicQuerySigCircuitID is a type for credentialAttrQuerySig.circom
 	AtomicQuerySigCircuitID CircuitID = "credentialAtomicQuerySig"
 	// AtomicQuerySigV2CircuitID is a type for credentialAttrQuerySigV2.circom
 	AtomicQuerySigV2CircuitID CircuitID = "credentialAtomicQuerySigV2"
+	// AtomicQuerySigV2OnChainCircuitID is a type for credentialAttrQuerySigV2OnChain.circom
+	AtomicQuerySigV2OnChainCircuitID CircuitID = "credentialAtomicQuerySigV2OnChain"
 	// JsonLDAtomicQueryMTPCircuitID is a type for credentialJsonLDAtomicQueryMTP.circom
 	JsonLDAtomicQueryMTPCircuitID CircuitID = "credentialJsonLDAtomicQueryMTP"
+	// SybilMTPCircuitID is a type for sybilMTP.circom
+	SybilMTPCircuitID CircuitID = "sybilCredentialAtomicMTP"
+	// SybilSigCircuitID is a type for sybilSig.circom
+	SybilSigCircuitID CircuitID = "sybilCredentialAtomicSig"
 )
 
 // ErrorCircuitIDNotFound returns if CircuitID is not registered
@@ -86,6 +94,26 @@ func init() {
 	RegisterCircuit(AtomicQuerySigV2CircuitID, Data{
 		Input:  AtomicQuerySigV2Inputs{},
 		Output: &AtomicQuerySigV2PubSignals{},
+	})
+
+	RegisterCircuit(AtomicQuerySigV2OnChainCircuitID, Data{
+		Input:  AtomicQuerySigV2OnChainInputs{},
+		Output: &AtomicQuerySigV2OnChainPubSignals{},
+	})
+
+	RegisterCircuit(AtomicQueryMTPV2OnChainCircuitID, Data{
+		Input:  AtomicQueryMTPV2OnChainInputs{},
+		Output: &AtomicQueryMTPV2OnChainPubSignals{},
+	})
+
+	RegisterCircuit(SybilMTPCircuitID, Data{
+		Input:  SybilAtomicMTPInputs{},
+		Output: &SybilAtomicMTPPubSignals{},
+	})
+
+	RegisterCircuit(SybilSigCircuitID, Data{
+		Input:  SybilAtomicSigInputs{},
+		Output: &SybilAtomicSigPubSignals{},
 	})
 }
 

@@ -2,6 +2,7 @@ package circuits
 
 import (
 	"fmt"
+	"github.com/iden3/go-iden3-crypto/poseidon"
 	"math/big"
 	"reflect"
 
@@ -145,4 +146,69 @@ func existenceToInt(b bool) int {
 		return 0
 	}
 	return 1
+}
+
+// BatchSize defined by poseidon hash implementation in Solidity
+const BatchSize = 5
+
+// PoseidonHashValue returns the solidity and circom implementation of poseidon hash
+func PoseidonHashValue(values []*big.Int) (*big.Int, error) {
+
+	if values == nil {
+		return nil, fmt.Errorf("values not provided")
+	}
+
+	if len(values) == 0 {
+		return nil, fmt.Errorf("empty values")
+	}
+
+	iterationCount := 0
+	var err error
+	getValueByIndex := func(arr []*big.Int, idx, length int) *big.Int {
+		if idx < length {
+			return arr[idx]
+		}
+		return big.NewInt(0)
+	}
+	l := len(values)
+	hashFnBatchSize := 6
+	// first iteration to get the first hash  (6 elements)
+	fullHash, err := poseidon.Hash([]*big.Int{
+		getValueByIndex(values, 0, l),
+		getValueByIndex(values, 1, l),
+		getValueByIndex(values, 2, l),
+		getValueByIndex(values, 3, l),
+		getValueByIndex(values, 4, l),
+		getValueByIndex(values, 5, l),
+	})
+
+	restLength := l - hashFnBatchSize
+	if restLength > BatchSize {
+		r := restLength % BatchSize
+		diff := 0
+		if r != 0 {
+			diff = BatchSize - r
+		}
+		iterationCount = (restLength + diff) / BatchSize
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	for i := 0; i < iterationCount; i++ {
+		elemIdx := i*BatchSize + hashFnBatchSize
+		fullHash, err = poseidon.Hash([]*big.Int{
+			fullHash,
+			getValueByIndex(values, elemIdx, l),
+			getValueByIndex(values, elemIdx+1, l),
+			getValueByIndex(values, elemIdx+2, l),
+			getValueByIndex(values, elemIdx+3, l),
+			getValueByIndex(values, elemIdx+4, l),
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return fullHash, nil
 }
