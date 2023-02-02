@@ -15,6 +15,7 @@ const (
 	GT
 	IN
 	NIN
+	NE
 )
 
 // QueryOperators represents operators for atomic circuits
@@ -25,6 +26,7 @@ var QueryOperators = map[string]int{
 	"$gt":   GT,
 	"$in":   IN,
 	"$nin":  NIN,
+	"$ne":   NE,
 }
 
 // Comparer value.
@@ -43,7 +45,7 @@ func NewScalar(x, y *big.Int) *Scalar {
 }
 
 // Compare x with y by target QueryOperators.
-// Scalar compare support: $eq, $lt, $gt type.
+// Scalar compare support: $eq, $lt, $gt, $ne type.
 func (s *Scalar) Compare(t int) (bool, error) {
 	switch t {
 	case EQ:
@@ -52,6 +54,8 @@ func (s *Scalar) Compare(t int) (bool, error) {
 		return s.x.Cmp(s.y) == -1, nil
 	case GT:
 		return s.x.Cmp(s.y) == 1, nil
+	case NE:
+		return s.x.Cmp(s.y) != 0, nil
 	}
 	return false, errors.New("unknown compare type for scalar")
 }
@@ -99,7 +103,7 @@ func (v *Vector) Compare(t int) (bool, error) {
 func FactoryComparer(x *big.Int, y []*big.Int, t int) (Comparer, error) {
 	var cmp Comparer
 	switch t {
-	case EQ, LT, GT:
+	case EQ, LT, GT, NE:
 		if len(y) != 1 {
 			return nil, errors.New("currently we support only one value for scalar comparison")
 		}
