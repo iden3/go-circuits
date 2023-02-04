@@ -165,7 +165,7 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 		ClaimSchema: a.Claim.Claim.GetSchemaHash().BigInt().String(),
 
 		ClaimPathMtp: PrepareSiblingsStr(valueProof.MTP.AllSiblings(),
-			a.GetMTLevel()),
+			a.GetMTLevelsClaim()),
 		ClaimPathValue: valueProof.Value.Text(10),
 		Operator:       a.Query.Operator,
 		Timestamp:      a.CurrentTimeStamp,

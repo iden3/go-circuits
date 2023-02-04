@@ -3,9 +3,10 @@ package circuits
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/iden3/go-iden3-crypto/babyjub"
 	"math/big"
 	"strconv"
+
+	"github.com/iden3/go-iden3-crypto/babyjub"
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql/v2"
@@ -225,7 +226,7 @@ func (a AtomicQuerySigV2OnChainInputs) InputsMarshal() ([]byte, error) {
 		ClaimSchema: a.Claim.Claim.GetSchemaHash().BigInt().String(),
 
 		ClaimPathMtp: PrepareSiblingsStr(valueProof.MTP.AllSiblings(),
-			a.GetMTLevel()),
+			a.GetMTLevelsClaim()),
 		ClaimPathValue: valueProof.Value.Text(10),
 		Operator:       a.Query.Operator,
 		Timestamp:      a.CurrentTimeStamp,

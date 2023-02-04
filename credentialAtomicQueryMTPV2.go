@@ -130,7 +130,7 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimNonRevRootsTreeRoot:  a.Claim.NonRevProof.TreeState.RootOfRoots,
 		IssuerClaimNonRevState:          a.Claim.NonRevProof.TreeState.State,
 		ClaimSchema:                     a.Claim.Claim.GetSchemaHash().BigInt().String(),
-		ClaimPathMtp:                    CircomSiblings(valueProof.MTP, a.GetMTLevel()),
+		ClaimPathMtp:                    CircomSiblings(valueProof.MTP, a.GetMTLevelsClaim()),
 		ClaimPathValue:                  valueProof.Value.String(),
 		Operator:                        a.Operator,
 		SlotIndex:                       a.SlotIndex,

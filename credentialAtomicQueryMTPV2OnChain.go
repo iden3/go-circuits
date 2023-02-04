@@ -3,9 +3,10 @@ package circuits
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/iden3/go-iden3-crypto/babyjub"
 	"math/big"
 	"strconv"
+
+	"github.com/iden3/go-iden3-crypto/babyjub"
 
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql/v2"
@@ -190,7 +191,7 @@ func (a AtomicQueryMTPV2OnChainInputs) InputsMarshal() ([]byte, error) {
 		IssuerClaimNonRevRootsTreeRoot:  a.Claim.NonRevProof.TreeState.RootOfRoots,
 		IssuerClaimNonRevState:          a.Claim.NonRevProof.TreeState.State,
 		ClaimSchema:                     a.Claim.Claim.GetSchemaHash().BigInt().String(),
-		ClaimPathMtp:                    CircomSiblings(valueProof.MTP, a.GetMTLevel()),
+		ClaimPathMtp:                    CircomSiblings(valueProof.MTP, a.GetMTLevelsClaim()),
 		ClaimPathValue:                  valueProof.Value.String(),
 		Operator:                        a.Operator,
 		SlotIndex:                       a.SlotIndex,
