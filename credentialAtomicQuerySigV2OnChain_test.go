@@ -122,7 +122,7 @@ func TestAtomicQuerySigV2OnChainOutputs_CircuitUnmarshal(t *testing.T) {
 		`[
  "0",
  "26109404700696283154998654512117952420503675471097392618762221546565140481",
- "20569118755491694835833503588348972645662557826880109345882671441370970894820",
+ "7002038488948284767652984010448061038733120594540539539730565455904340350321",
  "20177832565449474772630743317224985532862797657496372535616634430055981993180",
  "23",
  "10",
@@ -130,9 +130,7 @@ func TestAtomicQuerySigV2OnChainOutputs_CircuitUnmarshal(t *testing.T) {
  "27918766665310231445021466320959318414450284884582375163563581940319453185",
  "1",
  "20177832565449474772630743317224985532862797657496372535616634430055981993180",
- "1642074362",
- "1",
- "0"
+ "1642074362"
 ]`))
 	require.NoError(t, err)
 
@@ -147,6 +145,8 @@ func TestAtomicQuerySigV2OnChainOutputs_CircuitUnmarshal(t *testing.T) {
 		schema.BigInt(),
 		big.NewInt(int64(slotIndex)),
 		big.NewInt(int64(operator)),
+		big.NewInt(0),
+		big.NewInt(1),
 		valueHash,
 	})
 	require.NoError(t, err)
@@ -161,8 +161,6 @@ func TestAtomicQuerySigV2OnChainOutputs_CircuitUnmarshal(t *testing.T) {
 		QueryHash:              queryHash,
 		Timestamp:              int64(1642074362),
 		Merklized:              0,
-		ClaimPathKey:           big.NewInt(0),
-		ClaimPathNotExists:     1,
 		IsRevocationChecked:    1,
 		Challenge:              big.NewInt(10),
 		GlobalRoot:             it.MTHashFromStr(t, "11098939821764568131087645431296528907277253709936443029379587475821759259406"),
