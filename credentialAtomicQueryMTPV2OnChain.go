@@ -261,8 +261,6 @@ type AtomicQueryMTPV2OnChainPubSignals struct {
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 	Timestamp              int64            `json:"timestamp"`
 	Merklized              int              `json:"merklized"`
-	ClaimPathKey           *big.Int         `json:"claimPathKey"`
-	ClaimPathNotExists     int              `json:"claimPathNotExists"`  // 0 for inclusion, 1 for non-inclusion
 	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 revocation not check, // 1 for check revocation
 	QueryHash              *big.Int         `json:"circuitQueryHash"`
 	Challenge              *big.Int         `json:"challenge"`
@@ -284,8 +282,6 @@ func (ao *AtomicQueryMTPV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) er
 	// isRevocationChecked
 	// issuerClaimNonRevState
 	// timestamp
-	// claimPathNotExists
-	// claimPathKey
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -361,18 +357,6 @@ func (ao *AtomicQueryMTPV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) er
 	ao.Timestamp, err = strconv.ParseInt(sVals[fieldIdx], 10, 64)
 	if err != nil {
 		return err
-	}
-	fieldIdx++
-
-	// - ClaimPathNotExists
-	if ao.ClaimPathNotExists, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
-		return err
-	}
-	fieldIdx++
-
-	// - ClaimPathKey
-	if ao.ClaimPathKey, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid claimPathKey: %s", sVals[fieldIdx])
 	}
 
 	return nil
