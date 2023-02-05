@@ -157,6 +157,9 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 		CurrentTimeStamp: time.Unix(1642074362, 0).Unix(),
 
 		Query: query,
+		BaseConfig: BaseConfig{
+			MTLevel: 32,
+		},
 	}
 
 	bytesInputs, err := atomicInputs.InputsMarshal()

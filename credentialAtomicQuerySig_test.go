@@ -187,7 +187,8 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 
 		Claim: inputsUserClaim,
 
-		Query: query,
+		Query:      query,
+		BaseConfig: BaseConfig{MTLevel: 32},
 	}
 
 	bytesInputs, err := atomicInputs.InputsMarshal()

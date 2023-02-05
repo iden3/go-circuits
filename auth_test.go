@@ -37,8 +37,9 @@ func TestCircuitMarshal(t *testing.T) {
 				claimNonRevMTP,
 				treeState},
 		},
-		Signature: signature,
-		Challenge: challenge,
+		Signature:  signature,
+		Challenge:  challenge,
+		BaseConfig: BaseConfig{MTLevel: 32},
 	}
 
 	circuitInputJSON, err := inputs.InputsMarshal()
