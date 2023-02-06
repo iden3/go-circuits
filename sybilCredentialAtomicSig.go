@@ -3,11 +3,12 @@ package circuits
 import (
 	"encoding/json"
 	"fmt"
+	"math/big"
+	"strconv"
+
 	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
-	"math/big"
-	"strconv"
 )
 
 type SybilAtomicSigInputs struct {
@@ -140,7 +141,7 @@ func (s SybilAtomicSigInputs) InputsMarshal() ([]byte, error) {
 		StateCommitmentClaimIdenState:  s.StateCommitmentClaim.IncProof.TreeState.State,
 
 		GistRoot: s.GISTProof.Root,
-		GistMtp:  CircomSiblings(s.GISTProof.Proof, s.GetMTLevel()),
+		GistMtp:  CircomSiblings(s.GISTProof.Proof, s.GetMTLevelOnChain()),
 
 		CRS: s.CRS.String(),
 
