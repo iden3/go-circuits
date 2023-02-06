@@ -3,12 +3,13 @@ package circuits
 import (
 	"context"
 	"encoding/json"
+	"math/big"
+	"testing"
+
 	it "github.com/iden3/go-circuits/testing"
 	core "github.com/iden3/go-iden3-core"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"math/big"
-	"testing"
 )
 
 func TestSybilSig_PrepareInputs(t *testing.T) {
@@ -109,6 +110,9 @@ func TestSybilSig_PrepareInputs(t *testing.T) {
 		},
 		RequestID: requestID,
 		Timestamp: currentTimestamp,
+		BaseConfig: BaseConfig{
+			MTLevelOnChain: 40,
+		},
 	}
 
 	circuitInputJSON, err := in.InputsMarshal()
