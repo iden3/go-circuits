@@ -1,10 +1,8 @@
 # go-circuits
 
-### WARNING
-All code here is experimental and WIP
-
 [![Go Reference](https://pkg.go.dev/badge/github.com/iden3/go-circuits.svg)](https://pkg.go.dev/github.com/iden3/go-circuits)
 [![Go Report Card](https://goreportcard.com/badge/github.com/iden3/go-circuits)](https://goreportcard.com/report/github.com/iden3/go-circuits)
+
 ### General description:
 
 The library goal is to create a wrapper for private and public inputs for identity circuits
@@ -82,3 +80,20 @@ At the moment you have to fill all needed attributes for a specific Inputs, take
         "$ne":   NE,
     }
     ```
+
+## Contributing
+
+Unless you explicitly state otherwise, any contribution intentionally submitted
+for inclusion in the work by you, as defined in the Apache-2.0 license, shall be
+dual licensed as below, without any additional terms or conditions.
+
+## License
+
+&copy; 2023 0kims Association
+
+This project is licensed under either of
+
+- [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0) ([`LICENSE-APACHE`](LICENSE-APACHE))
+- [MIT license](https://opensource.org/licenses/MIT) ([`LICENSE-MIT`](LICENSE-MIT))
+
+at your option.
