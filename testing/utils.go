@@ -153,7 +153,7 @@ func HashToStr(siblings []*merkletree.Hash) []string {
 }
 
 func IDFromState(state *big.Int) (*core.ID, error) {
-	typ, err := core.BuildDIDType(core.DIDMethodIden3, core.NoChain, core.NoNetwork)
+	typ, err := core.BuildDIDType(core.DIDMethodIden3, core.ReadOnly, core.NoNetwork)
 	if err != nil {
 		return nil, err
 	}
