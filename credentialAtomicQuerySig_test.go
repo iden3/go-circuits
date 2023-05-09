@@ -7,8 +7,8 @@ import (
 	"testing"
 	"time"
 
-	it "github.com/iden3/go-circuits/testing"
-	core "github.com/iden3/go-iden3-core"
+	it "github.com/iden3/go-circuits/v2/testing"
+	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/iden3/go-merkletree-sql/v2/db/memory"
 	"github.com/stretchr/testify/require"

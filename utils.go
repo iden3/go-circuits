@@ -2,11 +2,11 @@ package circuits
 
 import (
 	"fmt"
-	"github.com/iden3/go-iden3-crypto/poseidon"
 	"math/big"
 	"reflect"
 
-	core "github.com/iden3/go-iden3-core"
+	core "github.com/iden3/go-iden3-core/v2"
+	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 )

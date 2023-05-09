@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"testing"
 
-	it "github.com/iden3/go-circuits/testing"
+	it "github.com/iden3/go-circuits/v2/testing"
 	"github.com/stretchr/testify/assert"
 )
 
