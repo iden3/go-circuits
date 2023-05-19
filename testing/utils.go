@@ -158,7 +158,7 @@ func IDFromState(state *big.Int) (*core.ID, error) {
 		return nil, err
 	}
 	// create new identity
-	return core.IdGenesisFromIdenState(typ, state)
+	return core.NewIDFromIdenState(typ, state)
 }
 
 func IDFromStr(t testing.TB, idStr string) *core.ID {
