@@ -21,4 +21,5 @@ const (
 	ErrorEmptyChallenge                  = "empty challenge"
 	ErrorEmptyGISTProof                  = "empty GIST identity mtp proof"
 	ErrorEmptyRequestID                  = "empty request ID"
+	ErrorInvalidProofType                = "invalid proof type"
 )
