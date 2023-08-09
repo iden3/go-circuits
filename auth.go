@@ -12,6 +12,7 @@ import (
 )
 
 // AuthInputs type represent auth.circom private inputs
+// Deprecated: use AuthV2Inputs instead
 type AuthInputs struct {
 	BaseConfig
 
@@ -83,6 +84,7 @@ func (a AuthInputs) InputsMarshal() ([]byte, error) {
 }
 
 // AuthPubSignals auth.circom public signals
+// Deprecated: use AuthV2PubSignals instead
 type AuthPubSignals struct {
 	Challenge *big.Int         `json:"challenge"`
 	UserState *merkletree.Hash `json:"userState"`

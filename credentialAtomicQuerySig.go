@@ -13,6 +13,7 @@ import (
 )
 
 // AtomicQuerySigInputs ZK private inputs for credentialAtomicQuerySig.circom
+// Deprecated: use AtomicQuerySigV2Inputs instead
 type AtomicQuerySigInputs struct {
 	BaseConfig
 
@@ -184,7 +185,8 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// AtomicQuerySigV2PubSignals public inputs
+// AtomicQuerySigPubSignals public inputs
+// Deprecated: use AtomicQuerySigV2PubSignals instead
 type AtomicQuerySigPubSignals struct {
 	BaseConfig
 	UserID                 *core.ID         `json:"userID"`

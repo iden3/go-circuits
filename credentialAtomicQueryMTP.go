@@ -13,6 +13,7 @@ import (
 )
 
 // AtomicQueryMTPInputs ZK private inputs for credentialAtomicQueryMTP.circom
+// Deprecated: use AtomicQueryMTPV2Inputs instead
 type AtomicQueryMTPInputs struct {
 	BaseConfig
 	// auth
@@ -147,6 +148,7 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 }
 
 // AtomicQueryMTPPubSignals public signals
+// Deprecated: use AtomicQueryMTPV2PubSignals instead
 type AtomicQueryMTPPubSignals struct {
 	BaseConfig
 	UserID                 *core.ID         `json:"userID"`

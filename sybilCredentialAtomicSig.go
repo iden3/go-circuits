@@ -11,6 +11,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+// Deprecated: trusted setup is not done for that circuits. In future released
+//             new circuit with sybil support will be added.
 type SybilAtomicSigInputs struct {
 	BaseConfig
 
@@ -171,6 +173,8 @@ func (s SybilAtomicSigInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(sigInputs)
 }
 
+// Deprecated: trusted setup is not done for that circuits. In future released
+//             new circuit with sybil support will be added.
 type SybilAtomicSigPubSignals struct {
 	BaseConfig
 
