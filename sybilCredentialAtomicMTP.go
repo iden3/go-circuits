@@ -151,7 +151,7 @@ func (s SybilAtomicMTPInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(mtpInputs)
 }
 
-// Deprecated: trusted setup is not done for that circuits. In future released
+// Deprecated: trusted setup is not done for that circuits. In future releases
 //             new circuit with sybil support will be added.
 type SybilAtomicMTPPubSignals struct {
 	BaseConfig
