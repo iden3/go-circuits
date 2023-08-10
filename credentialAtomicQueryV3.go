@@ -18,8 +18,8 @@ const (
 	MTPProofType ProofType = "mtp"
 )
 
-// AtomicQuerySigMTPInputs ZK private inputs for credentialAtomicQuerySig.circom
-type AtomicQuerySigMTPInputs struct {
+// AtomicQueryV3Inputs ZK private inputs for credentialAtomicQuerySig.circom
+type AtomicQueryV3Inputs struct {
 	BaseConfig
 
 	RequestID *big.Int
@@ -40,8 +40,8 @@ type AtomicQuerySigMTPInputs struct {
 	ProofType ProofType
 }
 
-// atomicQuerySigMTPCircuitInputs type represents credentialAtomicQuerySigMTP.circom private inputs required by prover
-type atomicQuerySigMTPCircuitInputs struct {
+// atomicQueryV3CircuitInputs type represents credentialAtomicQueryV3.circom private inputs required by prover
+type atomicQueryV3CircuitInputs struct {
 	RequestID string `json:"requestID"`
 
 	// user data
@@ -99,7 +99,7 @@ type atomicQuerySigMTPCircuitInputs struct {
 	ProofType string `json:"proofType"`
 }
 
-func (a AtomicQuerySigMTPInputs) Validate() error {
+func (a AtomicQueryV3Inputs) Validate() error {
 
 	if a.RequestID == nil {
 		return errors.New(ErrorEmptyRequestID)
@@ -137,8 +137,8 @@ func (a AtomicQuerySigMTPInputs) Validate() error {
 	return nil
 }
 
-// InputsMarshal returns Circom private inputs for credentialAtomicQuerySigMTP.circom
-func (a AtomicQuerySigMTPInputs) InputsMarshal() ([]byte, error) {
+// InputsMarshal returns Circom private inputs for credentialAtomicQueryV3.circom
+func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 
 	if err := a.Validate(); err != nil {
 		return nil, err
@@ -162,7 +162,7 @@ func (a AtomicQuerySigMTPInputs) InputsMarshal() ([]byte, error) {
 		valueProof.MTP = &merkletree.Proof{}
 	}
 
-	s := atomicQuerySigMTPCircuitInputs{
+	s := atomicQueryV3CircuitInputs{
 		RequestID:                a.RequestID.String(),
 		UserGenesisID:            a.ID.BigInt().String(),
 		ProfileNonce:             a.ProfileNonce.String(),
@@ -251,7 +251,7 @@ func (a AtomicQuerySigMTPInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (a AtomicQuerySigMTPInputs) fillMTPProofsWithZero(s *atomicQuerySigMTPCircuitInputs) {
+func (a AtomicQueryV3Inputs) fillMTPProofsWithZero(s *atomicQueryV3CircuitInputs) {
 	s.IssuerClaimMtp = CircomSiblings(&merkletree.Proof{}, a.GetMTLevel())
 	s.IssuerClaimClaimsTreeRoot = &merkletree.HashZero
 	s.IssuerClaimRevTreeRoot = &merkletree.HashZero
@@ -259,7 +259,7 @@ func (a AtomicQuerySigMTPInputs) fillMTPProofsWithZero(s *atomicQuerySigMTPCircu
 	s.IssuerClaimIdenState = &merkletree.HashZero
 }
 
-func (a AtomicQuerySigMTPInputs) fillSigProofWithZero(s *atomicQuerySigMTPCircuitInputs) {
+func (a AtomicQueryV3Inputs) fillSigProofWithZero(s *atomicQueryV3CircuitInputs) {
 	s.IssuerClaimSignatureR8X = "0"
 	s.IssuerClaimSignatureR8Y = "0"
 	s.IssuerClaimSignatureS = "0"
@@ -275,8 +275,8 @@ func (a AtomicQuerySigMTPInputs) fillSigProofWithZero(s *atomicQuerySigMTPCircui
 	s.IssuerAuthClaimNonRevMtpNoAux = "0"
 }
 
-// AtomicQuerySigMTPPubSignals public inputs
-type AtomicQuerySigMTPPubSignals struct {
+// AtomicQueryV3PubSignals public inputs
+type AtomicQueryV3PubSignals struct {
 	BaseConfig
 	RequestID              *big.Int         `json:"requestID"`
 	UserID                 *core.ID         `json:"userID"`
@@ -296,8 +296,8 @@ type AtomicQuerySigMTPPubSignals struct {
 	ProofType              int              `json:"proofType"`
 }
 
-// PubSignalsUnmarshal unmarshal credentialAtomicQuerySigMTP.circom public signals
-func (ao *AtomicQuerySigMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
+// PubSignalsUnmarshal unmarshal credentialAtomicQueryV3.circom public signals
+func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// expected order:
 	// merklized
 	// userID
@@ -316,7 +316,7 @@ func (ao *AtomicQuerySigMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 	// issuerClaimIdenState
 	// proofType
 
-	// 12 is a number of fields in AtomicQuerySigMTPPubSignals before values, values is last element in the proof and
+	// 12 is a number of fields in AtomicQueryV3PubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
 	const fieldLength = 15
@@ -440,6 +440,6 @@ func (ao *AtomicQuerySigMTPPubSignals) PubSignalsUnmarshal(data []byte) error {
 }
 
 // GetObjMap returns struct field as a map
-func (ao AtomicQuerySigMTPPubSignals) GetObjMap() map[string]interface{} {
+func (ao AtomicQueryV3PubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
 }

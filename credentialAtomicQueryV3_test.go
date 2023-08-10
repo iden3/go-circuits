@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAttrQuerySigMTP_SigPart_PrepareInputs(t *testing.T) {
+func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
 
 	user := it.NewIdentity(t, userPK)
 
@@ -32,7 +32,7 @@ func TestAttrQuerySigMTP_SigPart_PrepareInputs(t *testing.T) {
 	issuerAuthClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, issuer.AuthClaim)
 	issuerAuthClaimMtp, _ := issuer.ClaimMTPRaw(t, issuer.AuthClaim)
 
-	in := AtomicQuerySigMTPInputs{
+	in := AtomicQueryV3Inputs{
 		RequestID:                big.NewInt(23),
 		ID:                       &user.ID,
 		ProfileNonce:             profileNonce,
@@ -87,11 +87,11 @@ func TestAttrQuerySigMTP_SigPart_PrepareInputs(t *testing.T) {
 
 	fmt.Println(string(bytesInputs))
 
-	exp := it.TestData(t, "sigmtp_sig_inputs", string(bytesInputs), *generate)
+	exp := it.TestData(t, "V3_sig_inputs", string(bytesInputs), *generate)
 	require.JSONEq(t, exp, string(bytesInputs))
 }
 
-func TestAttrQuerySigMTP_MTPPart_PrepareInputs(t *testing.T) {
+func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {
 
 	user := it.NewIdentity(t, userPK)
 	issuer := it.NewIdentity(t, issuerPK)
@@ -109,7 +109,7 @@ func TestAttrQuerySigMTP_MTPPart_PrepareInputs(t *testing.T) {
 
 	issuerClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, claim)
 
-	in := AtomicQuerySigMTPInputs{
+	in := AtomicQueryV3Inputs{
 		RequestID:                big.NewInt(23),
 		ID:                       &user.ID,
 		ProfileNonce:             nonce,
@@ -149,14 +149,14 @@ func TestAttrQuerySigMTP_MTPPart_PrepareInputs(t *testing.T) {
 	bytesInputs, err := in.InputsMarshal()
 	require.Nil(t, err)
 
-	exp := it.TestData(t, "sigmtp_mtp_inputs", string(bytesInputs), *generate)
+	exp := it.TestData(t, "V3_mtp_inputs", string(bytesInputs), *generate)
 	t.Log(string(bytesInputs))
 	require.JSONEq(t, exp, string(bytesInputs))
 
 }
 
-func TestAtomicQuerySigMTPOutputs_SigPart_CircuitUnmarshal(t *testing.T) {
-	out := new(AtomicQuerySigMTPPubSignals)
+func TestAtomicQueryV3Outputs_SigPart_CircuitUnmarshal(t *testing.T) {
+	out := new(AtomicQueryV3PubSignals)
 	err := out.PubSignalsUnmarshal([]byte(
 		`[
  "0",
@@ -244,7 +244,7 @@ func TestAtomicQuerySigMTPOutputs_SigPart_CircuitUnmarshal(t *testing.T) {
 	expValue, err := PrepareCircuitArrayValues([]*big.Int{big.NewInt(10)}, 64)
 	require.NoError(t, err)
 
-	exp := AtomicQuerySigMTPPubSignals{
+	exp := AtomicQueryV3PubSignals{
 		RequestID: big.NewInt(23),
 		UserID: it.IDFromStr(t,
 			"23148936466334350744548790012294489365207440754509988986684797708370051073"),
@@ -276,8 +276,8 @@ func TestAtomicQuerySigMTPOutputs_SigPart_CircuitUnmarshal(t *testing.T) {
 	require.JSONEq(t, string(jsonExp), string(jsonOut))
 }
 
-func TestAtomicQuerySigMTPOutputs_SigMTP_CircuitUnmarshal(t *testing.T) {
-	out := new(AtomicQuerySigMTPPubSignals)
+func TestAtomicQueryV3Outputs_V3_CircuitUnmarshal(t *testing.T) {
+	out := new(AtomicQueryV3PubSignals)
 	err := out.PubSignalsUnmarshal([]byte(
 		`[
  "0",
@@ -365,7 +365,7 @@ func TestAtomicQuerySigMTPOutputs_SigMTP_CircuitUnmarshal(t *testing.T) {
 	expValue, err := PrepareCircuitArrayValues([]*big.Int{big.NewInt(10)}, 64)
 	require.NoError(t, err)
 
-	exp := AtomicQuerySigMTPPubSignals{
+	exp := AtomicQueryV3PubSignals{
 		RequestID: big.NewInt(23),
 		UserID: it.IDFromStr(
 			t, "19104853439462320209059061537253618984153217267677512271018416655565783041"),
