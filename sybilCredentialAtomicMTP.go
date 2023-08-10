@@ -3,13 +3,16 @@ package circuits
 import (
 	"encoding/json"
 	"fmt"
-	core "github.com/iden3/go-iden3-core"
-	"github.com/iden3/go-merkletree-sql/v2"
-	"github.com/pkg/errors"
 	"math/big"
 	"strconv"
+
+	core "github.com/iden3/go-iden3-core/v2"
+	"github.com/iden3/go-merkletree-sql/v2"
+	"github.com/pkg/errors"
 )
 
+// Deprecated: trusted setup is not done for that circuits. In future releases
+//             new circuit with sybil support will be added.
 type SybilAtomicMTPInputs struct {
 	BaseConfig
 
@@ -148,6 +151,8 @@ func (s SybilAtomicMTPInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(mtpInputs)
 }
 
+// Deprecated: trusted setup is not done for that circuits. In future releases
+//             new circuit with sybil support will be added.
 type SybilAtomicMTPPubSignals struct {
 	BaseConfig
 

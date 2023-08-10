@@ -6,7 +6,7 @@ import (
 	"math/big"
 	"testing"
 
-	core "github.com/iden3/go-iden3-core"
+	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/iden3/go-merkletree-sql/v2"
@@ -82,8 +82,7 @@ func Generate(ctx context.Context, privKHex string) (*core.ID,
 
 	state, _ := poseidon.Hash([]*big.Int{claimsTree.Root().BigInt(), big.NewInt(0), big.NewInt(0)})
 	// create new identity
-	identifier, err := core.IdGenesisFromIdenState(core.TypeDefault,
-		state)
+	identifier, err := core.NewIDFromIdenState(core.TypeDefault, state)
 	if err != nil {
 		return nil, nil, nil, nil, err, nil, nil
 	}

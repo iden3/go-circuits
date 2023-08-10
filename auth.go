@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"math/big"
 
-	core "github.com/iden3/go-iden3-core"
+	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 )
 
 // AuthInputs type represent auth.circom private inputs
+// Deprecated: use AuthV2Inputs instead
 type AuthInputs struct {
 	BaseConfig
 
@@ -83,6 +84,7 @@ func (a AuthInputs) InputsMarshal() ([]byte, error) {
 }
 
 // AuthPubSignals auth.circom public signals
+// Deprecated: use AuthV2PubSignals instead
 type AuthPubSignals struct {
 	Challenge *big.Int         `json:"challenge"`
 	UserState *merkletree.Hash `json:"userState"`

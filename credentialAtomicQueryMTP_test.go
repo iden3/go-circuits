@@ -7,14 +7,13 @@ import (
 	"testing"
 	"time"
 
-	it "github.com/iden3/go-circuits/testing"
+	it "github.com/iden3/go-circuits/v2/testing"
+	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/iden3/go-merkletree-sql/v2"
-	"github.com/stretchr/testify/require"
-
-	core "github.com/iden3/go-iden3-core"
 	"github.com/iden3/go-merkletree-sql/v2/db/memory"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestAtomicQuery_PrepareInputs(t *testing.T) {

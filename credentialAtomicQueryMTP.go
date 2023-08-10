@@ -6,13 +6,14 @@ import (
 	"math/big"
 	"strconv"
 
-	core "github.com/iden3/go-iden3-core"
+	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 )
 
 // AtomicQueryMTPInputs ZK private inputs for credentialAtomicQueryMTP.circom
+// Deprecated: use AtomicQueryMTPV2Inputs instead
 type AtomicQueryMTPInputs struct {
 	BaseConfig
 	// auth
@@ -147,6 +148,7 @@ func (a AtomicQueryMTPInputs) InputsMarshal() ([]byte, error) {
 }
 
 // AtomicQueryMTPPubSignals public signals
+// Deprecated: use AtomicQueryMTPV2PubSignals instead
 type AtomicQueryMTPPubSignals struct {
 	BaseConfig
 	UserID                 *core.ID         `json:"userID"`

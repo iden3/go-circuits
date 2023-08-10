@@ -6,13 +6,14 @@ import (
 	"math/big"
 	"strconv"
 
-	core "github.com/iden3/go-iden3-core"
+	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 )
 
 // AtomicQuerySigInputs ZK private inputs for credentialAtomicQuerySig.circom
+// Deprecated: use AtomicQuerySigV2Inputs instead
 type AtomicQuerySigInputs struct {
 	BaseConfig
 
@@ -184,7 +185,8 @@ func (a AtomicQuerySigInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// AtomicQuerySigV2PubSignals public inputs
+// AtomicQuerySigPubSignals public inputs
+// Deprecated: use AtomicQuerySigV2PubSignals instead
 type AtomicQuerySigPubSignals struct {
 	BaseConfig
 	UserID                 *core.ID         `json:"userID"`

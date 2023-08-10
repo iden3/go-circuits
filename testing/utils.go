@@ -7,7 +7,7 @@ import (
 	"os"
 	"testing"
 
-	core "github.com/iden3/go-iden3-core"
+	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-iden3-crypto/babyjub"
 	"github.com/iden3/go-merkletree-sql/v2"
 )
@@ -153,12 +153,12 @@ func HashToStr(siblings []*merkletree.Hash) []string {
 }
 
 func IDFromState(state *big.Int) (*core.ID, error) {
-	typ, err := core.BuildDIDType(core.DIDMethodIden3, core.NoChain, core.NoNetwork)
+	typ, err := core.BuildDIDType(core.DIDMethodIden3, core.ReadOnly, core.NoNetwork)
 	if err != nil {
 		return nil, err
 	}
 	// create new identity
-	return core.IdGenesisFromIdenState(typ, state)
+	return core.NewIDFromIdenState(typ, state)
 }
 
 func IDFromStr(t testing.TB, idStr string) *core.ID {

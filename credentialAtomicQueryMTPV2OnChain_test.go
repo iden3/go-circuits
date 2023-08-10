@@ -3,11 +3,11 @@ package circuits
 import (
 	"context"
 	"encoding/json"
-	"github.com/iden3/go-iden3-crypto/poseidon"
 	"math/big"
 	"testing"
 
-	it "github.com/iden3/go-circuits/testing"
+	it "github.com/iden3/go-circuits/v2/testing"
+	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/stretchr/testify/require"
 )
 

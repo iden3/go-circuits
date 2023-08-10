@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	core "github.com/iden3/go-iden3-core"
+	core "github.com/iden3/go-iden3-core/v2"
 )
 
 func DefaultUserClaim(t testing.TB, subject core.ID) *core.Claim {
