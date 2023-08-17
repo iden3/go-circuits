@@ -425,6 +425,7 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 		ao.Value = append(ao.Value, bi)
 		fieldIdx++
 	}
+	fieldIdx++
 
 	// - issuerClaimIdenState
 	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
