@@ -99,6 +99,11 @@ func init() {
 		Output: &AtomicQuerySigV2PubSignals{},
 	})
 
+	RegisterCircuit(AtomicQueryV3CircuitID, Data{
+		Input:  AtomicQueryV3Inputs{},
+		Output: &AtomicQueryV3PubSignals{},
+	})
+
 	RegisterCircuit(AtomicQuerySigV2OnChainCircuitID, Data{
 		Input:  AtomicQuerySigV2OnChainInputs{},
 		Output: &AtomicQuerySigV2OnChainPubSignals{},
