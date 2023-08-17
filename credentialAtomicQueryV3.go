@@ -302,6 +302,7 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// merklized
 	// userID
 	// issuerAuthState
+	// proofType
 	// requestID
 	// issuerID
 	// isRevocationChecked
@@ -314,7 +315,6 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// operator
 	// value
 	// issuerClaimIdenState
-	// proofType
 
 	// 12 is a number of fields in AtomicQueryV3PubSignals before values, values is last element in the proof and
 	// it is length could be different base on the circuit configuration. The length could be modified by set value
@@ -347,6 +347,11 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 
 	// - issuerAuthState
 	if ao.IssuerAuthState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
+		return err
+	}
+	fieldIdx++
+
+	if ao.ProofType, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
 		return err
 	}
 	fieldIdx++
@@ -428,11 +433,6 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 
 	// - issuerClaimIdenState
 	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
-		return err
-	}
-	fieldIdx++
-
-	if ao.ProofType, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
 		return err
 	}
 

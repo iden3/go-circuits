@@ -155,13 +155,14 @@ func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {
 
 }
 
-func TestAtomicQueryV3Outputs_SigPart_CircuitUnmarshal(t *testing.T) {
+func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
 	out := new(AtomicQueryV3PubSignals)
 	err := out.PubSignalsUnmarshal([]byte(
 		`[
  "0",
  "23148936466334350744548790012294489365207440754509988986684797708370051073",
  "2943483356559152311923412925436024635269538717812859789851139200242297094",
+ "0",
  "23",
  "21933750065545691586450392143787330185992517860945727248803138245838110721",
  "1",
@@ -173,7 +174,6 @@ func TestAtomicQueryV3Outputs_SigPart_CircuitUnmarshal(t *testing.T) {
  "2",
  "1",
  "10",
- "0",
  "0",
  "0",
  "0",
@@ -276,13 +276,14 @@ func TestAtomicQueryV3Outputs_SigPart_CircuitUnmarshal(t *testing.T) {
 	require.JSONEq(t, string(jsonExp), string(jsonOut))
 }
 
-func TestAtomicQueryV3Outputs_V3_CircuitUnmarshal(t *testing.T) {
+func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
 	out := new(AtomicQueryV3PubSignals)
 	err := out.PubSignalsUnmarshal([]byte(
 		`[
  "0",
  "19104853439462320209059061537253618984153217267677512271018416655565783041",
  "0",
+ "1",
  "23",
  "23528770672049181535970744460798517976688641688582489375761566420828291073",
  "1",
@@ -357,8 +358,7 @@ func TestAtomicQueryV3Outputs_V3_CircuitUnmarshal(t *testing.T) {
  "0",
  "0",
  "0",
- "5687720250943511874245715094520098014548846873346473635855112185560372332782",
- "1"
+ "5687720250943511874245715094520098014548846873346473635855112185560372332782"
 ]`))
 	require.NoError(t, err)
 
