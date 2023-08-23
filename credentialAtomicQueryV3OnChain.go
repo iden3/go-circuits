@@ -18,7 +18,6 @@ type AtomicQueryV3OnChainInputs struct {
 
 	RequestID *big.Int
 
-	// auth
 	ID                       *core.ID
 	ProfileNonce             *big.Int
 	ClaimSubjectProfileNonce *big.Int
