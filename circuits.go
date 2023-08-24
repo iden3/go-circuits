@@ -21,6 +21,8 @@ const (
 	AtomicQueryMTPCircuitID CircuitID = "credentialAtomicQueryMTP"
 	// AtomicQueryMTPV2CircuitID is a type for credentialAtomicQueryMTPV2.circom
 	AtomicQueryMTPV2CircuitID CircuitID = "credentialAtomicQueryMTPV2"
+	// AtomicQueryV3CircuitID is a type for credentialAtomicQueryV3.circom
+	AtomicQueryV3CircuitID CircuitID = "credentialAtomicQueryV3"
 	// AtomicQueryMTPV2OnChainCircuitID is a type for credentialAtomicQueryMTPV2OnChain.circom
 	AtomicQueryMTPV2OnChainCircuitID CircuitID = "credentialAtomicQueryMTPV2OnChain"
 	// AtomicQuerySigCircuitID is a type for credentialAttrQuerySig.circom
@@ -95,6 +97,11 @@ func init() {
 	RegisterCircuit(AtomicQuerySigV2CircuitID, Data{
 		Input:  AtomicQuerySigV2Inputs{},
 		Output: &AtomicQuerySigV2PubSignals{},
+	})
+
+	RegisterCircuit(AtomicQueryV3CircuitID, Data{
+		Input:  AtomicQueryV3Inputs{},
+		Output: &AtomicQueryV3PubSignals{},
 	})
 
 	RegisterCircuit(AtomicQuerySigV2OnChainCircuitID, Data{
