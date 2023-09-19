@@ -38,6 +38,8 @@ type AtomicQueryV3Inputs struct {
 	CurrentTimeStamp int64
 
 	ProofType ProofType
+
+	LinkNonce *big.Int
 }
 
 // atomicQueryV3CircuitInputs type represents credentialAtomicQueryV3.circom private inputs required by prover
@@ -97,6 +99,9 @@ type atomicQueryV3CircuitInputs struct {
 	IssuerClaimIdenState      *merkletree.Hash   `json:"issuerClaimIdenState"`
 
 	ProofType string `json:"proofType"`
+
+	// Private random nonce, used to generate LinkID
+	LinkNonce string `json:"linkNonce"`
 }
 
 func (a AtomicQueryV3Inputs) Validate() error {
@@ -247,6 +252,7 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 		return nil, err
 	}
 	s.Value = bigIntArrayToStringArray(values)
+	s.LinkNonce = a.LinkNonce.String()
 
 	return json.Marshal(s)
 }
@@ -294,6 +300,8 @@ type AtomicQueryV3PubSignals struct {
 	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 revocation not check, // 1 for check revocation
 	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
 	ProofType              int              `json:"proofType"`
+	OperatorOutput         *big.Int         `son:"operatorOutput"`
+	LinkID                 *big.Int         `json:"linkID"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3.circom public signals
@@ -315,11 +323,13 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// operator
 	// value
 	// issuerClaimIdenState
+	// operatorOutput
+	// linkID
 
-	// 12 is a number of fields in AtomicQueryV3PubSignals before values, values is last element in the proof and
-	// it is length could be different base on the circuit configuration. The length could be modified by set value
+	// 17 is a number of fields in AtomicQueryV3PubSignals, values length could be
+	// different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 15
+	const fieldLength = 17
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -434,6 +444,18 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// - issuerClaimIdenState
 	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return err
+	}
+	fieldIdx++
+
+	// - operatorOutput
+	if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	// - linkID
+	if ao.LinkID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
 	}
 
 	return nil

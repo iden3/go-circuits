@@ -498,5 +498,6 @@
     "issuerClaimClaimsTreeRoot": "0",
     "issuerClaimRevTreeRoot": "0",
     "issuerClaimRootsTreeRoot": "0",
-    "issuerClaimIdenState": "0"
+    "issuerClaimIdenState": "0",
+    "linkNonce": "0"
 }

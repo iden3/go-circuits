@@ -80,6 +80,7 @@ func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
 		},
 		CurrentTimeStamp: timestamp,
 		ProofType:        SigProotType,
+		LinkNonce:        big.NewInt(0),
 	}
 
 	bytesInputs, err := in.InputsMarshal()
@@ -144,6 +145,7 @@ func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {
 		},
 		CurrentTimeStamp: timestamp,
 		ProofType:        MTPProofType,
+		LinkNonce:        big.NewInt(0),
 	}
 
 	bytesInputs, err := in.InputsMarshal()
@@ -237,6 +239,8 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
  "0",
  "0",
  "0",
+ "0",
+ "0",
  "0"
 ]`))
 	require.NoError(t, err)
@@ -266,6 +270,8 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
 		IsRevocationChecked:  1,
 		IssuerClaimIdenState: &merkletree.HashZero,
 		ProofType:            0,
+		OperatorOutput:       big.NewInt(0),
+		LinkID:               big.NewInt(0),
 	}
 
 	jsonOut, err := json.Marshal(out)
@@ -358,7 +364,9 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
  "0",
  "0",
  "0",
- "5687720250943511874245715094520098014548846873346473635855112185560372332782"
+ "5687720250943511874245715094520098014548846873346473635855112185560372332782",
+ "0",
+ "0"
 ]`))
 	require.NoError(t, err)
 
@@ -387,6 +395,8 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
 		IsRevocationChecked: 1,
 		ProofType:           1,
 		IssuerAuthState:     &merkletree.HashZero,
+		OperatorOutput:      big.NewInt(0),
+		LinkID:              big.NewInt(0),
 	}
 
 	jsonOut, err := json.Marshal(out)

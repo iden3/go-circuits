@@ -42,6 +42,8 @@ type AtomicQueryV3OnChainInputs struct {
 	CurrentTimeStamp int64
 
 	ProofType ProofType
+
+	LinkNonce *big.Int
 }
 
 // atomicQueryV3OnChainCircuitInputs type represents credentialAtomicQueryV3OnChain.circom private inputs required by prover
@@ -129,6 +131,9 @@ type atomicQueryV3OnChainCircuitInputs struct {
 	GISTMtpAuxHi *merkletree.Hash   `json:"gistMtpAuxHi"`
 	GISTMtpAuxHv *merkletree.Hash   `json:"gistMtpAuxHv"`
 	GISTMtpNoAux string             `json:"gistMtpNoAux"`
+
+	// Private random nonce, used to generate LinkID
+	LinkNonce string `json:"linkNonce"`
 }
 
 func (a AtomicQueryV3OnChainInputs) Validate() error {
@@ -327,6 +332,8 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 	s.GISTMtpAuxHv = globalNodeAux.value
 	s.GISTMtpNoAux = globalNodeAux.noAux
 
+	s.LinkNonce = a.LinkNonce.String()
+
 	return json.Marshal(s)
 }
 
@@ -370,6 +377,8 @@ type AtomicQueryV3OnChainPubSignals struct {
 	GlobalRoot             *merkletree.Hash `json:"gistRoot"`
 	ProofType              int              `json:"proofType"`
 	IssuerAuthState        *merkletree.Hash `json:"issuerAuthState"`
+	OperatorOutput         *big.Int         `son:"operatorOutput"`
+	LinkID                 *big.Int         `json:"linkID"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3OnChain.circom public signals
@@ -388,6 +397,8 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	// issuerClaimNonRevState
 	// timestamp
 	// issuerClaimIdenState // mtp specific
+	// operatorOutput
+	// linkID
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -474,6 +485,18 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	// - IssuerClaimIdenState
 	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid IssuerClaimIdenState value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	// - operatorOutput
+	if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	// - linkID
+	if ao.LinkID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
 	}
 
 	return nil
