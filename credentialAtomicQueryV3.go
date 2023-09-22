@@ -300,8 +300,8 @@ type AtomicQueryV3PubSignals struct {
 	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 revocation not check, // 1 for check revocation
 	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
 	ProofType              int              `json:"proofType"`
-	OperatorOutput         *big.Int         `son:"operatorOutput"`
-	LinkID                 *big.Int         `json:"linkID"`
+	// OperatorOutput         *big.Int         `son:"operatorOutput"`
+	LinkID *big.Int `json:"linkID"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3.circom public signals
@@ -448,10 +448,10 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	fieldIdx++
 
 	// - operatorOutput
-	if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
-	}
-	fieldIdx++
+	// if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+	// 	return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
+	// }
+	// fieldIdx++
 
 	// - linkID
 	if ao.LinkID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {

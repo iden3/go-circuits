@@ -377,8 +377,8 @@ type AtomicQueryV3OnChainPubSignals struct {
 	GlobalRoot             *merkletree.Hash `json:"gistRoot"`
 	ProofType              int              `json:"proofType"`
 	IssuerAuthState        *merkletree.Hash `json:"issuerAuthState"`
-	OperatorOutput         *big.Int         `son:"operatorOutput"`
-	LinkID                 *big.Int         `json:"linkID"`
+	// OperatorOutput         *big.Int         `son:"operatorOutput"`
+	LinkID *big.Int `json:"linkID"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3OnChain.circom public signals
@@ -489,10 +489,10 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	fieldIdx++
 
 	// - operatorOutput
-	if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
-	}
-	fieldIdx++
+	// if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+	// 	return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
+	// }
+	// fieldIdx++
 
 	// - linkID
 	if ao.LinkID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {

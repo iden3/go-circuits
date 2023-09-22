@@ -270,8 +270,8 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
 		IsRevocationChecked:  1,
 		IssuerClaimIdenState: &merkletree.HashZero,
 		ProofType:            0,
-		OperatorOutput:       big.NewInt(0),
-		LinkID:               big.NewInt(0),
+		// OperatorOutput:       big.NewInt(0),
+		LinkID: big.NewInt(0),
 	}
 
 	jsonOut, err := json.Marshal(out)
@@ -395,8 +395,8 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
 		IsRevocationChecked: 1,
 		ProofType:           1,
 		IssuerAuthState:     &merkletree.HashZero,
-		OperatorOutput:      big.NewInt(0),
-		LinkID:              big.NewInt(0),
+		// OperatorOutput:      big.NewInt(0),
+		LinkID: big.NewInt(0),
 	}
 
 	jsonOut, err := json.Marshal(out)
