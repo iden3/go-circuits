@@ -387,6 +387,7 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	// merklized
 	// userID
 	// circuitQueryHash
+	// linkID
 	// issuerAuthState // sig specific
 	// proofType
 	// requestID
@@ -398,7 +399,6 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	// timestamp
 	// issuerClaimIdenState // mtp specific
 	// operatorOutput
-	// linkID
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -424,6 +424,18 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	//  - valueHash
 	if ao.QueryHash, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid circuits query hash value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	// - operatorOutput
+	// if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+	// 	return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
+	// }
+	// fieldIdx++
+
+	// - linkID
+	if ao.LinkID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
@@ -485,18 +497,6 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	// - IssuerClaimIdenState
 	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid IssuerClaimIdenState value: '%s'", sVals[fieldIdx])
-	}
-	fieldIdx++
-
-	// - operatorOutput
-	// if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-	// 	return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
-	// }
-	// fieldIdx++
-
-	// - linkID
-	if ao.LinkID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
 	}
 
 	return nil
