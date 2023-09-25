@@ -310,7 +310,6 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// merklized
 	// userID
 	// issuerAuthState
-	// linkID
 	// proofType
 	// requestID
 	// issuerID
@@ -325,6 +324,7 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// value
 	// issuerClaimIdenState
 	// operatorOutput
+	// linkID
 
 	// 17 is a number of fields in AtomicQueryV3PubSignals, values length could be
 	// different base on the circuit configuration. The length could be modified by set value
@@ -361,24 +361,12 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 	fieldIdx++
 
-	// - operatorOutput
-	// if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-	// 	return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
-	// }
-	// fieldIdx++
-
-	var ok bool
-	// - linkID
-	if ao.LinkID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
-	}
-	fieldIdx++
-
 	if ao.ProofType, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
 		return err
 	}
 	fieldIdx++
 
+	var ok bool
 	// - requestID
 	if ao.RequestID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid requestID value: '%s'", sVals[fieldIdx])
@@ -456,6 +444,18 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// - issuerClaimIdenState
 	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return err
+	}
+	fieldIdx++
+
+	// - operatorOutput
+	// if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+	// 	return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
+	// }
+	// fieldIdx++
+
+	// - linkID
+	if ao.LinkID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
 	}
 
 	return nil

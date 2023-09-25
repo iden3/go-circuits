@@ -165,7 +165,6 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
  "23148936466334350744548790012294489365207440754509988986684797708370051073",
  "2943483356559152311923412925436024635269538717812859789851139200242297094",
  "0",
- "0",
  "23",
  "21933750065545691586450392143787330185992517860945727248803138245838110721",
  "1",
@@ -241,7 +240,8 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
  "0",
  "0",
  "0",
- "0"
+ "0",
+"0"
 ]`))
 	require.NoError(t, err)
 
@@ -288,7 +288,6 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
 		`[
  "0",
  "19104853439462320209059061537253618984153217267677512271018416655565783041",
- "0",
  "0",
  "1",
  "23",
@@ -366,6 +365,7 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
  "0",
  "0",
  "5687720250943511874245715094520098014548846873346473635855112185560372332782",
+ "0",
  "0"
 ]`))
 	require.NoError(t, err)
