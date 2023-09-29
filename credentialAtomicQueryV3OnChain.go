@@ -337,7 +337,7 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 	s.GISTMtpNoAux = globalNodeAux.noAux
 
 	s.LinkNonce = a.LinkNonce.String()
-	s.VerifierID = a.VerifierID.String()
+	s.VerifierID = a.VerifierID.BigInt().String()
 
 	return json.Marshal(s)
 }

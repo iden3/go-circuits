@@ -258,7 +258,7 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 	s.Value = bigIntArrayToStringArray(values)
 	s.LinkNonce = a.LinkNonce.String()
 
-	s.VerifierID = a.VerifierID.String()
+	s.VerifierID = a.VerifierID.BigInt().String()
 
 	return json.Marshal(s)
 }
