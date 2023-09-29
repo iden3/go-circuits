@@ -306,9 +306,8 @@ type AtomicQueryV3PubSignals struct {
 	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 revocation not check, // 1 for check revocation
 	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
 	ProofType              int              `json:"proofType"`
-	OperatorOutput         *big.Int         `son:"operatorOutput"`
 	LinkID                 *big.Int         `json:"linkID"`
-	VerifierID             *core.ID         `json:"verifierID"`
+	OperatorOutput         *big.Int         `son:"operatorOutput"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3.circom public signals
@@ -317,9 +316,8 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// merklized
 	// userID
 	// issuerAuthState
-	// operatorOutput
 	// linkID
-	// verifierID
+	// operatorOutput
 	// proofType
 	// requestID
 	// issuerID
@@ -334,10 +332,10 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// value
 	// issuerClaimIdenState
 
-	// 19 is a number of fields in AtomicQueryV3PubSignals, values length could be
+	// 18 is a number of fields in AtomicQueryV3PubSignals, values length could be
 	// different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 19
+	const fieldLength = 18
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -370,21 +368,15 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	fieldIdx++
 
 	var ok bool
-	// - operatorOutput
-	if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
-	}
-	fieldIdx++
-
 	// - linkID
 	if ao.LinkID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
-	// - verifierID
-	if ao.VerifierID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
-		return err
+	// - operatorOutput
+	if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 

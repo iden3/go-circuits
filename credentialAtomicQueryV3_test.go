@@ -170,7 +170,6 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
  "2943483356559152311923412925436024635269538717812859789851139200242297094",
  "0",
  "0",
-"21929109382993718606847853573861987353620810345503358891473103689157378049",
  "0",
  "23",
  "21933750065545691586450392143787330185992517860945727248803138245838110721",
@@ -276,10 +275,8 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
 		IsRevocationChecked:  1,
 		IssuerClaimIdenState: &merkletree.HashZero,
 		ProofType:            0,
-		OperatorOutput:       big.NewInt(0),
 		LinkID:               big.NewInt(0),
-		VerifierID: it.IDFromStr(
-			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
+		OperatorOutput:       big.NewInt(0),
 	}
 
 	jsonOut, err := json.Marshal(out)
@@ -299,7 +296,6 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
  "0",
  "0",
  "0",
- "21929109382993718606847853573861987353620810345503358891473103689157378049",
  "1",
  "23",
  "23528770672049181535970744460798517976688641688582489375761566420828291073",
@@ -405,10 +401,8 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
 		IsRevocationChecked: 1,
 		ProofType:           1,
 		IssuerAuthState:     &merkletree.HashZero,
-		OperatorOutput:      big.NewInt(0),
 		LinkID:              big.NewInt(0),
-		VerifierID: it.IDFromStr(
-			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
+		OperatorOutput:      big.NewInt(0),
 	}
 
 	jsonOut, err := json.Marshal(out)
