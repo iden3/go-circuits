@@ -383,7 +383,8 @@ type AtomicQueryV3OnChainPubSignals struct {
 	ProofType              int              `json:"proofType"`
 	IssuerAuthState        *merkletree.Hash `json:"issuerAuthState"`
 	LinkID                 *big.Int         `json:"linkID"`
-	OperatorOutput         *big.Int         `son:"operatorOutput"`
+	OperatorOutput         *big.Int         `json:"operatorOutput"`
+	VerifierID             *core.ID         `json:"verifierID"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3OnChain.circom public signals
@@ -404,6 +405,7 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	// issuerClaimNonRevState
 	// timestamp
 	// issuerClaimIdenState // mtp specific
+	// verifierID
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -502,6 +504,12 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	// - IssuerClaimIdenState
 	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return fmt.Errorf("invalid IssuerClaimIdenState value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	//  - VerifierID
+	if ao.VerifierID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
+		return err
 	}
 
 	return nil

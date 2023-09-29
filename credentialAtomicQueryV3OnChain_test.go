@@ -225,7 +225,7 @@ func TestAtomicQueryV3OnChainOutputs_Sig_CircuitUnmarshal(t *testing.T) {
  "20177832565449474772630743317224985532862797657496372535616634430055981993180",
  "1642074362",
  "0",
- "0"
+ "21929109382993718606847853573861987353620810345503358891473103689157378049"
 ]`))
 	require.NoError(t, err)
 
@@ -263,6 +263,8 @@ func TestAtomicQueryV3OnChainOutputs_Sig_CircuitUnmarshal(t *testing.T) {
 		IssuerClaimIdenState:   &merkletree.HashZero,
 		OperatorOutput:         big.NewInt(0),
 		LinkID:                 big.NewInt(0),
+		VerifierID: it.IDFromStr(
+			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
 	}
 
 	jsonOut, err := json.Marshal(out)
@@ -292,7 +294,7 @@ func TestAtomicQueryV3OnChainOutputs_MTP_CircuitUnmarshal(t *testing.T) {
  "20177832565449474772630743317224985532862797657496372535616634430055981993180",
  "1642074362",
  "2943483356559152311923412925436024635269538717812859789851139200242297094",
- "0"
+ "21929109382993718606847853573861987353620810345503358891473103689157378049"
 ]`))
 	require.NoError(t, err)
 
@@ -330,6 +332,8 @@ func TestAtomicQueryV3OnChainOutputs_MTP_CircuitUnmarshal(t *testing.T) {
 		IssuerClaimIdenState:   it.MTHashFromStr(t, "2943483356559152311923412925436024635269538717812859789851139200242297094"),
 		OperatorOutput:         big.NewInt(0),
 		LinkID:                 big.NewInt(0),
+		VerifierID: it.IDFromStr(
+			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
 	}
 
 	jsonOut, err := json.Marshal(out)

@@ -307,7 +307,8 @@ type AtomicQueryV3PubSignals struct {
 	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
 	ProofType              int              `json:"proofType"`
 	LinkID                 *big.Int         `json:"linkID"`
-	OperatorOutput         *big.Int         `son:"operatorOutput"`
+	OperatorOutput         *big.Int         `json:"operatorOutput"`
+	VerifierID             *core.ID         `json:"verifierID"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3.circom public signals
@@ -331,6 +332,7 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// operator
 	// value
 	// issuerClaimIdenState
+	// verifierID
 
 	// 18 is a number of fields in AtomicQueryV3PubSignals, values length could be
 	// different base on the circuit configuration. The length could be modified by set value
@@ -461,6 +463,12 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 
 	// - issuerClaimIdenState
 	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
+		return err
+	}
+	fieldIdx++
+
+	//  - VerifierID
+	if ao.VerifierID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
 		return err
 	}
 
