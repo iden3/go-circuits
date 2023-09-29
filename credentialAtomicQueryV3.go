@@ -40,6 +40,8 @@ type AtomicQueryV3Inputs struct {
 	ProofType ProofType
 
 	LinkNonce *big.Int
+
+	VerifierID *core.ID
 }
 
 // atomicQueryV3CircuitInputs type represents credentialAtomicQueryV3.circom private inputs required by prover
@@ -102,6 +104,8 @@ type atomicQueryV3CircuitInputs struct {
 
 	// Private random nonce, used to generate LinkID
 	LinkNonce string `json:"linkNonce"`
+
+	VerifierID string `json:"verifierID"`
 }
 
 func (a AtomicQueryV3Inputs) Validate() error {
@@ -254,6 +258,8 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 	s.Value = bigIntArrayToStringArray(values)
 	s.LinkNonce = a.LinkNonce.String()
 
+	s.VerifierID = a.VerifierID.String()
+
 	return json.Marshal(s)
 }
 
@@ -300,8 +306,9 @@ type AtomicQueryV3PubSignals struct {
 	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 revocation not check, // 1 for check revocation
 	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
 	ProofType              int              `json:"proofType"`
-	// OperatorOutput         *big.Int         `son:"operatorOutput"`
-	LinkID *big.Int `json:"linkID"`
+	OperatorOutput         *big.Int         `son:"operatorOutput"`
+	LinkID                 *big.Int         `json:"linkID"`
+	VerifierID             *core.ID         `json:"verifierID"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3.circom public signals
@@ -310,7 +317,9 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// merklized
 	// userID
 	// issuerAuthState
+	// operatorOutput
 	// linkID
+	// verifierID
 	// proofType
 	// requestID
 	// issuerID
@@ -324,12 +333,11 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// operator
 	// value
 	// issuerClaimIdenState
-	// operatorOutput
 
-	// 17 is a number of fields in AtomicQueryV3PubSignals, values length could be
+	// 19 is a number of fields in AtomicQueryV3PubSignals, values length could be
 	// different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 17
+	const fieldLength = 19
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -363,14 +371,20 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 
 	var ok bool
 	// - operatorOutput
-	// if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-	// 	return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
-	// }
-	// fieldIdx++
+	if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
 
 	// - linkID
 	if ao.LinkID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	// - verifierID
+	if ao.VerifierID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
+		return err
 	}
 	fieldIdx++
 
