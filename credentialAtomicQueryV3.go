@@ -258,7 +258,11 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 	s.Value = bigIntArrayToStringArray(values)
 	s.LinkNonce = a.LinkNonce.String()
 
-	s.VerifierID = a.VerifierID.BigInt().String()
+	if a.VerifierID == nil {
+		s.VerifierID = "0"
+	} else {
+		s.VerifierID = a.VerifierID.BigInt().String()
+	}
 
 	return json.Marshal(s)
 }
@@ -468,8 +472,10 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	fieldIdx++
 
 	//  - VerifierID
-	if ao.VerifierID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
-		return err
+	if sVals[fieldIdx] != "0" {
+		if ao.VerifierID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
+			return err
+		}
 	}
 
 	return nil

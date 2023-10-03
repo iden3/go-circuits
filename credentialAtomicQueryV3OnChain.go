@@ -337,7 +337,11 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 	s.GISTMtpNoAux = globalNodeAux.noAux
 
 	s.LinkNonce = a.LinkNonce.String()
-	s.VerifierID = a.VerifierID.BigInt().String()
+	if a.VerifierID == nil {
+		s.VerifierID = "0"
+	} else {
+		s.VerifierID = a.VerifierID.BigInt().String()
+	}
 
 	return json.Marshal(s)
 }
@@ -508,8 +512,10 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	fieldIdx++
 
 	//  - VerifierID
-	if ao.VerifierID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
-		return err
+	if sVals[fieldIdx] != "0" {
+		if ao.VerifierID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
+			return err
+		}
 	}
 
 	return nil
