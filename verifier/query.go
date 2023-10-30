@@ -203,7 +203,7 @@ func (q Query) verifyClaim(schemaBytes []byte, pubSig *CircuitOutputs,
 	return nil
 }
 
-func (q Query) verifyIssuer(pubSig *CircuitOutputs) error {
+func (q Query) VerifyIssuer(pubSig *CircuitOutputs) error {
 	userDID, err := core.ParseDIDFromID(*pubSig.IssuerID)
 	if err != nil {
 		return err
