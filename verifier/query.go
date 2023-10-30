@@ -100,7 +100,7 @@ func (q Query) Check(
 	verifiablePresentation json.RawMessage,
 	opts ...VerifyOpt,
 ) error {
-	if err := q.verifyIssuer(pubSig); err != nil {
+	if err := q.VerifyIssuer(pubSig); err != nil {
 		return err
 	}
 
