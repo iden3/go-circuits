@@ -134,7 +134,7 @@ func (q Query) Check(
 
 	if time.Since(
 		time.Unix(pubSig.Timestamp, 0),
-	) > cfg.acceptedProofGenerationDelay {
+	) > cfg.AcceptedProofGenerationDelay {
 		return ErrProofGenerationOutdated
 	}
 

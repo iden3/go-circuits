@@ -82,7 +82,7 @@ func (c *AtomicQueryMTPV3) VerifyStates(ctx context.Context,
 
 	if !issuerNonRevStateResolved.Latest && time.Since(
 		time.Unix(issuerNonRevStateResolved.TransitionTimestamp, 0),
-	) > cfg.acceptedStateTransitionDelay {
+	) > cfg.AcceptedStateTransitionDelay {
 		return ErrIssuerNonRevocationClaimStateIsNotValid
 	}
 
