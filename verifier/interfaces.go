@@ -4,16 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"math/big"
-	"time"
 
 	"github.com/iden3/go-circuits/v2"
 	"github.com/piprate/json-gold/ld"
-)
-
-var (
-	defaultAuthVerifyOpts  = VerifyConfig{acceptedStateTransitionDelay: time.Minute * 5}
-	defaultProofVerifyOpts = VerifyConfig{acceptedStateTransitionDelay: time.Hour,
-		acceptedProofGenerationDelay: time.Hour * 24}
 )
 
 // Verifier is interface for verification of public signals of zkp
@@ -23,16 +16,6 @@ type Verifier interface {
 	VerifyIDOwnership(userIdentifier string, challenge *big.Int) error
 
 	circuits.PubSignalsUnmarshaller
-}
-
-// VerifyOpt sets options.
-type VerifyOpt func(v *VerifyConfig)
-
-// VerifyConfig verifiers options.
-type VerifyConfig struct {
-	// is the period of time that a revoked state remains valid.
-	acceptedStateTransitionDelay time.Duration
-	acceptedProofGenerationDelay time.Duration
 }
 
 // StateResolver is a state resolver interface
