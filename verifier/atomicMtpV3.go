@@ -75,7 +75,7 @@ func (c *AtomicQueryMTPV3) VerifyStates(ctx context.Context,
 		return err
 	}
 
-	cfg := defaultProofVerifyOpts
+	cfg := DefaultProofVerifyOpts
 	for _, o := range opts {
 		o(&cfg)
 	}

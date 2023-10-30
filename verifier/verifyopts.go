@@ -3,8 +3,8 @@ package verifier
 import "time"
 
 var (
-	defaultAuthVerifyOpts  = VerifyConfig{acceptedStateTransitionDelay: time.Minute * 5}
-	defaultProofVerifyOpts = VerifyConfig{acceptedStateTransitionDelay: time.Hour,
+	DefaultAuthVerifyOpts  = VerifyConfig{acceptedStateTransitionDelay: time.Minute * 5}
+	DefaultProofVerifyOpts = VerifyConfig{acceptedStateTransitionDelay: time.Hour,
 		acceptedProofGenerationDelay: time.Hour * 24}
 )
 

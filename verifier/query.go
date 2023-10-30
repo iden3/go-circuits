@@ -127,7 +127,7 @@ func (q Query) Check(
 		return errors.New("check revocation is required")
 	}
 
-	cfg := defaultProofVerifyOpts
+	cfg := DefaultProofVerifyOpts
 	for _, o := range opts {
 		o(&cfg)
 	}
