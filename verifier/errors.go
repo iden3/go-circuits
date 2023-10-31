@@ -11,4 +11,6 @@ var (
 	ErrIssuerNonRevocationClaimStateIsNotValid = errors.New("issuer state for non-revocation proofs is not valid")
 	// ErrProofGenerationOutdated declares that generated proof is outdated.
 	ErrProofGenerationOutdated = errors.New("generated proof is outdated")
+	// ErrWronProofType declares that query proof type doesn't match circuit proof type
+	ErrWronProofType = errors.New("invalid proof type")
 )

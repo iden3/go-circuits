@@ -14,6 +14,7 @@ import (
 	parser "github.com/iden3/go-schema-processor/v2/json"
 	"github.com/iden3/go-schema-processor/v2/merklize"
 	"github.com/iden3/go-schema-processor/v2/utils"
+	verifiable "github.com/iden3/go-schema-processor/v2/verifiable"
 	"github.com/piprate/json-gold/ld"
 	"github.com/pkg/errors"
 )
@@ -68,7 +69,7 @@ type Query struct {
 	ClaimID                  string                 `json:"claimId,omitempty"`
 	SkipClaimRevocationCheck bool                   `json:"skipClaimRevocationCheck,omitempty"`
 	LinkNonce                string                 `json:"linkNonce,omitempty"`
-	VerifierID               string                 `json:"verifierID"`
+	ProofType                string                 `json:"proofType"`
 }
 
 // CircuitOutputs pub signals from circuit.
@@ -88,6 +89,7 @@ type CircuitOutputs struct {
 	LinkID         *big.Int
 	VerifierID     *core.ID
 	OperatorOutput *big.Int
+	ProofType      int
 }
 
 // Check checks if proof was created for this query.
@@ -139,10 +141,6 @@ func (q Query) Check(
 	}
 
 	// V3 NEW
-	// claim, err := core.NewClaim(pubSig.ClaimSchema) // -
-	// if err != nil {
-	// 	return errors.Errorf("Can't check claim from schema: %v", err)
-	// }
 	// if err = verifyLinkID(q.LinkNonce, claim, pubSig.LinkID.String()); err != nil {
 	// 	return err
 	// }
@@ -151,6 +149,18 @@ func (q Query) Check(
 	// 		return err
 	// 	}
 	// }
+
+	switch q.ProofType {
+	case string(verifiable.BJJSignatureProofType):
+		if pubSig.ProofType != 0 {
+			return ErrWronProofType
+		}
+	case string(verifiable.Iden3SparseMerkleTreeProofType):
+		if pubSig.ProofType != 0 {
+			return ErrWronProofType
+		}
+	default:
+	}
 
 	return q.verifyClaim(schemaBytes, pubSig, loader)
 }
