@@ -126,7 +126,7 @@ func (c *AtomicQueryV3) VerifyIDOwnership(sender string, requestID *big.Int) err
 
 // VerifyVerifierID returns error if verifier ID wasn't match with circuit output.
 func (c *AtomicQueryV3) VerifyVerifierID(verifierID string) error {
-	if verifierID != c.VerifierID.String() {
+	if c.VerifierID == nil || verifierID != c.VerifierID.String() {
 		return errors.New("invalid verifier ID")
 	}
 	return nil
