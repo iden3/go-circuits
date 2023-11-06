@@ -405,6 +405,7 @@
     "issuerAuthClaimsTreeRoot": "0",
     "issuerAuthRevTreeRoot": "0",
     "issuerAuthRootsTreeRoot": "0",
+    "issuerAuthState": "0",
     "issuerAuthClaimNonRevMtp": [
         "0",
         "0",

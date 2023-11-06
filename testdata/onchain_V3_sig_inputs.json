@@ -167,6 +167,7 @@
     "issuerAuthClaimsTreeRoot": "10304430946970870697981400054531724100803206948489006715521525892274350097449",
     "issuerAuthRevTreeRoot": "0",
     "issuerAuthRootsTreeRoot": "0",
+    "issuerAuthState": "20177832565449474772630743317224985532862797657496372535616634430055981993180",
     "isRevocationChecked": 1,
     "claimPathNotExists": 1,
     "claimPathMtp": [

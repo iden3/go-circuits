@@ -167,6 +167,7 @@
     "issuerAuthClaimsTreeRoot": "0",
     "issuerAuthRevTreeRoot": "0",
     "issuerAuthRootsTreeRoot": "0",
+    "issuerAuthState": "0",
     "isRevocationChecked": 1,
     "claimPathNotExists": 1,
     "claimPathMtp": [

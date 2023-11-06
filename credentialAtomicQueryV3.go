@@ -79,6 +79,7 @@ type atomicQueryV3CircuitInputs struct {
 	IssuerAuthClaimsTreeRoot        string           `json:"issuerAuthClaimsTreeRoot"`
 	IssuerAuthRevTreeRoot           string           `json:"issuerAuthRevTreeRoot"`
 	IssuerAuthRootsTreeRoot         string           `json:"issuerAuthRootsTreeRoot"`
+	IssuerAuthState                 *merkletree.Hash `json:"issuerAuthState"`
 
 	IsRevocationChecked int `json:"isRevocationChecked"`
 	// Query
@@ -228,6 +229,7 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 		s.IssuerAuthClaimNonRevMtpAuxHi = nodeAuxIssuerAuthNonRev.key
 		s.IssuerAuthClaimNonRevMtpAuxHv = nodeAuxIssuerAuthNonRev.value
 		s.IssuerAuthClaimNonRevMtpNoAux = nodeAuxIssuerAuthNonRev.noAux
+		s.IssuerAuthState = a.Claim.SignatureProof.IssuerAuthNonRevProof.TreeState.State
 
 		a.fillMTPProofsWithZero(&s)
 	case MTPProofType:
@@ -297,6 +299,7 @@ func (a AtomicQueryV3Inputs) fillSigProofWithZero(s *atomicQueryV3CircuitInputs)
 	s.IssuerAuthClaimNonRevMtpAuxHi = &merkletree.HashZero
 	s.IssuerAuthClaimNonRevMtpAuxHv = &merkletree.HashZero
 	s.IssuerAuthClaimNonRevMtpNoAux = "0"
+	s.IssuerAuthState = &merkletree.HashZero
 }
 
 // AtomicQueryV3PubSignals public inputs
