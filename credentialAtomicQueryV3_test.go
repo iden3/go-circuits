@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	it "github.com/iden3/go-circuits/v2/testing"
-	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/stretchr/testify/require"
 )
 
@@ -83,6 +82,7 @@ func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
 		LinkNonce:        big.NewInt(0),
 		VerifierID: it.IDFromStr(
 			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
+		VerifierSessionID: big.NewInt(32),
 	}
 
 	bytesInputs, err := in.InputsMarshal()
@@ -150,6 +150,7 @@ func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {
 		LinkNonce:        big.NewInt(0),
 		VerifierID: it.IDFromStr(
 			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
+		VerifierSessionID: big.NewInt(32),
 	}
 
 	bytesInputs, err := in.InputsMarshal()
@@ -168,6 +169,7 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
  "0",
  "23148936466334350744548790012294489365207440754509988986684797708370051073",
  "2943483356559152311923412925436024635269538717812859789851139200242297094",
+ "0",
  "0",
  "0",
  "0",
@@ -245,8 +247,8 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
  "0",
  "0",
  "0",
- "0",
- "21929109382993718606847853573861987353620810345503358891473103689157378049"
+ "21929109382993718606847853573861987353620810345503358891473103689157378049",
+ "32"
 ]`))
 	require.NoError(t, err)
 
@@ -259,26 +261,27 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
 			"23148936466334350744548790012294489365207440754509988986684797708370051073"),
 		IssuerID: it.IDFromStr(t,
 			"21933750065545691586450392143787330185992517860945727248803138245838110721"),
-		IssuerAuthState: it.MTHashFromStr(t,
+		IssuerState: it.MTHashFromStr(t,
 			"2943483356559152311923412925436024635269538717812859789851139200242297094"),
 		IssuerClaimNonRevState: it.MTHashFromStr(t,
 			"2943483356559152311923412925436024635269538717812859789851139200242297094"),
 		ClaimSchema: it.CoreSchemaFromStr(t,
 			"180410020913331409885634153623124536270"),
-		SlotIndex:            2,
-		Operator:             1,
-		Value:                expValue,
-		Timestamp:            int64(1642074362),
-		Merklized:            0,
-		ClaimPathKey:         big.NewInt(0),
-		ClaimPathNotExists:   0,
-		IsRevocationChecked:  1,
-		IssuerClaimIdenState: &merkletree.HashZero,
-		ProofType:            0,
-		LinkID:               big.NewInt(0),
-		OperatorOutput:       big.NewInt(0),
+		SlotIndex:           2,
+		Operator:            1,
+		Value:               expValue,
+		Timestamp:           int64(1642074362),
+		Merklized:           0,
+		ClaimPathKey:        big.NewInt(0),
+		ClaimPathNotExists:  0,
+		IsRevocationChecked: 1,
+		ProofType:           0,
+		LinkID:              big.NewInt(0),
+		Nullifier:           big.NewInt(0),
+		OperatorOutput:      big.NewInt(0),
 		VerifierID: it.IDFromStr(
 			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
+		VerifierSessionID: big.NewInt(32),
 	}
 
 	jsonOut, err := json.Marshal(out)
@@ -295,6 +298,7 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
 		`[
  "0",
  "19104853439462320209059061537253618984153217267677512271018416655565783041",
+ "5687720250943511874245715094520098014548846873346473635855112185560372332782",
  "0",
  "0",
  "0",
@@ -373,8 +377,8 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
  "0",
  "0",
  "0",
- "5687720250943511874245715094520098014548846873346473635855112185560372332782",
- "21929109382993718606847853573861987353620810345503358891473103689157378049"
+ "21929109382993718606847853573861987353620810345503358891473103689157378049",
+ "32"
 ]`))
 	require.NoError(t, err)
 
@@ -387,7 +391,7 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
 			t, "19104853439462320209059061537253618984153217267677512271018416655565783041"),
 		IssuerID: it.IDFromStr(t,
 			"23528770672049181535970744460798517976688641688582489375761566420828291073"),
-		IssuerClaimIdenState: it.MTHashFromStr(t,
+		IssuerState: it.MTHashFromStr(t,
 			"5687720250943511874245715094520098014548846873346473635855112185560372332782"),
 		IssuerClaimNonRevState: it.MTHashFromStr(t,
 			"5687720250943511874245715094520098014548846873346473635855112185560372332782"),
@@ -402,11 +406,12 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
 		ClaimPathNotExists:  0,
 		IsRevocationChecked: 1,
 		ProofType:           1,
-		IssuerAuthState:     &merkletree.HashZero,
 		LinkID:              big.NewInt(0),
+		Nullifier:           big.NewInt(0),
 		OperatorOutput:      big.NewInt(0),
 		VerifierID: it.IDFromStr(
 			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
+		VerifierSessionID: big.NewInt(32),
 	}
 
 	jsonOut, err := json.Marshal(out)
