@@ -298,7 +298,7 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 		s.IssuerAuthClaimNonRevMtpAuxHi = nodeAuxIssuerAuthNonRev.key
 		s.IssuerAuthClaimNonRevMtpAuxHv = nodeAuxIssuerAuthNonRev.value
 		s.IssuerAuthClaimNonRevMtpNoAux = nodeAuxIssuerAuthNonRev.noAux
-		s.IssuerAuthState = a.Claim.SignatureProof.IssuerAuthNonRevProof.TreeState.State
+		s.IssuerAuthState = a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State
 
 		a.fillMTPProofsWithZero(&s)
 	case MTPProofType:
