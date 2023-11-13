@@ -107,7 +107,7 @@ func TestAttrQueryV3OnChain_SigPart_PrepareInputs(t *testing.T) {
 		VerifierID: it.IDFromStr(
 			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
 		VerifierSessionID: big.NewInt(32),
-		AuthV2Enabled:     0,
+		AuthEnabled:       0,
 	}
 
 	bytesInputs, err := in.InputsMarshal()
@@ -198,7 +198,7 @@ func TestAttrQueryV3OnChain_MTPPart_PrepareInputs(t *testing.T) {
 		VerifierID: it.IDFromStr(
 			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
 		VerifierSessionID: big.NewInt(32),
-		AuthV2Enabled:     1,
+		AuthEnabled:       1,
 	}
 
 	bytesInputs, err := in.InputsMarshal()
@@ -271,7 +271,7 @@ func TestAtomicQueryV3OnChainOutputs_Sig_CircuitUnmarshal(t *testing.T) {
 		VerifierID: it.IDFromStr(
 			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
 		VerifierSessionID: big.NewInt(32),
-		AuthV2Enabled:     1,
+		AuthEnabled:       1,
 	}
 
 	jsonOut, err := json.Marshal(out)
@@ -344,7 +344,7 @@ func TestAtomicQueryV3OnChainOutputs_MTP_CircuitUnmarshal(t *testing.T) {
 		VerifierID: it.IDFromStr(
 			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
 		VerifierSessionID: big.NewInt(32),
-		AuthV2Enabled:     0,
+		AuthEnabled:       0,
 	}
 
 	jsonOut, err := json.Marshal(out)
