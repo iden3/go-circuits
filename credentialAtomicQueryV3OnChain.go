@@ -48,6 +48,8 @@ type AtomicQueryV3OnChainInputs struct {
 	VerifierID *core.ID
 
 	VerifierSessionID *big.Int
+
+	AuthV2Enabled int
 }
 
 // atomicQueryV3OnChainCircuitInputs type represents credentialAtomicQueryV3OnChain.circom private inputs required by prover
@@ -143,6 +145,8 @@ type atomicQueryV3OnChainCircuitInputs struct {
 	VerifierID string `json:"verifierID"`
 
 	VerifierSessionID string `json:"verifierSessionID"`
+
+	AuthV2Enabled string `json:"authV2Enabled"`
 }
 
 func (a AtomicQueryV3OnChainInputs) Validate() error {
@@ -353,6 +357,8 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 		s.VerifierSessionID = a.VerifierSessionID.String()
 	}
 
+	s.AuthV2Enabled = strconv.Itoa(a.AuthV2Enabled)
+
 	return json.Marshal(s)
 }
 
@@ -401,6 +407,7 @@ type AtomicQueryV3OnChainPubSignals struct {
 	OperatorOutput         *big.Int         `json:"operatorOutput"`
 	VerifierID             *core.ID         `json:"verifierID"`
 	VerifierSessionID      *big.Int         `json:"verifierSessionID"`
+	AuthV2Enabled          int              `json:"authV2Enabled"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3OnChain.circom public signals
@@ -423,6 +430,7 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	// timestamp
 	// verifierID
 	// verifierSessionID
+	// authV2Enabled
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -535,6 +543,12 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	//  - VerifierSessionID
 	if ao.VerifierSessionID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid verifier session ID: %s", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	//  - AuthV2Enabled
+	if ao.AuthV2Enabled, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
+		return err
 	}
 
 	return nil
