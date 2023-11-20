@@ -7,11 +7,11 @@ import (
 )
 
 type ClaimWithSigAndMTPProof struct {
-	IssuerID       *core.ID          `json:"issuerID"`
-	Claim          *core.Claim       `json:"claim"`
-	NonRevProof    MTProof           `json:"nonRevProof"` // Claim non revocation proof
-	SignatureProof BJJSignatureProof `json:"signatureProof"`
-	IncProof       MTProof           `json:"incProof"` // proof of inclusion `Claim` to the issuer claims tree
+	IssuerID       *core.ID           `json:"issuerID"`
+	Claim          *core.Claim        `json:"claim"`
+	NonRevProof    MTProof            `json:"nonRevProof"` // Claim non revocation proof
+	SignatureProof *BJJSignatureProof `json:"signatureProof"`
+	IncProof       *MTProof           `json:"incProof"` // proof of inclusion `Claim` to the issuer claims tree
 }
 
 type ClaimWithSigProof struct {

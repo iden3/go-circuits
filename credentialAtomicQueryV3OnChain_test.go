@@ -62,7 +62,7 @@ func TestAttrQueryV3OnChain_SigPart_PrepareInputs(t *testing.T) {
 				},
 				Proof: issuerClaimNonRevMtp,
 			},
-			SignatureProof: BJJSignatureProof{
+			SignatureProof: &BJJSignatureProof{
 				Signature:       claimSig,
 				IssuerAuthClaim: issuer.AuthClaim,
 				IssuerAuthIncProof: MTProof{
@@ -157,7 +157,7 @@ func TestAttrQueryV3OnChain_MTPPart_PrepareInputs(t *testing.T) {
 		Claim: ClaimWithSigAndMTPProof{
 			IssuerID: &issuer.ID,
 			Claim:    claim,
-			IncProof: MTProof{
+			IncProof: &MTProof{
 				Proof: issuerClaimMtp,
 				TreeState: TreeState{
 					State:          issuer.State(t),
