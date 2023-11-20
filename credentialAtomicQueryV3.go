@@ -115,6 +115,10 @@ func (a AtomicQueryV3Inputs) Validate() error {
 
 	switch a.ProofType {
 	case SigProotType:
+		if a.Claim.SignatureProof == nil {
+			return errors.New(ErrorEmptySignatureProof)
+		}
+
 		if a.Claim.SignatureProof.IssuerAuthIncProof.Proof == nil {
 			return errors.New(ErrorEmptyIssuerAuthClaimProof)
 		}
@@ -127,6 +131,10 @@ func (a AtomicQueryV3Inputs) Validate() error {
 			return errors.New(ErrorEmptyClaimSignature)
 		}
 	case MTPProofType:
+		if a.Claim.IncProof == nil {
+			return errors.New(ErrorEmptyMTPProof)
+		}
+
 		if a.Claim.IncProof.Proof == nil {
 			return errors.New(ErrorEmptyClaimProof)
 		}
@@ -198,6 +206,10 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 	case SigProotType:
 		s.ProofType = "0"
 
+		if a.Claim.SignatureProof == nil {
+			return nil, errors.New(ErrorEmptySignatureProof)
+		}
+
 		s.IssuerClaimSignatureR8X = a.Claim.SignatureProof.Signature.R8.X.String()
 		s.IssuerClaimSignatureR8Y = a.Claim.SignatureProof.Signature.R8.Y.String()
 		s.IssuerClaimSignatureS = a.Claim.SignatureProof.Signature.S.String()
@@ -219,6 +231,10 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 		a.fillMTPProofsWithZero(&s)
 	case MTPProofType:
 		s.ProofType = "1"
+
+		if a.Claim.IncProof == nil {
+			return nil, errors.New(ErrorEmptyMTPProof)
+		}
 
 		s.IssuerClaimMtp = CircomSiblings(a.Claim.IncProof.Proof, a.GetMTLevel())
 		s.IssuerClaimClaimsTreeRoot = a.Claim.IncProof.TreeState.ClaimsRoot
