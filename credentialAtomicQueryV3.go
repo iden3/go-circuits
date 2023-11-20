@@ -14,8 +14,8 @@ import (
 type ProofType string
 
 const (
-	SigProotType ProofType = "sig"
-	MTPProofType ProofType = "mtp"
+	BJJSignatureProofType      ProofType = "BJJSignature2021"
+	Iden3SparseMerkleProofType ProofType = "Iden3SparseMerkleProof"
 )
 
 // AtomicQueryV3Inputs ZK private inputs for credentialAtomicQuerySig.circom
@@ -128,7 +128,7 @@ func (a AtomicQueryV3Inputs) Validate() error {
 	}
 
 	switch a.ProofType {
-	case SigProotType:
+	case BJJSignatureProofType:
 		if a.Claim.SignatureProof == nil {
 			return errors.New(ErrorEmptySignatureProof)
 		}
@@ -144,7 +144,7 @@ func (a AtomicQueryV3Inputs) Validate() error {
 		if a.Claim.SignatureProof.Signature == nil {
 			return errors.New(ErrorEmptyClaimSignature)
 		}
-	case MTPProofType:
+	case Iden3SparseMerkleProofType:
 		if a.Claim.IncProof == nil {
 			return errors.New(ErrorEmptyMTPProof)
 		}
@@ -217,7 +217,7 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 	}
 
 	switch a.ProofType {
-	case SigProotType:
+	case BJJSignatureProofType:
 		s.ProofType = "1"
 
 		if a.Claim.SignatureProof == nil {
@@ -244,7 +244,7 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 		s.IssuerAuthState = a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State
 
 		a.fillMTPProofsWithZero(&s)
-	case MTPProofType:
+	case Iden3SparseMerkleProofType:
 		s.ProofType = "2"
 
 		if a.Claim.IncProof == nil {

@@ -78,7 +78,7 @@ func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
 			SlotIndex:  2,
 		},
 		CurrentTimeStamp: timestamp,
-		ProofType:        SigProotType,
+		ProofType:        BJJSignatureProofType,
 		LinkNonce:        big.NewInt(0),
 		VerifierID: it.IDFromStr(
 			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
@@ -146,7 +146,7 @@ func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {
 			SlotIndex:  2,
 		},
 		CurrentTimeStamp: timestamp,
-		ProofType:        MTPProofType,
+		ProofType:        Iden3SparseMerkleProofType,
 		LinkNonce:        big.NewInt(0),
 		VerifierID: it.IDFromStr(
 			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
