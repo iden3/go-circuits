@@ -146,7 +146,7 @@ func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {
 			SlotIndex:  2,
 		},
 		CurrentTimeStamp: timestamp,
-		ProofType:        Iden3SparseMerkleProofType,
+		ProofType:        Iden3SparseMerkleTreeProofType,
 		LinkNonce:        big.NewInt(0),
 		VerifierID: it.IDFromStr(
 			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),

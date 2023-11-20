@@ -183,7 +183,7 @@ func TestAttrQueryV3OnChain_MTPPart_PrepareInputs(t *testing.T) {
 			SlotIndex:  2,
 		},
 		CurrentTimeStamp:   timestamp,
-		ProofType:          Iden3SparseMerkleProofType,
+		ProofType:          Iden3SparseMerkleTreeProofType,
 		AuthClaim:          user.AuthClaim,
 		AuthClaimIncMtp:    authClaimIncMTP,
 		AuthClaimNonRevMtp: authClaimNonRevMTP,

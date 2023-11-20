@@ -200,7 +200,7 @@ func (a AtomicQueryV3OnChainInputs) Validate() error {
 		if a.Claim.SignatureProof.Signature == nil {
 			return errors.New(ErrorEmptyClaimSignature)
 		}
-	case Iden3SparseMerkleProofType:
+	case Iden3SparseMerkleTreeProofType:
 		if a.Claim.IncProof == nil {
 			return errors.New(ErrorEmptyMTPProof)
 		}
@@ -317,7 +317,7 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 		s.IssuerAuthState = a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State
 
 		a.fillMTPProofsWithZero(&s)
-	case Iden3SparseMerkleProofType:
+	case Iden3SparseMerkleTreeProofType:
 		s.ProofType = "2"
 
 		if a.Claim.IncProof == nil {
