@@ -358,15 +358,17 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 	}
 	s.Value = bigIntArrayToStringArray(values)
 
-	nodeAuxAuth := GetNodeAuxValue(a.AuthClaimNonRevMtp)
-	s.AuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
-	s.AuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
-	s.AuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
+	if a.AuthEnabled == 1 {
+		nodeAuxAuth := GetNodeAuxValue(a.AuthClaimNonRevMtp)
+		s.AuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
+		s.AuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
+		s.AuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
 
-	globalNodeAux := GetNodeAuxValue(a.GISTProof.Proof)
-	s.GISTMtpAuxHi = globalNodeAux.key
-	s.GISTMtpAuxHv = globalNodeAux.value
-	s.GISTMtpNoAux = globalNodeAux.noAux
+		globalNodeAux := GetNodeAuxValue(a.GISTProof.Proof)
+		s.GISTMtpAuxHi = globalNodeAux.key
+		s.GISTMtpAuxHv = globalNodeAux.value
+		s.GISTMtpNoAux = globalNodeAux.noAux
+	}
 
 	s.LinkNonce = "0"
 	if a.LinkNonce != nil {
