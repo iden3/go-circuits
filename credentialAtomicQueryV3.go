@@ -278,7 +278,11 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 		return nil, err
 	}
 	s.Value = bigIntArrayToStringArray(values)
-	s.LinkNonce = a.LinkNonce.String()
+
+	s.LinkNonce = "0"
+	if a.LinkNonce != nil {
+		s.LinkNonce = a.LinkNonce.String()
+	}
 
 	s.VerifierID = "0"
 	if a.VerifierID != nil {
