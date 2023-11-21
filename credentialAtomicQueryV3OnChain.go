@@ -406,14 +406,17 @@ func (a AtomicQueryV3OnChainInputs) fillAuthWithZero(s *atomicQueryV3OnChainCirc
 	s.RootsTreeRoot = &merkletree.HashZero
 	s.State = &merkletree.HashZero
 
-	s.AuthClaimMtp = []*merkletree.Hash{}
-	s.AuthClaimNonRevMtp = []*merkletree.Hash{}
+	s.AuthClaimMtp = CircomSiblings(&merkletree.Proof{},
+		a.GetMTLevel()-1)
+	s.AuthClaimNonRevMtp = CircomSiblings(&merkletree.Proof{},
+		a.GetMTLevel()-1)
 	s.Challenge = "0"
 	s.ChallengeSignatureR8X = "0"
 	s.ChallengeSignatureR8Y = "0"
 	s.ChallengeSignatureS = "0"
 	s.GISTRoot = &merkletree.HashZero
-	s.GISTMtp = []*merkletree.Hash{}
+	s.GISTMtp = CircomSiblings(&merkletree.Proof{},
+		a.GetMTLevelOnChain()-1)
 
 	s.AuthClaimNonRevMtpAuxHi = &merkletree.HashZero
 	s.AuthClaimNonRevMtpAuxHv = &merkletree.HashZero
