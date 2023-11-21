@@ -270,21 +270,25 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 		IsRevocationChecked: 1,
 
 		AuthClaim: a.AuthClaim,
-		AuthClaimMtp: merkletree.CircomSiblingsFromSiblings(a.AuthClaimIncMtp.AllSiblings(),
-			a.GetMTLevel()-1),
-		AuthClaimNonRevMtp: merkletree.CircomSiblingsFromSiblings(a.AuthClaimNonRevMtp.AllSiblings(),
-			a.GetMTLevel()-1),
-		Challenge:             a.Challenge.String(),
-		ChallengeSignatureR8X: a.Signature.R8.X.String(),
-		ChallengeSignatureR8Y: a.Signature.R8.Y.String(),
-		ChallengeSignatureS:   a.Signature.S.String(),
-		ClaimsTreeRoot:        a.TreeState.ClaimsRoot,
-		RevTreeRoot:           a.TreeState.RevocationRoot,
-		RootsTreeRoot:         a.TreeState.RootOfRoots,
-		State:                 a.TreeState.State,
-		GISTRoot:              a.GISTProof.Root,
-		GISTMtp: merkletree.CircomSiblingsFromSiblings(a.GISTProof.Proof.AllSiblings(),
-			a.GetMTLevelOnChain()-1),
+
+		ClaimsTreeRoot: a.TreeState.ClaimsRoot,
+		RevTreeRoot:    a.TreeState.RevocationRoot,
+		RootsTreeRoot:  a.TreeState.RootOfRoots,
+		State:          a.TreeState.State,
+	}
+
+	if a.AuthEnabled == 1 {
+		s.AuthClaimMtp = merkletree.CircomSiblingsFromSiblings(a.AuthClaimIncMtp.AllSiblings(),
+			a.GetMTLevel()-1)
+		s.AuthClaimNonRevMtp = merkletree.CircomSiblingsFromSiblings(a.AuthClaimNonRevMtp.AllSiblings(),
+			a.GetMTLevel()-1)
+		s.Challenge = a.Challenge.String()
+		s.ChallengeSignatureR8X = a.Signature.R8.X.String()
+		s.ChallengeSignatureR8Y = a.Signature.R8.Y.String()
+		s.ChallengeSignatureS = a.Signature.S.String()
+		s.GISTRoot = a.GISTProof.Root
+		s.GISTMtp = merkletree.CircomSiblingsFromSiblings(a.GISTProof.Proof.AllSiblings(),
+			a.GetMTLevelOnChain()-1)
 	}
 
 	if a.SkipClaimRevocationCheck {
