@@ -163,24 +163,26 @@ func (a AtomicQueryV3OnChainInputs) Validate() error {
 		return errors.New(ErrorEmptyQueryValue)
 	}
 
-	if a.AuthClaimIncMtp == nil && a.AuthEnabled == 1 {
-		return errors.New(ErrorEmptyAuthClaimProof)
-	}
+	if a.AuthEnabled == 1 {
+		if a.AuthClaimIncMtp == nil {
+			return errors.New(ErrorEmptyAuthClaimProof)
+		}
 
-	if a.AuthClaimNonRevMtp == nil && a.AuthEnabled == 1 {
-		return errors.New(ErrorEmptyAuthClaimNonRevProof)
-	}
+		if a.AuthClaimNonRevMtp == nil {
+			return errors.New(ErrorEmptyAuthClaimNonRevProof)
+		}
 
-	if a.GISTProof.Proof == nil {
-		return errors.New(ErrorEmptyGISTProof)
-	}
+		if a.GISTProof.Proof == nil {
+			return errors.New(ErrorEmptyGISTProof)
+		}
 
-	if a.Signature == nil {
-		return errors.New(ErrorEmptyChallengeSignature)
-	}
+		if a.Signature == nil {
+			return errors.New(ErrorEmptyChallengeSignature)
+		}
 
-	if a.Challenge == nil {
-		return errors.New(ErrorEmptyChallenge)
+		if a.Challenge == nil {
+			return errors.New(ErrorEmptyChallenge)
+		}
 	}
 
 	switch a.ProofType {
