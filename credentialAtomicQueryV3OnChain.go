@@ -268,16 +268,16 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 
 		SlotIndex:           a.Query.SlotIndex,
 		IsRevocationChecked: 1,
-
-		AuthClaim: a.AuthClaim,
-
-		ClaimsTreeRoot: a.TreeState.ClaimsRoot,
-		RevTreeRoot:    a.TreeState.RevocationRoot,
-		RootsTreeRoot:  a.TreeState.RootOfRoots,
-		State:          a.TreeState.State,
 	}
 
 	if a.AuthEnabled == 1 {
+		s.AuthClaim = a.AuthClaim
+
+		s.ClaimsTreeRoot = a.TreeState.ClaimsRoot
+		s.RevTreeRoot = a.TreeState.RevocationRoot
+		s.RootsTreeRoot = a.TreeState.RootOfRoots
+		s.State = a.TreeState.State
+
 		s.AuthClaimMtp = merkletree.CircomSiblingsFromSiblings(a.AuthClaimIncMtp.AllSiblings(),
 			a.GetMTLevel()-1)
 		s.AuthClaimNonRevMtp = merkletree.CircomSiblingsFromSiblings(a.AuthClaimNonRevMtp.AllSiblings(),
@@ -399,6 +399,13 @@ func (a AtomicQueryV3OnChainInputs) fillMTPProofsWithZero(s *atomicQueryV3OnChai
 }
 
 func (a AtomicQueryV3OnChainInputs) fillAuthWithZero(s *atomicQueryV3OnChainCircuitInputs) {
+	s.AuthClaim = &core.Claim{}
+
+	s.ClaimsTreeRoot = &merkletree.HashZero
+	s.RevTreeRoot = &merkletree.HashZero
+	s.RootsTreeRoot = &merkletree.HashZero
+	s.State = &merkletree.HashZero
+
 	s.AuthClaimMtp = []*merkletree.Hash{}
 	s.AuthClaimNonRevMtp = []*merkletree.Hash{}
 	s.Challenge = "0"
