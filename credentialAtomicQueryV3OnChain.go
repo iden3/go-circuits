@@ -289,6 +289,18 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 		s.GISTRoot = a.GISTProof.Root
 		s.GISTMtp = merkletree.CircomSiblingsFromSiblings(a.GISTProof.Proof.AllSiblings(),
 			a.GetMTLevelOnChain()-1)
+
+		nodeAuxAuth := GetNodeAuxValue(a.AuthClaimNonRevMtp)
+		s.AuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
+		s.AuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
+		s.AuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
+
+		globalNodeAux := GetNodeAuxValue(a.GISTProof.Proof)
+		s.GISTMtpAuxHi = globalNodeAux.key
+		s.GISTMtpAuxHv = globalNodeAux.value
+		s.GISTMtpNoAux = globalNodeAux.noAux
+	} else {
+		a.fillAuthWithZero(&s)
 	}
 
 	if a.SkipClaimRevocationCheck {
@@ -358,18 +370,6 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 	}
 	s.Value = bigIntArrayToStringArray(values)
 
-	if a.AuthEnabled == 1 {
-		nodeAuxAuth := GetNodeAuxValue(a.AuthClaimNonRevMtp)
-		s.AuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
-		s.AuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
-		s.AuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
-
-		globalNodeAux := GetNodeAuxValue(a.GISTProof.Proof)
-		s.GISTMtpAuxHi = globalNodeAux.key
-		s.GISTMtpAuxHv = globalNodeAux.value
-		s.GISTMtpNoAux = globalNodeAux.noAux
-	}
-
 	s.LinkNonce = "0"
 	if a.LinkNonce != nil {
 		s.LinkNonce = a.LinkNonce.String()
@@ -396,6 +396,25 @@ func (a AtomicQueryV3OnChainInputs) fillMTPProofsWithZero(s *atomicQueryV3OnChai
 	s.IssuerClaimRevTreeRoot = &merkletree.HashZero
 	s.IssuerClaimRootsTreeRoot = &merkletree.HashZero
 	s.IssuerClaimIdenState = &merkletree.HashZero
+}
+
+func (a AtomicQueryV3OnChainInputs) fillAuthWithZero(s *atomicQueryV3OnChainCircuitInputs) {
+	s.AuthClaimMtp = []*merkletree.Hash{}
+	s.AuthClaimNonRevMtp = []*merkletree.Hash{}
+	s.Challenge = "0"
+	s.ChallengeSignatureR8X = "0"
+	s.ChallengeSignatureR8Y = "0"
+	s.ChallengeSignatureS = "0"
+	s.GISTRoot = &merkletree.HashZero
+	s.GISTMtp = []*merkletree.Hash{}
+
+	s.AuthClaimNonRevMtpAuxHi = &merkletree.HashZero
+	s.AuthClaimNonRevMtpAuxHv = &merkletree.HashZero
+	s.AuthClaimNonRevMtpNoAux = "0"
+
+	s.GISTMtpAuxHi = &merkletree.HashZero
+	s.GISTMtpAuxHv = &merkletree.HashZero
+	s.GISTMtpNoAux = "0"
 }
 
 func (a AtomicQueryV3OnChainInputs) fillSigProofWithZero(s *atomicQueryV3OnChainCircuitInputs) {
