@@ -163,11 +163,11 @@ func (a AtomicQueryV3OnChainInputs) Validate() error {
 		return errors.New(ErrorEmptyQueryValue)
 	}
 
-	if a.AuthClaimIncMtp == nil {
+	if a.AuthClaimIncMtp == nil && a.AuthEnabled == 1 {
 		return errors.New(ErrorEmptyAuthClaimProof)
 	}
 
-	if a.AuthClaimNonRevMtp == nil {
+	if a.AuthClaimNonRevMtp == nil && a.AuthEnabled == 1 {
 		return errors.New(ErrorEmptyAuthClaimNonRevProof)
 	}
 
