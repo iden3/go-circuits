@@ -16,17 +16,27 @@ const (
 	IN
 	NIN
 	NE
+	LTE
+	GTE
+	BETWEEN
+	SD      = 16
+	NULLIFY = 17
 )
 
 // QueryOperators represents operators for atomic circuits
 var QueryOperators = map[string]int{
-	"$noop": NOOP,
-	"$eq":   EQ,
-	"$lt":   LT,
-	"$gt":   GT,
-	"$in":   IN,
-	"$nin":  NIN,
-	"$ne":   NE,
+	"$noop":    NOOP,
+	"$eq":      EQ,
+	"$lt":      LT,
+	"$gt":      GT,
+	"$in":      IN,
+	"$nin":     NIN,
+	"$ne":      NE,
+	"$lte":     LTE,
+	"$gte":     GTE,
+	"$between": BETWEEN,
+	"$sd":      SD,
+	"$nullify": NULLIFY,
 }
 
 // Comparer value.
@@ -45,17 +55,22 @@ func NewScalar(x, y *big.Int) *Scalar {
 }
 
 // Compare x with y by target QueryOperators.
-// Scalar compare support: $eq, $lt, $gt, $ne type.
+// Scalar compare support: $eq, $lt, $gt, $ne, $lte, $gte type.
 func (s *Scalar) Compare(t int) (bool, error) {
+	compare := s.x.Cmp(s.y)
 	switch t {
 	case EQ:
-		return s.x.Cmp(s.y) == 0, nil
+		return compare == 0, nil
 	case LT:
-		return s.x.Cmp(s.y) == -1, nil
+		return compare == -1, nil
 	case GT:
-		return s.x.Cmp(s.y) == 1, nil
+		return compare == 1, nil
 	case NE:
-		return s.x.Cmp(s.y) != 0, nil
+		return compare != 0, nil
+	case LTE:
+		return compare < 1, nil
+	case GTE:
+		return compare > -1, nil
 	}
 	return false, errors.New("unknown compare type for scalar")
 }
@@ -72,7 +87,7 @@ func NewVector(x *big.Int, y []*big.Int) *Vector {
 }
 
 // Compare find/not find x in y by type.
-// Vector compare support: $in, $nin
+// Vector compare support: $in, $nin, $between
 func (v *Vector) Compare(t int) (bool, error) {
 	switch t {
 	case IN:
@@ -95,6 +110,14 @@ func (v *Vector) Compare(t int) (bool, error) {
 			}
 		}
 		return true, nil
+	case BETWEEN:
+		if len(v.y) < 2 {
+			return false, nil
+		}
+		if v.x.Cmp(v.y[0]) >= 0 && v.x.Cmp(v.y[1]) <= 0 {
+			return true, nil
+		}
+		return false, nil
 	}
 	return false, errors.New("unknown compare type for vector")
 }

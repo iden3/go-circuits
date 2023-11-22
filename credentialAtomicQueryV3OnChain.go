@@ -42,6 +42,14 @@ type AtomicQueryV3OnChainInputs struct {
 	CurrentTimeStamp int64
 
 	ProofType ProofType
+
+	LinkNonce *big.Int
+
+	VerifierID *core.ID
+
+	VerifierSessionID *big.Int
+
+	AuthEnabled int
 }
 
 // atomicQueryV3OnChainCircuitInputs type represents credentialAtomicQueryV3OnChain.circom private inputs required by prover
@@ -77,6 +85,7 @@ type atomicQueryV3OnChainCircuitInputs struct {
 	IssuerAuthClaimsTreeRoot        string           `json:"issuerAuthClaimsTreeRoot"`
 	IssuerAuthRevTreeRoot           string           `json:"issuerAuthRevTreeRoot"`
 	IssuerAuthRootsTreeRoot         string           `json:"issuerAuthRootsTreeRoot"`
+	IssuerAuthState                 *merkletree.Hash `json:"issuerAuthState"`
 
 	IsRevocationChecked int `json:"isRevocationChecked"`
 	// Query
@@ -129,6 +138,15 @@ type atomicQueryV3OnChainCircuitInputs struct {
 	GISTMtpAuxHi *merkletree.Hash   `json:"gistMtpAuxHi"`
 	GISTMtpAuxHv *merkletree.Hash   `json:"gistMtpAuxHv"`
 	GISTMtpNoAux string             `json:"gistMtpNoAux"`
+
+	// Private random nonce, used to generate LinkID
+	LinkNonce string `json:"linkNonce"`
+
+	VerifierID string `json:"verifierID"`
+
+	VerifierSessionID string `json:"verifierSessionID"`
+
+	AuthEnabled string `json:"authEnabled"`
 }
 
 func (a AtomicQueryV3OnChainInputs) Validate() error {
@@ -145,28 +163,34 @@ func (a AtomicQueryV3OnChainInputs) Validate() error {
 		return errors.New(ErrorEmptyQueryValue)
 	}
 
-	if a.AuthClaimIncMtp == nil {
-		return errors.New(ErrorEmptyAuthClaimProof)
-	}
+	if a.AuthEnabled == 1 {
+		if a.AuthClaimIncMtp == nil {
+			return errors.New(ErrorEmptyAuthClaimProof)
+		}
 
-	if a.AuthClaimNonRevMtp == nil {
-		return errors.New(ErrorEmptyAuthClaimNonRevProof)
-	}
+		if a.AuthClaimNonRevMtp == nil {
+			return errors.New(ErrorEmptyAuthClaimNonRevProof)
+		}
 
-	if a.GISTProof.Proof == nil {
-		return errors.New(ErrorEmptyGISTProof)
-	}
+		if a.GISTProof.Proof == nil {
+			return errors.New(ErrorEmptyGISTProof)
+		}
 
-	if a.Signature == nil {
-		return errors.New(ErrorEmptyChallengeSignature)
-	}
+		if a.Signature == nil {
+			return errors.New(ErrorEmptyChallengeSignature)
+		}
 
-	if a.Challenge == nil {
-		return errors.New(ErrorEmptyChallenge)
+		if a.Challenge == nil {
+			return errors.New(ErrorEmptyChallenge)
+		}
 	}
 
 	switch a.ProofType {
-	case SigProotType:
+	case BJJSignatureProofType:
+		if a.Claim.SignatureProof == nil {
+			return errors.New(ErrorEmptySignatureProof)
+		}
+
 		if a.Claim.SignatureProof.IssuerAuthIncProof.Proof == nil {
 			return errors.New(ErrorEmptyIssuerAuthClaimProof)
 		}
@@ -178,7 +202,11 @@ func (a AtomicQueryV3OnChainInputs) Validate() error {
 		if a.Claim.SignatureProof.Signature == nil {
 			return errors.New(ErrorEmptyClaimSignature)
 		}
-	case MTPProofType:
+	case Iden3SparseMerkleTreeProofType:
+		if a.Claim.IncProof == nil {
+			return errors.New(ErrorEmptyMTPProof)
+		}
+
 		if a.Claim.IncProof.Proof == nil {
 			return errors.New(ErrorEmptyClaimProof)
 		}
@@ -240,23 +268,39 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 
 		SlotIndex:           a.Query.SlotIndex,
 		IsRevocationChecked: 1,
+	}
 
-		AuthClaim: a.AuthClaim,
-		AuthClaimMtp: merkletree.CircomSiblingsFromSiblings(a.AuthClaimIncMtp.AllSiblings(),
-			a.GetMTLevel()-1),
-		AuthClaimNonRevMtp: merkletree.CircomSiblingsFromSiblings(a.AuthClaimNonRevMtp.AllSiblings(),
-			a.GetMTLevel()-1),
-		Challenge:             a.Challenge.String(),
-		ChallengeSignatureR8X: a.Signature.R8.X.String(),
-		ChallengeSignatureR8Y: a.Signature.R8.Y.String(),
-		ChallengeSignatureS:   a.Signature.S.String(),
-		ClaimsTreeRoot:        a.TreeState.ClaimsRoot,
-		RevTreeRoot:           a.TreeState.RevocationRoot,
-		RootsTreeRoot:         a.TreeState.RootOfRoots,
-		State:                 a.TreeState.State,
-		GISTRoot:              a.GISTProof.Root,
-		GISTMtp: merkletree.CircomSiblingsFromSiblings(a.GISTProof.Proof.AllSiblings(),
-			a.GetMTLevelOnChain()-1),
+	if a.AuthEnabled == 1 {
+		s.AuthClaim = a.AuthClaim
+
+		s.ClaimsTreeRoot = a.TreeState.ClaimsRoot
+		s.RevTreeRoot = a.TreeState.RevocationRoot
+		s.RootsTreeRoot = a.TreeState.RootOfRoots
+		s.State = a.TreeState.State
+
+		s.AuthClaimMtp = merkletree.CircomSiblingsFromSiblings(a.AuthClaimIncMtp.AllSiblings(),
+			a.GetMTLevel()-1)
+		s.AuthClaimNonRevMtp = merkletree.CircomSiblingsFromSiblings(a.AuthClaimNonRevMtp.AllSiblings(),
+			a.GetMTLevel()-1)
+		s.Challenge = a.Challenge.String()
+		s.ChallengeSignatureR8X = a.Signature.R8.X.String()
+		s.ChallengeSignatureR8Y = a.Signature.R8.Y.String()
+		s.ChallengeSignatureS = a.Signature.S.String()
+		s.GISTRoot = a.GISTProof.Root
+		s.GISTMtp = merkletree.CircomSiblingsFromSiblings(a.GISTProof.Proof.AllSiblings(),
+			a.GetMTLevelOnChain()-1)
+
+		nodeAuxAuth := GetNodeAuxValue(a.AuthClaimNonRevMtp)
+		s.AuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
+		s.AuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
+		s.AuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
+
+		globalNodeAux := GetNodeAuxValue(a.GISTProof.Proof)
+		s.GISTMtpAuxHi = globalNodeAux.key
+		s.GISTMtpAuxHv = globalNodeAux.value
+		s.GISTMtpNoAux = globalNodeAux.noAux
+	} else {
+		a.fillAuthWithZero(&s)
 	}
 
 	if a.SkipClaimRevocationCheck {
@@ -264,8 +308,12 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 	}
 
 	switch a.ProofType {
-	case SigProotType:
-		s.ProofType = "0"
+	case BJJSignatureProofType:
+		s.ProofType = "1"
+
+		if a.Claim.SignatureProof == nil {
+			return nil, errors.New(ErrorEmptySignatureProof)
+		}
 
 		s.IssuerClaimSignatureR8X = a.Claim.SignatureProof.Signature.R8.X.String()
 		s.IssuerClaimSignatureR8Y = a.Claim.SignatureProof.Signature.R8.Y.String()
@@ -284,10 +332,15 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 		s.IssuerAuthClaimNonRevMtpAuxHi = nodeAuxIssuerAuthNonRev.key
 		s.IssuerAuthClaimNonRevMtpAuxHv = nodeAuxIssuerAuthNonRev.value
 		s.IssuerAuthClaimNonRevMtpNoAux = nodeAuxIssuerAuthNonRev.noAux
+		s.IssuerAuthState = a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State
 
 		a.fillMTPProofsWithZero(&s)
-	case MTPProofType:
-		s.ProofType = "1"
+	case Iden3SparseMerkleTreeProofType:
+		s.ProofType = "2"
+
+		if a.Claim.IncProof == nil {
+			return nil, errors.New(ErrorEmptyMTPProof)
+		}
 
 		s.IssuerClaimMtp = CircomSiblings(a.Claim.IncProof.Proof, a.GetMTLevel())
 		s.IssuerClaimClaimsTreeRoot = a.Claim.IncProof.TreeState.ClaimsRoot
@@ -317,15 +370,22 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 	}
 	s.Value = bigIntArrayToStringArray(values)
 
-	nodeAuxAuth := GetNodeAuxValue(a.AuthClaimNonRevMtp)
-	s.AuthClaimNonRevMtpAuxHi = nodeAuxAuth.key
-	s.AuthClaimNonRevMtpAuxHv = nodeAuxAuth.value
-	s.AuthClaimNonRevMtpNoAux = nodeAuxAuth.noAux
+	s.LinkNonce = "0"
+	if a.LinkNonce != nil {
+		s.LinkNonce = a.LinkNonce.String()
+	}
 
-	globalNodeAux := GetNodeAuxValue(a.GISTProof.Proof)
-	s.GISTMtpAuxHi = globalNodeAux.key
-	s.GISTMtpAuxHv = globalNodeAux.value
-	s.GISTMtpNoAux = globalNodeAux.noAux
+	s.VerifierID = "0"
+	if a.VerifierID != nil {
+		s.VerifierID = a.VerifierID.BigInt().String()
+	}
+
+	s.VerifierSessionID = "0"
+	if a.VerifierSessionID != nil {
+		s.VerifierSessionID = a.VerifierSessionID.String()
+	}
+
+	s.AuthEnabled = strconv.Itoa(a.AuthEnabled)
 
 	return json.Marshal(s)
 }
@@ -336,6 +396,35 @@ func (a AtomicQueryV3OnChainInputs) fillMTPProofsWithZero(s *atomicQueryV3OnChai
 	s.IssuerClaimRevTreeRoot = &merkletree.HashZero
 	s.IssuerClaimRootsTreeRoot = &merkletree.HashZero
 	s.IssuerClaimIdenState = &merkletree.HashZero
+}
+
+func (a AtomicQueryV3OnChainInputs) fillAuthWithZero(s *atomicQueryV3OnChainCircuitInputs) {
+	s.AuthClaim = &core.Claim{}
+
+	s.ClaimsTreeRoot = &merkletree.HashZero
+	s.RevTreeRoot = &merkletree.HashZero
+	s.RootsTreeRoot = &merkletree.HashZero
+	s.State = &merkletree.HashZero
+
+	s.AuthClaimMtp = CircomSiblings(&merkletree.Proof{},
+		a.GetMTLevel())
+	s.AuthClaimNonRevMtp = CircomSiblings(&merkletree.Proof{},
+		a.GetMTLevel())
+	s.Challenge = "0"
+	s.ChallengeSignatureR8X = "0"
+	s.ChallengeSignatureR8Y = "0"
+	s.ChallengeSignatureS = "0"
+	s.GISTRoot = &merkletree.HashZero
+	s.GISTMtp = CircomSiblings(&merkletree.Proof{},
+		a.GetMTLevelOnChain())
+
+	s.AuthClaimNonRevMtpAuxHi = &merkletree.HashZero
+	s.AuthClaimNonRevMtpAuxHv = &merkletree.HashZero
+	s.AuthClaimNonRevMtpNoAux = "0"
+
+	s.GISTMtpAuxHi = &merkletree.HashZero
+	s.GISTMtpAuxHv = &merkletree.HashZero
+	s.GISTMtpNoAux = "0"
 }
 
 func (a AtomicQueryV3OnChainInputs) fillSigProofWithZero(s *atomicQueryV3OnChainCircuitInputs) {
@@ -352,6 +441,7 @@ func (a AtomicQueryV3OnChainInputs) fillSigProofWithZero(s *atomicQueryV3OnChain
 	s.IssuerAuthClaimNonRevMtpAuxHi = &merkletree.HashZero
 	s.IssuerAuthClaimNonRevMtpAuxHv = &merkletree.HashZero
 	s.IssuerAuthClaimNonRevMtpNoAux = "0"
+	s.IssuerAuthState = &merkletree.HashZero
 }
 
 // AtomicQueryV3OnChainPubSignals public inputs
@@ -360,7 +450,7 @@ type AtomicQueryV3OnChainPubSignals struct {
 	RequestID              *big.Int         `json:"requestID"`
 	UserID                 *core.ID         `json:"userID"`
 	IssuerID               *core.ID         `json:"issuerID"`
-	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
+	IssuerState            *merkletree.Hash `json:"issuerState"`
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 	Timestamp              int64            `json:"timestamp"`
 	Merklized              int              `json:"merklized"`
@@ -369,7 +459,12 @@ type AtomicQueryV3OnChainPubSignals struct {
 	Challenge              *big.Int         `json:"challenge"`
 	GlobalRoot             *merkletree.Hash `json:"gistRoot"`
 	ProofType              int              `json:"proofType"`
-	IssuerAuthState        *merkletree.Hash `json:"issuerAuthState"`
+	LinkID                 *big.Int         `json:"linkID"`
+	Nullifier              *big.Int         `json:"nullifier"`
+	OperatorOutput         *big.Int         `json:"operatorOutput"`
+	VerifierID             *core.ID         `json:"verifierID"`
+	VerifierSessionID      *big.Int         `json:"verifierSessionID"`
+	AuthEnabled            int              `json:"authEnabled"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3OnChain.circom public signals
@@ -378,7 +473,10 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	// merklized
 	// userID
 	// circuitQueryHash
-	// issuerAuthState // sig specific
+	// issuerState
+	// linkID
+	// nullifier
+	// operatorOutput
 	// proofType
 	// requestID
 	// challenge
@@ -387,7 +485,9 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	// isRevocationChecked
 	// issuerClaimNonRevState
 	// timestamp
-	// issuerClaimIdenState // mtp specific
+	// verifierID
+	// verifierSessionID
+	// authEnabled
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -416,9 +516,27 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	}
 	fieldIdx++
 
-	// - issuerAuthState
-	if ao.IssuerAuthState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
-		return fmt.Errorf("invalid issuerAuthState value: '%s'", sVals[fieldIdx])
+	// - issuerState
+	if ao.IssuerState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
+		return err
+	}
+	fieldIdx++
+
+	// - linkID
+	if ao.LinkID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	// - nullifier
+	if ao.Nullifier, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	// - operatorOutput
+	if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
@@ -471,9 +589,23 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	}
 	fieldIdx++
 
-	// - IssuerClaimIdenState
-	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
-		return fmt.Errorf("invalid IssuerClaimIdenState value: '%s'", sVals[fieldIdx])
+	//  - VerifierID
+	if sVals[fieldIdx] != "0" {
+		if ao.VerifierID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
+			return err
+		}
+	}
+	fieldIdx++
+
+	//  - VerifierSessionID
+	if ao.VerifierSessionID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid verifier session ID: %s", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	//  - AuthEnabled
+	if ao.AuthEnabled, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
+		return err
 	}
 
 	return nil

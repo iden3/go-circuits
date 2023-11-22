@@ -14,8 +14,8 @@ import (
 type ProofType string
 
 const (
-	SigProotType ProofType = "sig"
-	MTPProofType ProofType = "mtp"
+	BJJSignatureProofType          ProofType = "BJJSignature2021"
+	Iden3SparseMerkleTreeProofType ProofType = "Iden3SparseMerkleTreeProof"
 )
 
 // AtomicQueryV3Inputs ZK private inputs for credentialAtomicQuerySig.circom
@@ -38,6 +38,12 @@ type AtomicQueryV3Inputs struct {
 	CurrentTimeStamp int64
 
 	ProofType ProofType
+
+	LinkNonce *big.Int
+
+	VerifierID *core.ID
+
+	VerifierSessionID *big.Int
 }
 
 // atomicQueryV3CircuitInputs type represents credentialAtomicQueryV3.circom private inputs required by prover
@@ -73,6 +79,7 @@ type atomicQueryV3CircuitInputs struct {
 	IssuerAuthClaimsTreeRoot        string           `json:"issuerAuthClaimsTreeRoot"`
 	IssuerAuthRevTreeRoot           string           `json:"issuerAuthRevTreeRoot"`
 	IssuerAuthRootsTreeRoot         string           `json:"issuerAuthRootsTreeRoot"`
+	IssuerAuthState                 *merkletree.Hash `json:"issuerAuthState"`
 
 	IsRevocationChecked int `json:"isRevocationChecked"`
 	// Query
@@ -97,6 +104,13 @@ type atomicQueryV3CircuitInputs struct {
 	IssuerClaimIdenState      *merkletree.Hash   `json:"issuerClaimIdenState"`
 
 	ProofType string `json:"proofType"`
+
+	// Private random nonce, used to generate LinkID
+	LinkNonce string `json:"linkNonce"`
+
+	VerifierID string `json:"verifierID"`
+
+	VerifierSessionID string `json:"verifierSessionID"`
 }
 
 func (a AtomicQueryV3Inputs) Validate() error {
@@ -114,7 +128,11 @@ func (a AtomicQueryV3Inputs) Validate() error {
 	}
 
 	switch a.ProofType {
-	case SigProotType:
+	case BJJSignatureProofType:
+		if a.Claim.SignatureProof == nil {
+			return errors.New(ErrorEmptySignatureProof)
+		}
+
 		if a.Claim.SignatureProof.IssuerAuthIncProof.Proof == nil {
 			return errors.New(ErrorEmptyIssuerAuthClaimProof)
 		}
@@ -126,7 +144,11 @@ func (a AtomicQueryV3Inputs) Validate() error {
 		if a.Claim.SignatureProof.Signature == nil {
 			return errors.New(ErrorEmptyClaimSignature)
 		}
-	case MTPProofType:
+	case Iden3SparseMerkleTreeProofType:
+		if a.Claim.IncProof == nil {
+			return errors.New(ErrorEmptyMTPProof)
+		}
+
 		if a.Claim.IncProof.Proof == nil {
 			return errors.New(ErrorEmptyClaimProof)
 		}
@@ -195,8 +217,12 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 	}
 
 	switch a.ProofType {
-	case SigProotType:
-		s.ProofType = "0"
+	case BJJSignatureProofType:
+		s.ProofType = "1"
+
+		if a.Claim.SignatureProof == nil {
+			return nil, errors.New(ErrorEmptySignatureProof)
+		}
 
 		s.IssuerClaimSignatureR8X = a.Claim.SignatureProof.Signature.R8.X.String()
 		s.IssuerClaimSignatureR8Y = a.Claim.SignatureProof.Signature.R8.Y.String()
@@ -215,10 +241,15 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 		s.IssuerAuthClaimNonRevMtpAuxHi = nodeAuxIssuerAuthNonRev.key
 		s.IssuerAuthClaimNonRevMtpAuxHv = nodeAuxIssuerAuthNonRev.value
 		s.IssuerAuthClaimNonRevMtpNoAux = nodeAuxIssuerAuthNonRev.noAux
+		s.IssuerAuthState = a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State
 
 		a.fillMTPProofsWithZero(&s)
-	case MTPProofType:
-		s.ProofType = "1"
+	case Iden3SparseMerkleTreeProofType:
+		s.ProofType = "2"
+
+		if a.Claim.IncProof == nil {
+			return nil, errors.New(ErrorEmptyMTPProof)
+		}
 
 		s.IssuerClaimMtp = CircomSiblings(a.Claim.IncProof.Proof, a.GetMTLevel())
 		s.IssuerClaimClaimsTreeRoot = a.Claim.IncProof.TreeState.ClaimsRoot
@@ -248,6 +279,21 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 	}
 	s.Value = bigIntArrayToStringArray(values)
 
+	s.LinkNonce = "0"
+	if a.LinkNonce != nil {
+		s.LinkNonce = a.LinkNonce.String()
+	}
+
+	s.VerifierID = "0"
+	if a.VerifierID != nil {
+		s.VerifierID = a.VerifierID.BigInt().String()
+	}
+
+	s.VerifierSessionID = "0"
+	if a.VerifierSessionID != nil {
+		s.VerifierSessionID = a.VerifierSessionID.String()
+	}
+
 	return json.Marshal(s)
 }
 
@@ -273,6 +319,7 @@ func (a AtomicQueryV3Inputs) fillSigProofWithZero(s *atomicQueryV3CircuitInputs)
 	s.IssuerAuthClaimNonRevMtpAuxHi = &merkletree.HashZero
 	s.IssuerAuthClaimNonRevMtpAuxHv = &merkletree.HashZero
 	s.IssuerAuthClaimNonRevMtpNoAux = "0"
+	s.IssuerAuthState = &merkletree.HashZero
 }
 
 // AtomicQueryV3PubSignals public inputs
@@ -281,7 +328,7 @@ type AtomicQueryV3PubSignals struct {
 	RequestID              *big.Int         `json:"requestID"`
 	UserID                 *core.ID         `json:"userID"`
 	IssuerID               *core.ID         `json:"issuerID"`
-	IssuerAuthState        *merkletree.Hash `json:"issuerAuthState"`
+	IssuerState            *merkletree.Hash `json:"issuerState"`
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 	ClaimSchema            core.SchemaHash  `json:"claimSchema"`
 	SlotIndex              int              `json:"slotIndex"`
@@ -292,8 +339,12 @@ type AtomicQueryV3PubSignals struct {
 	ClaimPathKey           *big.Int         `json:"claimPathKey"`
 	ClaimPathNotExists     int              `json:"claimPathNotExists"`  // 0 for inclusion, 1 for non-inclusion
 	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 revocation not check, // 1 for check revocation
-	IssuerClaimIdenState   *merkletree.Hash `json:"issuerClaimIdenState"`
 	ProofType              int              `json:"proofType"`
+	LinkID                 *big.Int         `json:"linkID"`
+	Nullifier              *big.Int         `json:"nullifier"`
+	OperatorOutput         *big.Int         `json:"operatorOutput"`
+	VerifierID             *core.ID         `json:"verifierID"`
+	VerifierSessionID      *big.Int         `json:"verifierSessionID"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3.circom public signals
@@ -301,7 +352,10 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// expected order:
 	// merklized
 	// userID
-	// issuerAuthState
+	// issuerState
+	// linkID
+	// nullifier
+	// operatorOutput
 	// proofType
 	// requestID
 	// issuerID
@@ -314,12 +368,13 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// slotIndex
 	// operator
 	// value
-	// issuerClaimIdenState
+	// verifierID
+	// verifierSessionID
 
-	// 12 is a number of fields in AtomicQueryV3PubSignals before values, values is last element in the proof and
-	// it is length could be different base on the circuit configuration. The length could be modified by set value
+	// 19 is a number of fields in AtomicQueryV3PubSignals, values length could be
+	// different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 15
+	const fieldLength = 19
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -345,9 +400,28 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 	fieldIdx++
 
-	// - issuerAuthState
-	if ao.IssuerAuthState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
+	// - issuerState
+	if ao.IssuerState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return err
+	}
+	fieldIdx++
+
+	var ok bool
+	// - linkID
+	if ao.LinkID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	// - nullifier
+	if ao.Nullifier, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
+	}
+	fieldIdx++
+
+	// - operatorOutput
+	if ao.OperatorOutput, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
@@ -357,7 +431,6 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	fieldIdx++
 
 	// - requestID
-	var ok bool
 	if ao.RequestID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid requestID value: '%s'", sVals[fieldIdx])
 	}
@@ -431,9 +504,17 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 		fieldIdx++
 	}
 
-	// - issuerClaimIdenState
-	if ao.IssuerClaimIdenState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
-		return err
+	//  - VerifierID
+	if sVals[fieldIdx] != "0" {
+		if ao.VerifierID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
+			return err
+		}
+	}
+	fieldIdx++
+
+	//  - VerifierSessionID
+	if ao.VerifierSessionID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+		return fmt.Errorf("invalid verifier session ID: %s", sVals[fieldIdx])
 	}
 
 	return nil

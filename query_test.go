@@ -91,10 +91,52 @@ func TestScalarCompare(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "testing $lte operator where x == y",
+			x:        big.NewInt(0),
+			y:        big.NewInt(0),
+			operator: LTE,
+			expected: true,
+		},
+		{
+			name:     "testing $lte operator where x < y",
+			x:        big.NewInt(0),
+			y:        big.NewInt(1),
+			operator: LTE,
+			expected: true,
+		},
+		{
+			name:     "testing $lte operator where x > y",
+			x:        big.NewInt(2),
+			y:        big.NewInt(1),
+			operator: LTE,
+			expected: false,
+		},
+		{
+			name:     "testing $gte operator where x == y",
+			x:        big.NewInt(0),
+			y:        big.NewInt(0),
+			operator: GTE,
+			expected: true,
+		},
+		{
+			name:     "testing $gte operator where x < y",
+			x:        big.NewInt(0),
+			y:        big.NewInt(1),
+			operator: GTE,
+			expected: false,
+		},
+		{
+			name:     "testing $gte operator where x > y",
+			x:        big.NewInt(2),
+			y:        big.NewInt(1),
+			operator: GTE,
+			expected: true,
+		},
+		{
 			name:     "testing unknown operator should fail",
 			x:        big.NewInt(0),
 			y:        big.NewInt(1),
-			operator: 7, // unknown operator.
+			operator: 10, // unknown operator.
 			expected: false,
 			withErr:  true,
 		},
@@ -157,7 +199,7 @@ func TestVectorCompare(t *testing.T) {
 			name:     "testing unknown operator",
 			x:        big.NewInt(0),
 			y:        []*big.Int{big.NewInt(1), big.NewInt(10), big.NewInt(100)},
-			operator: 6, // unknown operator.
+			operator: 10, // unknown operator.
 			expected: false,
 			withErr:  true,
 		},
@@ -174,6 +216,27 @@ func TestVectorCompare(t *testing.T) {
 			y:        []*big.Int{},
 			operator: NIN,
 			expected: true,
+		},
+		{
+			name:     "one value array for $between. return false",
+			x:        big.NewInt(0),
+			y:        []*big.Int{big.NewInt(1)},
+			operator: BETWEEN,
+			expected: false,
+		},
+		{
+			name:     "testing $between operator where x in between range.",
+			x:        big.NewInt(2),
+			y:        []*big.Int{big.NewInt(1), big.NewInt(3)},
+			operator: BETWEEN,
+			expected: true,
+		},
+		{
+			name:     "testing $between operator where x not in between range.",
+			x:        big.NewInt(0),
+			y:        []*big.Int{big.NewInt(1), big.NewInt(3)},
+			operator: BETWEEN,
+			expected: false,
 		},
 	}
 
