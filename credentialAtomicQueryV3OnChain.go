@@ -270,7 +270,6 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 		IsRevocationChecked: 1,
 	}
 
-	s.GISTRoot = a.GISTProof.Root
 	s.Challenge = a.Challenge.String()
 
 	if a.AuthEnabled == 1 {
@@ -289,7 +288,7 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 		s.ChallengeSignatureR8X = a.Signature.R8.X.String()
 		s.ChallengeSignatureR8Y = a.Signature.R8.Y.String()
 		s.ChallengeSignatureS = a.Signature.S.String()
-
+		s.GISTRoot = a.GISTProof.Root
 		s.GISTMtp = merkletree.CircomSiblingsFromSiblings(a.GISTProof.Proof.AllSiblings(),
 			a.GetMTLevelOnChain()-1)
 
@@ -416,6 +415,7 @@ func (a AtomicQueryV3OnChainInputs) fillAuthWithZero(s *atomicQueryV3OnChainCirc
 	s.ChallengeSignatureR8X = "0"
 	s.ChallengeSignatureR8Y = "0"
 	s.ChallengeSignatureS = "0"
+	s.GISTRoot = &merkletree.HashZero
 	s.GISTMtp = CircomSiblings(&merkletree.Proof{},
 		a.GetMTLevelOnChain())
 
