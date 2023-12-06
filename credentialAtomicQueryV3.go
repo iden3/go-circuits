@@ -43,7 +43,7 @@ type AtomicQueryV3Inputs struct {
 
 	VerifierID *core.ID
 
-	VerifierSessionID *big.Int
+	NullifierSessionID *big.Int
 }
 
 // atomicQueryV3CircuitInputs type represents credentialAtomicQueryV3.circom private inputs required by prover
@@ -110,7 +110,7 @@ type atomicQueryV3CircuitInputs struct {
 
 	VerifierID string `json:"verifierID"`
 
-	VerifierSessionID string `json:"verifierSessionID"`
+	NullifierSessionID string `json:"nullifierSessionID"`
 }
 
 func (a AtomicQueryV3Inputs) Validate() error {
@@ -289,9 +289,9 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 		s.VerifierID = a.VerifierID.BigInt().String()
 	}
 
-	s.VerifierSessionID = "0"
-	if a.VerifierSessionID != nil {
-		s.VerifierSessionID = a.VerifierSessionID.String()
+	s.NullifierSessionID = "0"
+	if a.NullifierSessionID != nil {
+		s.NullifierSessionID = a.NullifierSessionID.String()
 	}
 
 	return json.Marshal(s)
@@ -344,7 +344,7 @@ type AtomicQueryV3PubSignals struct {
 	Nullifier              *big.Int         `json:"nullifier"`
 	OperatorOutput         *big.Int         `json:"operatorOutput"`
 	VerifierID             *core.ID         `json:"verifierID"`
-	VerifierSessionID      *big.Int         `json:"verifierSessionID"`
+	NullifierSessionID     *big.Int         `json:"nullifierSessionID"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3.circom public signals
@@ -369,7 +369,7 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// operator
 	// value
 	// verifierID
-	// verifierSessionID
+	// nullifierSessionID
 
 	// 19 is a number of fields in AtomicQueryV3PubSignals, values length could be
 	// different base on the circuit configuration. The length could be modified by set value
@@ -512,8 +512,8 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 	fieldIdx++
 
-	//  - VerifierSessionID
-	if ao.VerifierSessionID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+	//  - NullifierSessionID
+	if ao.NullifierSessionID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid verifier session ID: %s", sVals[fieldIdx])
 	}
 
