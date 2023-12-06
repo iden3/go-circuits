@@ -47,7 +47,7 @@ type AtomicQueryV3OnChainInputs struct {
 
 	VerifierID *core.ID
 
-	VerifierSessionID *big.Int
+	NullifierSessionID *big.Int
 
 	AuthEnabled int
 }
@@ -144,7 +144,7 @@ type atomicQueryV3OnChainCircuitInputs struct {
 
 	VerifierID string `json:"verifierID"`
 
-	VerifierSessionID string `json:"verifierSessionID"`
+	NullifierSessionID string `json:"nullifierSessionID"`
 
 	AuthEnabled string `json:"authEnabled"`
 }
@@ -382,9 +382,9 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 		s.VerifierID = a.VerifierID.BigInt().String()
 	}
 
-	s.VerifierSessionID = "0"
-	if a.VerifierSessionID != nil {
-		s.VerifierSessionID = a.VerifierSessionID.String()
+	s.NullifierSessionID = "0"
+	if a.NullifierSessionID != nil {
+		s.NullifierSessionID = a.NullifierSessionID.String()
 	}
 
 	s.AuthEnabled = strconv.Itoa(a.AuthEnabled)
@@ -464,7 +464,7 @@ type AtomicQueryV3OnChainPubSignals struct {
 	Nullifier              *big.Int         `json:"nullifier"`
 	OperatorOutput         *big.Int         `json:"operatorOutput"`
 	VerifierID             *core.ID         `json:"verifierID"`
-	VerifierSessionID      *big.Int         `json:"verifierSessionID"`
+	NullifierSessionID     *big.Int         `json:"nullifierSessionID"`
 	AuthEnabled            int              `json:"authEnabled"`
 }
 
@@ -487,7 +487,7 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	// issuerClaimNonRevState
 	// timestamp
 	// verifierID
-	// verifierSessionID
+	// nullifierSessionID
 	// authEnabled
 
 	var sVals []string
@@ -598,8 +598,8 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	}
 	fieldIdx++
 
-	//  - VerifierSessionID
-	if ao.VerifierSessionID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
+	//  - NullifierSessionID
+	if ao.NullifierSessionID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 		return fmt.Errorf("invalid verifier session ID: %s", sVals[fieldIdx])
 	}
 	fieldIdx++
