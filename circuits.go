@@ -32,7 +32,7 @@ const (
 	// AtomicQuerySigV2OnChainCircuitID is a type for credentialAttrQuerySigV2OnChain.circom
 	AtomicQuerySigV2OnChainCircuitID CircuitID = "credentialAtomicQuerySigV2OnChain"
 	// AtomicQueryV3OnChainCircuitID is a type for credentialAtomicQueryV3OnChain.circom
-	AtomicQueryV3OnChainCircuitID CircuitID = "credentialAtomicQueryV3Onchain-beta.0"
+	AtomicQueryV3OnChainCircuitID CircuitID = "credentialAtomicQueryV3OnChain-beta.0"
 	// JsonLDAtomicQueryMTPCircuitID is a type for credentialJsonLDAtomicQueryMTP.circom
 	JsonLDAtomicQueryMTPCircuitID CircuitID = "credentialJsonLDAtomicQueryMTP"
 	// SybilMTPCircuitID is a type for sybilMTP.circom
