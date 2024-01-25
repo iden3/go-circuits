@@ -61,7 +61,7 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 		if l.Query[i] == nil {
 			s.Enabled[i] = 0
 			s.ClaimPathNotExists[i] = 0
-			s.ClaimPathMtp[i] = PrepareSiblingsStr([]*merkletree.Hash{}, l.GetMTLevel())
+			s.ClaimPathMtp[i] = PrepareSiblingsStr([]*merkletree.Hash{}, l.GetMTLevelsClaim())
 
 			s.ClaimPathMtpNoAux[i] = "0"
 			s.ClaimPathMtpAuxHi[i] = &merkletree.HashZero
