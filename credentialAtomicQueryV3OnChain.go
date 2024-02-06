@@ -366,7 +366,7 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 
 	s.ClaimPathKey = valueProof.Path.String()
 
-	values, err := PrepareCircuitArrayValues(a.Query.Values, a.GetValueArrSize())
+	values, err := PrepareCircuitArrayValuesV3(a.Query.Values, a.GetValueArrSize())
 	if err != nil {
 		return nil, err
 	}
