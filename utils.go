@@ -56,6 +56,22 @@ func HashToStr(siblings []*merkletree.Hash) []string {
 // than size
 // if array is bigger circuit cannot compile because number of inputs does not match
 func PrepareCircuitArrayValues(arr []*big.Int, size int) ([]*big.Int, error) {
+	return prepareCircuitArrayValues(arr, big.NewInt(0), size)
+}
+
+// PrepareCircuitArrayValuesV3 padding values to size using last value as placeholder.
+// Validate array size and throw an exception if array is bigger
+// than size
+// if array is bigger circuit cannot compile because number of inputs does not match
+func PrepareCircuitArrayValuesV3(arr []*big.Int, size int) ([]*big.Int, error) {
+	// The last element of the array was used as a placeholder.
+	// The goal is to prevent the problem of adding zeros to IN, NIN operations.
+	// These zeros could lead to an error that the user's credential satisfied the proof request
+	placeholder := arr[len(arr)-1]
+	return prepareCircuitArrayValues(arr, placeholder, size)
+}
+
+func prepareCircuitArrayValues(arr []*big.Int, placeholder *big.Int, size int) ([]*big.Int, error) {
 	if len(arr) > size {
 		return nil, errors.Errorf("array size {%d} is bigger max expected size {%d}",
 			len(arr), size)
@@ -63,7 +79,7 @@ func PrepareCircuitArrayValues(arr []*big.Int, size int) ([]*big.Int, error) {
 
 	// Add the empty values
 	for i := len(arr); i < size; i++ {
-		arr = append(arr, new(big.Int))
+		arr = append(arr, placeholder)
 	}
 
 	return arr, nil
