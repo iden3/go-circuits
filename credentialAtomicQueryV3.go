@@ -92,10 +92,11 @@ type atomicQueryV3CircuitInputs struct {
 	ClaimPathKey       string           `json:"claimPathKey"`      // hash of path in merklized json-ld document
 	ClaimPathValue     string           `json:"claimPathValue"`    // value in this path in merklized json-ld document
 
-	Operator  int      `json:"operator"`
-	SlotIndex int      `json:"slotIndex"`
-	Timestamp int64    `json:"timestamp"`
-	Value     []string `json:"value"`
+	Operator       int      `json:"operator"`
+	SlotIndex      int      `json:"slotIndex"`
+	Timestamp      int64    `json:"timestamp"`
+	Value          []string `json:"value"`
+	ValueArraySize int      `json:"valueArraySize"`
 
 	IssuerClaimMtp            []*merkletree.Hash `json:"issuerClaimMtp"`
 	IssuerClaimClaimsTreeRoot *merkletree.Hash   `json:"issuerClaimClaimsTreeRoot"`
@@ -125,6 +126,10 @@ func (a AtomicQueryV3Inputs) Validate() error {
 
 	if a.Query.Values == nil {
 		return errors.New(ErrorEmptyQueryValue)
+	}
+
+	if err := a.Query.ValidateValueArraySize(a.GetValueArrSize()); err != nil {
+		return err
 	}
 
 	switch a.ProofType {
@@ -278,6 +283,7 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 		return nil, err
 	}
 	s.Value = bigIntArrayToStringArray(values)
+	s.ValueArraySize = len(a.Query.Values)
 
 	s.LinkNonce = "0"
 	if a.LinkNonce != nil {
@@ -334,6 +340,7 @@ type AtomicQueryV3PubSignals struct {
 	SlotIndex              int              `json:"slotIndex"`
 	Operator               int              `json:"operator"`
 	Value                  []*big.Int       `json:"value"`
+	ValueArraySize         int              `json:"valueArraySize"`
 	Timestamp              int64            `json:"timestamp"`
 	Merklized              int              `json:"merklized"`
 	ClaimPathKey           *big.Int         `json:"claimPathKey"`
@@ -368,13 +375,14 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// slotIndex
 	// operator
 	// value
+	// valueArraySize
 	// verifierID
 	// nullifierSessionID
 
-	// 19 is a number of fields in AtomicQueryV3PubSignals, values length could be
+	// 20 is a number of fields in AtomicQueryV3PubSignals, values length could be
 	// different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 19
+	const fieldLength = 20
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -503,6 +511,12 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 		ao.Value = append(ao.Value, bi)
 		fieldIdx++
 	}
+
+	// - valueArraySize
+	if ao.ValueArraySize, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
+		return err
+	}
+	fieldIdx++
 
 	//  - VerifierID
 	if sVals[fieldIdx] != "0" {

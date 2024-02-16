@@ -74,7 +74,7 @@ func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
 		Query: Query{
 			ValueProof: nil,
 			Operator:   EQ,
-			Values:     it.PrepareIntArray([]*big.Int{big.NewInt(10)}, 64),
+			Values:     []*big.Int{big.NewInt(10)},
 			SlotIndex:  2,
 		},
 		CurrentTimeStamp: timestamp,
@@ -142,7 +142,7 @@ func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {
 		Query: Query{
 			ValueProof: nil,
 			Operator:   EQ,
-			Values:     it.PrepareIntArray([]*big.Int{big.NewInt(10)}, 64),
+			Values:     []*big.Int{big.NewInt(10)},
 			SlotIndex:  2,
 		},
 		CurrentTimeStamp: timestamp,
@@ -247,6 +247,7 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
  "0",
  "0",
  "0",
+ "1",
  "21929109382993718606847853573861987353620810345503358891473103689157378049",
  "32"
 ]`))
@@ -270,6 +271,7 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
 		SlotIndex:           2,
 		Operator:            1,
 		Value:               expValue,
+		ValueArraySize:      1,
 		Timestamp:           int64(1642074362),
 		Merklized:           0,
 		ClaimPathKey:        big.NewInt(0),
@@ -377,6 +379,7 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
  "0",
  "0",
  "0",
+ "1",
  "21929109382993718606847853573861987353620810345503358891473103689157378049",
  "32"
 ]`))
@@ -400,6 +403,7 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
 		SlotIndex:           2,
 		Operator:            1,
 		Value:               expValue,
+		ValueArraySize:      1,
 		Timestamp:           int64(1642074362),
 		Merklized:           0,
 		ClaimPathKey:        big.NewInt(0),

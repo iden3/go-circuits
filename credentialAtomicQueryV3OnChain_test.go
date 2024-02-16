@@ -88,7 +88,7 @@ func TestAttrQueryV3OnChain_SigPart_PrepareInputs(t *testing.T) {
 		Query: Query{
 			ValueProof: nil,
 			Operator:   EQ,
-			Values:     it.PrepareIntArray([]*big.Int{big.NewInt(10)}, 64),
+			Values:     []*big.Int{big.NewInt(10)},
 			SlotIndex:  2,
 		},
 		CurrentTimeStamp:   timestamp,
@@ -179,7 +179,7 @@ func TestAttrQueryV3OnChain_MTPPart_PrepareInputs(t *testing.T) {
 		Query: Query{
 			ValueProof: nil,
 			Operator:   EQ,
-			Values:     it.PrepareIntArray([]*big.Int{big.NewInt(10)}, 64),
+			Values:     []*big.Int{big.NewInt(10)},
 			SlotIndex:  2,
 		},
 		CurrentTimeStamp:   timestamp,
@@ -215,7 +215,7 @@ func TestAtomicQueryV3OnChainOutputs_Sig_CircuitUnmarshal(t *testing.T) {
 		`[
  "0",
  "26109404700696283154998654512117952420503675471097392618762221546565140481",
- "7002038488948284767652984010448061038733120594540539539730565455904340350321",
+ "21290882558588413185318640632869355965175070327539756875516642621267708162856",
  "2943483356559152311923412925436024635269538717812859789851139200242297094",
  "0",
  "0",
@@ -248,6 +248,7 @@ func TestAtomicQueryV3OnChainOutputs_Sig_CircuitUnmarshal(t *testing.T) {
 		big.NewInt(0),
 		big.NewInt(1),
 		valueHash,
+		big.NewInt(1),
 	})
 	require.NoError(t, err)
 
@@ -288,7 +289,7 @@ func TestAtomicQueryV3OnChainOutputs_MTP_CircuitUnmarshal(t *testing.T) {
 		`[
  "0",
  "26109404700696283154998654512117952420503675471097392618762221546565140481",
- "7002038488948284767652984010448061038733120594540539539730565455904340350321",
+ "21290882558588413185318640632869355965175070327539756875516642621267708162856",
  "2943483356559152311923412925436024635269538717812859789851139200242297094",
  "0",
  "0",
@@ -321,7 +322,9 @@ func TestAtomicQueryV3OnChainOutputs_MTP_CircuitUnmarshal(t *testing.T) {
 		big.NewInt(0),
 		big.NewInt(1),
 		valueHash,
+		big.NewInt(1),
 	})
+
 	require.NoError(t, err)
 
 	exp := AtomicQueryV3OnChainPubSignals{

@@ -24,4 +24,5 @@ const (
 	ErrorInvalidProofType                = "invalid proof type"
 	ErrorEmptySignatureProof             = "empty signature proof"
 	ErrorEmptyMTPProof                   = "empty MTP proof"
+	ErrorInvalidValuesArrSize            = "invalid query Values array size"
 )

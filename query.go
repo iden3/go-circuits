@@ -147,6 +147,41 @@ type Query struct {
 	ValueProof *ValueProof
 }
 
+// Validate value size for operator
+func (q Query) ValidateValueArraySize(maxArrSize int) error {
+	oneArrLengthOps := []int{EQ, LT, GT, NE, LTE, GTE}
+	twoArrLengthOps := []int{BETWEEN}
+	maxArrLengthOps := []int{IN, NIN}
+
+	arrSize := len(q.Values)
+	if contains(oneArrLengthOps, q.Operator) {
+		if arrSize != 1 {
+			return errors.New(ErrorInvalidValuesArrSize)
+		} else {
+			return nil
+		}
+	}
+	if contains(twoArrLengthOps, q.Operator) {
+		if arrSize != 2 {
+			return errors.New(ErrorInvalidValuesArrSize)
+		} else {
+			return nil
+		}
+	}
+	if contains(maxArrLengthOps, q.Operator) {
+		if arrSize == 0 || arrSize > maxArrSize {
+			return errors.New(ErrorInvalidValuesArrSize)
+		} else {
+			return nil
+		}
+	}
+
+	if arrSize != 0 {
+		return errors.New(ErrorInvalidValuesArrSize)
+	}
+	return nil
+}
+
 func (q Query) validate() error {
 	for i := range q.Values {
 		if q.Values[i] == nil {
