@@ -340,7 +340,6 @@ type AtomicQueryV3PubSignals struct {
 	SlotIndex              int              `json:"slotIndex"`
 	Operator               int              `json:"operator"`
 	Value                  []*big.Int       `json:"value"`
-	ValueArraySize         int              `json:"valueArraySize"`
 	Timestamp              int64            `json:"timestamp"`
 	Merklized              int              `json:"merklized"`
 	ClaimPathKey           *big.Int         `json:"claimPathKey"`
@@ -352,6 +351,7 @@ type AtomicQueryV3PubSignals struct {
 	OperatorOutput         *big.Int         `json:"operatorOutput"`
 	VerifierID             *core.ID         `json:"verifierID"`
 	NullifierSessionID     *big.Int         `json:"nullifierSessionID"`
+	ActualValueArraySize   int              `json:"valueArraySize"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3.circom public signals
@@ -513,7 +513,7 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	}
 
 	// - valueArraySize
-	if ao.ValueArraySize, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
+	if ao.ActualValueArraySize, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
 		return err
 	}
 	fieldIdx++
