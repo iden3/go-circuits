@@ -92,11 +92,11 @@ type atomicQueryV3CircuitInputs struct {
 	ClaimPathKey       string           `json:"claimPathKey"`      // hash of path in merklized json-ld document
 	ClaimPathValue     string           `json:"claimPathValue"`    // value in this path in merklized json-ld document
 
-	Operator       int      `json:"operator"`
-	SlotIndex      int      `json:"slotIndex"`
-	Timestamp      int64    `json:"timestamp"`
-	Value          []string `json:"value"`
-	ValueArraySize int      `json:"valueArraySize"`
+	Operator             int      `json:"operator"`
+	SlotIndex            int      `json:"slotIndex"`
+	Timestamp            int64    `json:"timestamp"`
+	Value                []string `json:"value"`
+	ActualValueArraySize int      `json:"valueArraySize"`
 
 	IssuerClaimMtp            []*merkletree.Hash `json:"issuerClaimMtp"`
 	IssuerClaimClaimsTreeRoot *merkletree.Hash   `json:"issuerClaimClaimsTreeRoot"`
@@ -283,7 +283,7 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 		return nil, err
 	}
 	s.Value = bigIntArrayToStringArray(values)
-	s.ValueArraySize = len(a.Query.Values)
+	s.ActualValueArraySize = len(a.Query.Values)
 
 	s.LinkNonce = "0"
 	if a.LinkNonce != nil {
