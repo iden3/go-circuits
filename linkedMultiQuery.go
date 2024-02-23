@@ -22,20 +22,21 @@ type LinkedMultiQueryInputs struct {
 
 // linkedMultiQueryCircuitInputs type reflect linkedMultiQuery10.circom private inputs required by prover
 type linkedMultiQueryCircuitInputs struct {
-	LinkNonce          string             `json:"linkNonce"`
-	IssuerClaim        *core.Claim        `json:"issuerClaim"`
-	Enabled            []int              `json:"enabled"`
-	ClaimSchema        string             `json:"claimSchema"`
-	ClaimPathNotExists []int              `json:"claimPathNotExists"` // 0 for inclusion, 1 for non-inclusion
-	ClaimPathMtp       [][]string         `json:"claimPathMtp"`
-	ClaimPathMtpNoAux  []string           `json:"claimPathMtpNoAux"` // 1 if aux node is empty, 0 if non-empty or for inclusion proofs
-	ClaimPathMtpAuxHi  []*merkletree.Hash `json:"claimPathMtpAuxHi"` // 0 for inclusion proof
-	ClaimPathMtpAuxHv  []*merkletree.Hash `json:"claimPathMtpAuxHv"` // 0 for inclusion proof
-	ClaimPathKey       []string           `json:"claimPathKey"`      // hash of path in merklized json-ld document
-	ClaimPathValue     []string           `json:"claimPathValue"`    // value in this path in merklized json-ld document
-	SlotIndex          []int              `json:"slotIndex"`
-	Operator           []int              `json:"operator"`
-	Value              [][]string         `json:"value"`
+	LinkNonce            string             `json:"linkNonce"`
+	IssuerClaim          *core.Claim        `json:"issuerClaim"`
+	Enabled              []int              `json:"enabled"`
+	ClaimSchema          string             `json:"claimSchema"`
+	ClaimPathNotExists   []int              `json:"claimPathNotExists"` // 0 for inclusion, 1 for non-inclusion
+	ClaimPathMtp         [][]string         `json:"claimPathMtp"`
+	ClaimPathMtpNoAux    []string           `json:"claimPathMtpNoAux"` // 1 if aux node is empty, 0 if non-empty or for inclusion proofs
+	ClaimPathMtpAuxHi    []*merkletree.Hash `json:"claimPathMtpAuxHi"` // 0 for inclusion proof
+	ClaimPathMtpAuxHv    []*merkletree.Hash `json:"claimPathMtpAuxHv"` // 0 for inclusion proof
+	ClaimPathKey         []string           `json:"claimPathKey"`      // hash of path in merklized json-ld document
+	ClaimPathValue       []string           `json:"claimPathValue"`    // value in this path in merklized json-ld document
+	SlotIndex            []int              `json:"slotIndex"`
+	Operator             []int              `json:"operator"`
+	Value                [][]string         `json:"value"`
+	ActualValueArraySize []int              `json:"valueArraySize"`
 }
 
 // InputsMarshal returns Circom private inputs for linkedMultiQuery10.circom
@@ -56,6 +57,7 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 	s.SlotIndex = make([]int, LinkedMultiQueryLength)
 	s.Operator = make([]int, LinkedMultiQueryLength)
 	s.Value = make([][]string, LinkedMultiQueryLength)
+	s.ActualValueArraySize = make([]int, LinkedMultiQueryLength)
 
 	for i := 0; i < LinkedMultiQueryLength; i++ {
 		if l.Query[i] == nil {
@@ -78,6 +80,7 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 				return nil, err
 			}
 			s.Value[i] = bigIntArrayToStringArray(values)
+			s.ActualValueArraySize[i] = 0
 			continue
 		}
 
@@ -104,6 +107,7 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 
 		s.SlotIndex[i] = l.Query[i].SlotIndex
 		s.Operator[i] = l.Query[i].Operator
+		s.ActualValueArraySize[i] = len(l.Query[i].Values)
 		values, err := PrepareCircuitArrayValues(l.Query[i].Values, l.GetValueArrSize())
 		if err != nil {
 			return nil, err
@@ -116,11 +120,12 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 
 // LinkedMultiQueryPubSignals linkedMultiQuery10.circom public signals
 type LinkedMultiQueryPubSignals struct {
-	LinkID           *big.Int   `json:"linkID"`
-	Merklized        int        `json:"merklized"`
-	OperatorOutput   []*big.Int `json:"operatorOutput"`
-	CircuitQueryHash []*big.Int `json:"circuitQueryHash"`
-	Enabled          []bool     `json:"enabled"`
+	LinkID               *big.Int   `json:"linkID"`
+	Merklized            int        `json:"merklized"`
+	OperatorOutput       []*big.Int `json:"operatorOutput"`
+	CircuitQueryHash     []*big.Int `json:"circuitQueryHash"`
+	Enabled              []bool     `json:"enabled"`
+	ActualValueArraySize []int      `json:"valueArraySize"`
 }
 
 // PubSignalsUnmarshal unmarshal linkedMultiQuery10.circom public inputs to LinkedMultiQueryPubSignals
@@ -131,8 +136,9 @@ func (lo *LinkedMultiQueryPubSignals) PubSignalsUnmarshal(data []byte) error {
 	// operatorOutput
 	// circuitQueryHash
 	// enabled
+	// valueArraySize
 
-	outputsLength := LinkedMultiQueryLength*3 + 2
+	outputsLength := LinkedMultiQueryLength*4 + 2
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
@@ -183,6 +189,17 @@ func (lo *LinkedMultiQueryPubSignals) PubSignalsUnmarshal(data []byte) error {
 			return err
 		}
 		lo.Enabled[i] = enabledInt == 1
+		fieldIdx++
+	}
+
+	// -- valueArraySize
+	lo.ActualValueArraySize = make([]int, LinkedMultiQueryLength)
+	for i := 0; i < LinkedMultiQueryLength; i++ {
+		valueArrSize, err := strconv.Atoi(sVals[fieldIdx])
+		if err != nil {
+			return err
+		}
+		lo.ActualValueArraySize[i] = valueArrSize
 		fieldIdx++
 	}
 
