@@ -40,7 +40,7 @@ const (
 	// SybilSigCircuitID is a type for sybilSig.circom
 	SybilSigCircuitID CircuitID = "sybilCredentialAtomicSig"
 	// LinkedMultiQuery10CircuitID is a type for linkedMultiQuery10.circom
-	LinkedMultiQuery10CircuitID CircuitID = "linkedMultiQuery10-beta.0"
+	LinkedMultiQuery10CircuitID CircuitID = "linkedMultiQuery10-beta.1"
 )
 
 // ErrorCircuitIDNotFound returns if CircuitID is not registered
