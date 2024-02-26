@@ -19,24 +19,28 @@ const (
 	LTE
 	GTE
 	BETWEEN
+	NONBETWEEN
+	EXISTS
 	SD      = 16
 	NULLIFY = 17
 )
 
 // QueryOperators represents operators for atomic circuits
 var QueryOperators = map[string]int{
-	"$noop":    NOOP,
-	"$eq":      EQ,
-	"$lt":      LT,
-	"$gt":      GT,
-	"$in":      IN,
-	"$nin":     NIN,
-	"$ne":      NE,
-	"$lte":     LTE,
-	"$gte":     GTE,
-	"$between": BETWEEN,
-	"$sd":      SD,
-	"$nullify": NULLIFY,
+	"$noop":       NOOP,
+	"$eq":         EQ,
+	"$lt":         LT,
+	"$gt":         GT,
+	"$in":         IN,
+	"$nin":        NIN,
+	"$ne":         NE,
+	"$lte":        LTE,
+	"$gte":        GTE,
+	"$between":    BETWEEN,
+	"$nonbetween": NONBETWEEN,
+	"$exists":     EXISTS,
+	"$sd":         SD,
+	"$nullify":    NULLIFY,
 }
 
 // Comparer value.
@@ -118,6 +122,14 @@ func (v *Vector) Compare(t int) (bool, error) {
 			return true, nil
 		}
 		return false, nil
+	case NONBETWEEN:
+		if len(v.y) < 2 {
+			return false, nil
+		}
+		if !(v.x.Cmp(v.y[0]) >= 0 && v.x.Cmp(v.y[1]) <= 0) {
+			return true, nil
+		}
+		return false, nil
 	}
 	return false, errors.New("unknown compare type for vector")
 }
@@ -149,8 +161,8 @@ type Query struct {
 
 // Validate value size for operator
 func (q Query) ValidateValueArraySize(maxArrSize int) error {
-	oneArrLengthOps := []int{EQ, LT, GT, NE, LTE, GTE}
-	twoArrLengthOps := []int{BETWEEN}
+	oneArrLengthOps := []int{EQ, LT, GT, NE, LTE, GTE, EXISTS}
+	twoArrLengthOps := []int{BETWEEN, NONBETWEEN}
 	maxArrLengthOps := []int{IN, NIN}
 
 	arrSize := len(q.Values)
