@@ -49,7 +49,7 @@ type AtomicQueryV3OnChainInputs struct {
 
 	NullifierSessionID *big.Int
 
-	AuthEnabled int
+	IsBJJAuthEnabled int
 }
 
 // atomicQueryV3OnChainCircuitInputs type represents credentialAtomicQueryV3OnChain.circom private inputs required by prover
@@ -90,13 +90,12 @@ type atomicQueryV3OnChainCircuitInputs struct {
 	IsRevocationChecked int `json:"isRevocationChecked"`
 	// Query
 	// JSON path
-	ClaimPathNotExists int              `json:"claimPathNotExists"` // 0 for inclusion, 1 for non-inclusion
-	ClaimPathMtp       []string         `json:"claimPathMtp"`
-	ClaimPathMtpNoAux  string           `json:"claimPathMtpNoAux"` // 1 if aux node is empty, 0 if non-empty or for inclusion proofs
-	ClaimPathMtpAuxHi  *merkletree.Hash `json:"claimPathMtpAuxHi"` // 0 for inclusion proof
-	ClaimPathMtpAuxHv  *merkletree.Hash `json:"claimPathMtpAuxHv"` // 0 for inclusion proof
-	ClaimPathKey       string           `json:"claimPathKey"`      // hash of path in merklized json-ld document
-	ClaimPathValue     string           `json:"claimPathValue"`    // value in this path in merklized json-ld document
+	ClaimPathMtp      []string         `json:"claimPathMtp"`
+	ClaimPathMtpNoAux string           `json:"claimPathMtpNoAux"` // 1 if aux node is empty, 0 if non-empty or for inclusion proofs
+	ClaimPathMtpAuxHi *merkletree.Hash `json:"claimPathMtpAuxHi"` // 0 for inclusion proof
+	ClaimPathMtpAuxHv *merkletree.Hash `json:"claimPathMtpAuxHv"` // 0 for inclusion proof
+	ClaimPathKey      string           `json:"claimPathKey"`      // hash of path in merklized json-ld document
+	ClaimPathValue    string           `json:"claimPathValue"`    // value in this path in merklized json-ld document
 
 	Operator       int      `json:"operator"`
 	SlotIndex      int      `json:"slotIndex"`
@@ -147,7 +146,7 @@ type atomicQueryV3OnChainCircuitInputs struct {
 
 	NullifierSessionID string `json:"nullifierSessionID"`
 
-	AuthEnabled string `json:"authEnabled"`
+	IsBJJAuthEnabled string `json:"isBJJAuthEnabled"`
 }
 
 func (a AtomicQueryV3OnChainInputs) Validate() error {
@@ -172,7 +171,7 @@ func (a AtomicQueryV3OnChainInputs) Validate() error {
 		return errors.New(ErrorEmptyChallenge)
 	}
 
-	if a.AuthEnabled == 1 {
+	if a.IsBJJAuthEnabled == 1 {
 		if a.AuthClaimIncMtp == nil {
 			return errors.New(ErrorEmptyAuthClaimProof)
 		}
@@ -277,7 +276,7 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 
 	s.Challenge = a.Challenge.String()
 
-	if a.AuthEnabled == 1 {
+	if a.IsBJJAuthEnabled == 1 {
 		s.AuthClaim = a.AuthClaim
 
 		s.ClaimsTreeRoot = a.TreeState.ClaimsRoot
@@ -363,7 +362,6 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 	s.IssuerClaimNonRevMtpAuxHv = nodeAuxNonRev.value
 	s.IssuerClaimNonRevMtpNoAux = nodeAuxNonRev.noAux
 
-	s.ClaimPathNotExists = existenceToInt(valueProof.MTP.Existence)
 	nodAuxJSONLD := GetNodeAuxValue(valueProof.MTP)
 	s.ClaimPathMtpNoAux = nodAuxJSONLD.noAux
 	s.ClaimPathMtpAuxHi = nodAuxJSONLD.key
@@ -393,7 +391,7 @@ func (a AtomicQueryV3OnChainInputs) InputsMarshal() ([]byte, error) {
 		s.NullifierSessionID = a.NullifierSessionID.String()
 	}
 
-	s.AuthEnabled = strconv.Itoa(a.AuthEnabled)
+	s.IsBJJAuthEnabled = strconv.Itoa(a.IsBJJAuthEnabled)
 
 	return json.Marshal(s)
 }
@@ -460,8 +458,6 @@ type AtomicQueryV3OnChainPubSignals struct {
 	IssuerState            *merkletree.Hash `json:"issuerState"`
 	IssuerClaimNonRevState *merkletree.Hash `json:"issuerClaimNonRevState"`
 	Timestamp              int64            `json:"timestamp"`
-	Merklized              int              `json:"merklized"`
-	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 revocation not check, // 1 for check revocation
 	QueryHash              *big.Int         `json:"circuitQueryHash"`
 	Challenge              *big.Int         `json:"challenge"`
 	GlobalRoot             *merkletree.Hash `json:"gistRoot"`
@@ -469,15 +465,12 @@ type AtomicQueryV3OnChainPubSignals struct {
 	LinkID                 *big.Int         `json:"linkID"`
 	Nullifier              *big.Int         `json:"nullifier"`
 	OperatorOutput         *big.Int         `json:"operatorOutput"`
-	VerifierID             *core.ID         `json:"verifierID"`
-	NullifierSessionID     *big.Int         `json:"nullifierSessionID"`
-	AuthEnabled            int              `json:"authEnabled"`
+	IsBJJAuthEnabled       int              `json:"isBJJAuthEnabled"`
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3OnChain.circom public signals
 func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error {
 	// expected order:
-	// merklized
 	// userID
 	// circuitQueryHash
 	// issuerState
@@ -489,12 +482,9 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	// challenge
 	// gistRoot
 	// issuerID
-	// isRevocationChecked
 	// issuerClaimNonRevState
 	// timestamp
-	// verifierID
-	// nullifierSessionID
-	// authEnabled
+	// isBJJAuthEnabled
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -503,12 +493,6 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	}
 
 	fieldIdx := 0
-
-	// -- merklized
-	if ao.Merklized, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
-		return err
-	}
-	fieldIdx++
 
 	//  - userID
 	if ao.UserID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
@@ -577,12 +561,6 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	}
 	fieldIdx++
 
-	// - isRevocationChecked
-	if ao.IsRevocationChecked, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
-		return err
-	}
-	fieldIdx++
-
 	// - issuerClaimNonRevState
 	if ao.IssuerClaimNonRevState, err = merkletree.NewHashFromString(sVals[fieldIdx]); err != nil {
 		return err
@@ -596,22 +574,8 @@ func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error
 	}
 	fieldIdx++
 
-	//  - VerifierID
-	if sVals[fieldIdx] != "0" {
-		if ao.VerifierID, err = idFromIntStr(sVals[fieldIdx]); err != nil {
-			return err
-		}
-	}
-	fieldIdx++
-
-	//  - NullifierSessionID
-	if ao.NullifierSessionID, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid verifier session ID: %s", sVals[fieldIdx])
-	}
-	fieldIdx++
-
-	//  - AuthEnabled
-	if ao.AuthEnabled, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
+	//  - IsBJJAuthEnabled
+	if ao.IsBJJAuthEnabled, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
 		return err
 	}
 

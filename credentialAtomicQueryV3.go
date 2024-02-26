@@ -84,13 +84,12 @@ type atomicQueryV3CircuitInputs struct {
 	IsRevocationChecked int `json:"isRevocationChecked"`
 	// Query
 	// JSON path
-	ClaimPathNotExists int              `json:"claimPathNotExists"` // 0 for inclusion, 1 for non-inclusion
-	ClaimPathMtp       []string         `json:"claimPathMtp"`
-	ClaimPathMtpNoAux  string           `json:"claimPathMtpNoAux"` // 1 if aux node is empty, 0 if non-empty or for inclusion proofs
-	ClaimPathMtpAuxHi  *merkletree.Hash `json:"claimPathMtpAuxHi"` // 0 for inclusion proof
-	ClaimPathMtpAuxHv  *merkletree.Hash `json:"claimPathMtpAuxHv"` // 0 for inclusion proof
-	ClaimPathKey       string           `json:"claimPathKey"`      // hash of path in merklized json-ld document
-	ClaimPathValue     string           `json:"claimPathValue"`    // value in this path in merklized json-ld document
+	ClaimPathMtp      []string         `json:"claimPathMtp"`
+	ClaimPathMtpNoAux string           `json:"claimPathMtpNoAux"` // 1 if aux node is empty, 0 if non-empty or for inclusion proofs
+	ClaimPathMtpAuxHi *merkletree.Hash `json:"claimPathMtpAuxHi"` // 0 for inclusion proof
+	ClaimPathMtpAuxHv *merkletree.Hash `json:"claimPathMtpAuxHv"` // 0 for inclusion proof
+	ClaimPathKey      string           `json:"claimPathKey"`      // hash of path in merklized json-ld document
+	ClaimPathValue    string           `json:"claimPathValue"`    // value in this path in merklized json-ld document
 
 	Operator             int      `json:"operator"`
 	SlotIndex            int      `json:"slotIndex"`
@@ -270,7 +269,6 @@ func (a AtomicQueryV3Inputs) InputsMarshal() ([]byte, error) {
 	s.IssuerClaimNonRevMtpAuxHv = nodeAuxNonRev.value
 	s.IssuerClaimNonRevMtpNoAux = nodeAuxNonRev.noAux
 
-	s.ClaimPathNotExists = existenceToInt(valueProof.MTP.Existence)
 	nodAuxJSONLD := GetNodeAuxValue(valueProof.MTP)
 	s.ClaimPathMtpNoAux = nodAuxJSONLD.noAux
 	s.ClaimPathMtpAuxHi = nodAuxJSONLD.key
@@ -343,7 +341,6 @@ type AtomicQueryV3PubSignals struct {
 	Timestamp              int64            `json:"timestamp"`
 	Merklized              int              `json:"merklized"`
 	ClaimPathKey           *big.Int         `json:"claimPathKey"`
-	ClaimPathNotExists     int              `json:"claimPathNotExists"`  // 0 for inclusion, 1 for non-inclusion
 	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 revocation not check, // 1 for check revocation
 	ProofType              int              `json:"proofType"`
 	LinkID                 *big.Int         `json:"linkID"`
@@ -370,7 +367,6 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// issuerClaimNonRevState
 	// timestamp
 	// claimSchema
-	// claimPathNotExists
 	// claimPathKey
 	// slotIndex
 	// operator
@@ -379,10 +375,10 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	// verifierID
 	// nullifierSessionID
 
-	// 20 is a number of fields in AtomicQueryV3PubSignals, values length could be
+	// 19 is a number of fields in AtomicQueryV3PubSignals, values length could be
 	// different base on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
-	const fieldLength = 20
+	const fieldLength = 19
 
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
@@ -475,12 +471,6 @@ func (ao *AtomicQueryV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 		return fmt.Errorf("invalid schema value: '%s'", sVals[0])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
-	fieldIdx++
-
-	// - ClaimPathNotExists
-	if ao.ClaimPathNotExists, err = strconv.Atoi(sVals[fieldIdx]); err != nil {
-		return err
-	}
 	fieldIdx++
 
 	// - ClaimPathKey

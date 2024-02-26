@@ -24,9 +24,7 @@ type LinkedMultiQueryInputs struct {
 type linkedMultiQueryCircuitInputs struct {
 	LinkNonce            string             `json:"linkNonce"`
 	IssuerClaim          *core.Claim        `json:"issuerClaim"`
-	Enabled              []int              `json:"enabled"`
 	ClaimSchema          string             `json:"claimSchema"`
-	ClaimPathNotExists   []int              `json:"claimPathNotExists"` // 0 for inclusion, 1 for non-inclusion
 	ClaimPathMtp         [][]string         `json:"claimPathMtp"`
 	ClaimPathMtpNoAux    []string           `json:"claimPathMtpNoAux"` // 1 if aux node is empty, 0 if non-empty or for inclusion proofs
 	ClaimPathMtpAuxHi    []*merkletree.Hash `json:"claimPathMtpAuxHi"` // 0 for inclusion proof
@@ -46,8 +44,6 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 	s.IssuerClaim = l.Claim
 	s.ClaimSchema = l.Claim.GetSchemaHash().BigInt().String()
 
-	s.Enabled = make([]int, LinkedMultiQueryLength)
-	s.ClaimPathNotExists = make([]int, LinkedMultiQueryLength)
 	s.ClaimPathMtp = make([][]string, LinkedMultiQueryLength)
 	s.ClaimPathMtpNoAux = make([]string, LinkedMultiQueryLength)
 	s.ClaimPathMtpAuxHi = make([]*merkletree.Hash, LinkedMultiQueryLength)
@@ -61,8 +57,6 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 
 	for i := 0; i < LinkedMultiQueryLength; i++ {
 		if l.Query[i] == nil {
-			s.Enabled[i] = 0
-			s.ClaimPathNotExists[i] = 0
 			s.ClaimPathMtp[i] = PrepareSiblingsStr([]*merkletree.Hash{}, l.GetMTLevelsClaim())
 
 			s.ClaimPathMtpNoAux[i] = "0"
@@ -84,7 +78,6 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 			continue
 		}
 
-		s.Enabled[i] = 1
 		valueProof := l.Query[i].ValueProof
 		if valueProof == nil {
 			valueProof = &ValueProof{}
@@ -93,7 +86,6 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 			valueProof.MTP = &merkletree.Proof{}
 		}
 
-		s.ClaimPathNotExists[i] = existenceToInt(valueProof.MTP.Existence)
 		s.ClaimPathMtp[i] = PrepareSiblingsStr(valueProof.MTP.AllSiblings(),
 			l.GetMTLevelsClaim())
 
@@ -124,7 +116,6 @@ type LinkedMultiQueryPubSignals struct {
 	Merklized            int        `json:"merklized"`
 	OperatorOutput       []*big.Int `json:"operatorOutput"`
 	CircuitQueryHash     []*big.Int `json:"circuitQueryHash"`
-	Enabled              []bool     `json:"enabled"`
 	ActualValueArraySize []int      `json:"valueArraySize"`
 }
 
@@ -135,10 +126,9 @@ func (lo *LinkedMultiQueryPubSignals) PubSignalsUnmarshal(data []byte) error {
 	// merklized
 	// operatorOutput
 	// circuitQueryHash
-	// enabled
 	// valueArraySize
 
-	outputsLength := LinkedMultiQueryLength*4 + 2
+	outputsLength := LinkedMultiQueryLength*3 + 2
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
@@ -178,17 +168,6 @@ func (lo *LinkedMultiQueryPubSignals) PubSignalsUnmarshal(data []byte) error {
 		if lo.CircuitQueryHash[i], ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 			return fmt.Errorf("invalid query hash value: '%s'", sVals[fieldIdx])
 		}
-		fieldIdx++
-	}
-
-	// -- enabled
-	lo.Enabled = make([]bool, LinkedMultiQueryLength)
-	for i := 0; i < LinkedMultiQueryLength; i++ {
-		enabledInt, err := strconv.Atoi(sVals[fieldIdx])
-		if err != nil {
-			return err
-		}
-		lo.Enabled[i] = enabledInt == 1
 		fieldIdx++
 	}
 

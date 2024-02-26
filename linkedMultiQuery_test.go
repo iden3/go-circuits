@@ -87,34 +87,21 @@ func TestLinkedMultiQueryPubSignals_CircuitUnmarshal(t *testing.T) {
 			"0",
 			"0",
 			"0",
-			"0",
-			"1",
-			"1",
-			"1",
-			"1",
-			"1",
-			"0",
-			"0",
-			"0",
-			"0",
 			"0"
 		]`))
 	require.NoError(t, err)
 
 	operatorOutput := make([]*big.Int, 10)
 	circuitQueryHash := make([]*big.Int, 10)
-	enabled := make([]bool, 10)
 	valueArrSize := make([]int, 10)
 	for i := 1; i <= 10; i++ {
 		indx := i - 1
 		operatorOutput[indx] = big.NewInt((int64(i)))
 		circuitQueryHash[indx] = big.NewInt(int64(i * 100))
-		enabled[indx] = true
 		valueArrSize[indx] = 1
 		if i > 5 {
 			operatorOutput[indx] = big.NewInt(0)
 			circuitQueryHash[indx] = big.NewInt(0)
-			enabled[indx] = false
 			valueArrSize[indx] = 0
 		}
 	}
@@ -124,7 +111,6 @@ func TestLinkedMultiQueryPubSignals_CircuitUnmarshal(t *testing.T) {
 		Merklized:            1,
 		OperatorOutput:       operatorOutput,
 		CircuitQueryHash:     circuitQueryHash,
-		Enabled:              enabled,
 		ActualValueArraySize: valueArrSize,
 	}
 
