@@ -112,11 +112,10 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 
 // LinkedMultiQueryPubSignals linkedMultiQuery10.circom public signals
 type LinkedMultiQueryPubSignals struct {
-	LinkID               *big.Int   `json:"linkID"`
-	Merklized            int        `json:"merklized"`
-	OperatorOutput       []*big.Int `json:"operatorOutput"`
-	CircuitQueryHash     []*big.Int `json:"circuitQueryHash"`
-	ActualValueArraySize []int      `json:"valueArraySize"`
+	LinkID           *big.Int   `json:"linkID"`
+	Merklized        int        `json:"merklized"`
+	OperatorOutput   []*big.Int `json:"operatorOutput"`
+	CircuitQueryHash []*big.Int `json:"circuitQueryHash"`
 }
 
 // PubSignalsUnmarshal unmarshal linkedMultiQuery10.circom public inputs to LinkedMultiQueryPubSignals
@@ -126,9 +125,8 @@ func (lo *LinkedMultiQueryPubSignals) PubSignalsUnmarshal(data []byte) error {
 	// merklized
 	// operatorOutput
 	// circuitQueryHash
-	// valueArraySize
 
-	outputsLength := LinkedMultiQueryLength*3 + 2
+	outputsLength := LinkedMultiQueryLength*2 + 2
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
@@ -168,17 +166,6 @@ func (lo *LinkedMultiQueryPubSignals) PubSignalsUnmarshal(data []byte) error {
 		if lo.CircuitQueryHash[i], ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 			return fmt.Errorf("invalid query hash value: '%s'", sVals[fieldIdx])
 		}
-		fieldIdx++
-	}
-
-	// -- valueArraySize
-	lo.ActualValueArraySize = make([]int, LinkedMultiQueryLength)
-	for i := 0; i < LinkedMultiQueryLength; i++ {
-		valueArrSize, err := strconv.Atoi(sVals[fieldIdx])
-		if err != nil {
-			return err
-		}
-		lo.ActualValueArraySize[i] = valueArrSize
 		fieldIdx++
 	}
 

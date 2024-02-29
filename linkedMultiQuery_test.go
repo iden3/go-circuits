@@ -77,16 +77,6 @@ func TestLinkedMultiQueryPubSignals_CircuitUnmarshal(t *testing.T) {
 			"0",
 			"0",
 			"0",
-			"0",
-			"1",
-			"1",
-			"1",
-			"1",
-			"1",
-			"0",
-			"0",
-			"0",
-			"0",
 			"0"
 		]`))
 	require.NoError(t, err)
@@ -107,11 +97,10 @@ func TestLinkedMultiQueryPubSignals_CircuitUnmarshal(t *testing.T) {
 	}
 
 	exp := LinkedMultiQueryPubSignals{
-		LinkID:               big.NewInt(443),
-		Merklized:            1,
-		OperatorOutput:       operatorOutput,
-		CircuitQueryHash:     circuitQueryHash,
-		ActualValueArraySize: valueArrSize,
+		LinkID:           big.NewInt(443),
+		Merklized:        1,
+		OperatorOutput:   operatorOutput,
+		CircuitQueryHash: circuitQueryHash,
 	}
 
 	jsonOut, err := json.Marshal(out)
