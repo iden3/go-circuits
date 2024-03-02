@@ -19,24 +19,28 @@ const (
 	LTE
 	GTE
 	BETWEEN
+	NONBETWEEN
+	EXISTS
 	SD      = 16
 	NULLIFY = 17
 )
 
 // QueryOperators represents operators for atomic circuits
 var QueryOperators = map[string]int{
-	"$noop":    NOOP,
-	"$eq":      EQ,
-	"$lt":      LT,
-	"$gt":      GT,
-	"$in":      IN,
-	"$nin":     NIN,
-	"$ne":      NE,
-	"$lte":     LTE,
-	"$gte":     GTE,
-	"$between": BETWEEN,
-	"$sd":      SD,
-	"$nullify": NULLIFY,
+	"$noop":       NOOP,
+	"$eq":         EQ,
+	"$lt":         LT,
+	"$gt":         GT,
+	"$in":         IN,
+	"$nin":        NIN,
+	"$ne":         NE,
+	"$lte":        LTE,
+	"$gte":        GTE,
+	"$between":    BETWEEN,
+	"$nonbetween": NONBETWEEN,
+	"$exists":     EXISTS,
+	"$sd":         SD,
+	"$nullify":    NULLIFY,
 }
 
 // Comparer value.
@@ -118,6 +122,14 @@ func (v *Vector) Compare(t int) (bool, error) {
 			return true, nil
 		}
 		return false, nil
+	case NONBETWEEN:
+		if len(v.y) < 2 {
+			return false, nil
+		}
+		if !(v.x.Cmp(v.y[0]) >= 0 && v.x.Cmp(v.y[1]) <= 0) {
+			return true, nil
+		}
+		return false, nil
 	}
 	return false, errors.New("unknown compare type for vector")
 }
@@ -145,6 +157,41 @@ type Query struct {
 	Values     []*big.Int
 	SlotIndex  int
 	ValueProof *ValueProof
+}
+
+// Validate value size for operator
+func (q Query) ValidateValueArraySize(maxArrSize int) error {
+	oneArrLengthOps := []int{EQ, LT, GT, NE, LTE, GTE, EXISTS}
+	twoArrLengthOps := []int{BETWEEN, NONBETWEEN}
+	maxArrLengthOps := []int{IN, NIN}
+
+	arrSize := len(q.Values)
+	if contains(oneArrLengthOps, q.Operator) {
+		if arrSize != 1 {
+			return errors.New(ErrorInvalidValuesArrSize)
+		} else {
+			return nil
+		}
+	}
+	if contains(twoArrLengthOps, q.Operator) {
+		if arrSize != 2 {
+			return errors.New(ErrorInvalidValuesArrSize)
+		} else {
+			return nil
+		}
+	}
+	if contains(maxArrLengthOps, q.Operator) {
+		if arrSize == 0 || arrSize > maxArrSize {
+			return errors.New(ErrorInvalidValuesArrSize)
+		} else {
+			return nil
+		}
+	}
+
+	if arrSize != 0 {
+		return errors.New(ErrorInvalidValuesArrSize)
+	}
+	return nil
 }
 
 func (q Query) validate() error {
