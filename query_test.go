@@ -199,7 +199,7 @@ func TestVectorCompare(t *testing.T) {
 			name:     "testing unknown operator",
 			x:        big.NewInt(0),
 			y:        []*big.Int{big.NewInt(1), big.NewInt(10), big.NewInt(100)},
-			operator: 10, // unknown operator.
+			operator: 12, // unknown operator.
 			expected: false,
 			withErr:  true,
 		},
