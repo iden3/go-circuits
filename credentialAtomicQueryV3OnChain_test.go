@@ -119,6 +119,111 @@ func TestAttrQueryV3OnChain_SigPart_PrepareInputs(t *testing.T) {
 	require.JSONEq(t, exp, string(bytesInputs))
 }
 
+func TestAttrQueryV3OnChain_SigPart_Noop_PrepareInputs(t *testing.T) {
+
+	user := it.NewIdentity(t, userPK)
+
+	issuer := it.NewIdentity(t, issuerPK)
+
+	subjectID := user.ID
+	profileNonce := big.NewInt(0)
+
+	nonceSubject := big.NewInt(0)
+
+	claim := it.DefaultUserClaim(t, subjectID)
+
+	// Sig claim
+	claimSig := issuer.SignClaim(t, claim)
+
+	issuerClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, claim)
+
+	issuerAuthClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, issuer.AuthClaim)
+	issuerAuthClaimMtp, _ := issuer.ClaimMTPRaw(t, issuer.AuthClaim)
+
+	gTree := it.GISTTree(context.Background())
+	err := gTree.Add(context.Background(), issuer.ID.BigInt(), issuer.State(t).BigInt())
+	require.NoError(t, err)
+	globalProof, _, err := gTree.GenerateProof(context.Background(), user.ID.BigInt(), nil)
+	require.NoError(t, err)
+	authClaimIncMTP, _ := user.ClaimMTPRaw(t, user.AuthClaim)
+	authClaimNonRevMTP, _ := user.ClaimRevMTPRaw(t, user.AuthClaim)
+	require.NoError(t, err)
+	challenge := big.NewInt(10)
+	signature, err := user.SignBBJJ(challenge.Bytes())
+	require.NoError(t, err)
+
+	in := AtomicQueryV3OnChainInputs{
+		RequestID:                big.NewInt(23),
+		ID:                       &user.ID,
+		ProfileNonce:             profileNonce,
+		ClaimSubjectProfileNonce: nonceSubject,
+		Claim: ClaimWithSigAndMTPProof{
+			IssuerID: &issuer.ID,
+			Claim:    claim,
+			NonRevProof: MTProof{
+				TreeState: TreeState{
+					State:          issuer.State(t),
+					ClaimsRoot:     issuer.Clt.Root(),
+					RevocationRoot: issuer.Ret.Root(),
+					RootOfRoots:    issuer.Rot.Root(),
+				},
+				Proof: issuerClaimNonRevMtp,
+			},
+			SignatureProof: &BJJSignatureProof{
+				Signature:       claimSig,
+				IssuerAuthClaim: issuer.AuthClaim,
+				IssuerAuthIncProof: MTProof{
+					TreeState: TreeState{
+						State:          issuer.State(t),
+						ClaimsRoot:     issuer.Clt.Root(),
+						RevocationRoot: issuer.Ret.Root(),
+						RootOfRoots:    issuer.Rot.Root(),
+					},
+					Proof: issuerAuthClaimMtp,
+				},
+				IssuerAuthNonRevProof: MTProof{
+					TreeState: TreeState{
+						State:          issuer.State(t),
+						ClaimsRoot:     issuer.Clt.Root(),
+						RevocationRoot: issuer.Ret.Root(),
+						RootOfRoots:    issuer.Rot.Root(),
+					},
+					Proof: issuerAuthClaimNonRevMtp,
+				},
+			},
+		},
+		Query: Query{
+			ValueProof: nil,
+			Operator:   NOOP,
+			Values:     nil,
+			SlotIndex:  2,
+		},
+		CurrentTimeStamp:   timestamp,
+		ProofType:          BJJSignatureProofType,
+		AuthClaim:          user.AuthClaim,
+		AuthClaimIncMtp:    authClaimIncMTP,
+		AuthClaimNonRevMtp: authClaimNonRevMTP,
+		TreeState:          GetTreeState(t, user),
+		GISTProof: GISTProof{
+			Root:  gTree.Root(),
+			Proof: globalProof,
+		},
+		Signature: signature,
+		Challenge: challenge,
+		LinkNonce: big.NewInt(0),
+		VerifierID: it.IDFromStr(
+			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
+		NullifierSessionID: big.NewInt(32),
+		IsBJJAuthEnabled:   1,
+	}
+
+	bytesInputs, err := in.InputsMarshal()
+	require.Nil(t, err)
+
+	exp := it.TestData(t, "onchain_V3_sig_noop_inputs", string(bytesInputs), *generate)
+	require.JSONEq(t, exp, string(bytesInputs))
+}
+
 func TestAttrQueryV3OnChain_MTPPart_PrepareInputs(t *testing.T) {
 
 	user := it.NewIdentity(t, userPK)
