@@ -162,6 +162,72 @@ func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {
 
 }
 
+func TestAttrQueryV3_MTPPart_Noop_PrepareInputs(t *testing.T) {
+	user := it.NewIdentity(t, userPK)
+	issuer := it.NewIdentity(t, issuerPK)
+
+	nonce := big.NewInt(0)
+
+	subjectID := user.ID
+	nonceSubject := big.NewInt(0)
+
+	claim := it.DefaultUserClaim(t, subjectID)
+
+	issuer.AddClaim(t, claim)
+
+	issuerClaimMtp, _ := issuer.ClaimMTPRaw(t, claim)
+
+	issuerClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, claim)
+
+	in := AtomicQueryV3Inputs{
+		RequestID:                big.NewInt(23),
+		ID:                       &user.ID,
+		ProfileNonce:             nonce,
+		ClaimSubjectProfileNonce: nonceSubject,
+		Claim: ClaimWithSigAndMTPProof{
+			IssuerID: &issuer.ID,
+			Claim:    claim,
+			IncProof: &MTProof{
+				Proof: issuerClaimMtp,
+				TreeState: TreeState{
+					State:          issuer.State(t),
+					ClaimsRoot:     issuer.Clt.Root(),
+					RevocationRoot: issuer.Ret.Root(),
+					RootOfRoots:    issuer.Rot.Root(),
+				},
+			},
+			NonRevProof: MTProof{
+				TreeState: TreeState{
+					State:          issuer.State(t),
+					ClaimsRoot:     issuer.Clt.Root(),
+					RevocationRoot: issuer.Ret.Root(),
+					RootOfRoots:    issuer.Rot.Root(),
+				},
+				Proof: issuerClaimNonRevMtp,
+			},
+		},
+		Query: Query{
+			ValueProof: nil,
+			Operator:   NOOP,
+			Values:     nil,
+			SlotIndex:  2,
+		},
+		CurrentTimeStamp: timestamp,
+		ProofType:        Iden3SparseMerkleTreeProofType,
+		LinkNonce:        big.NewInt(0),
+		VerifierID: it.IDFromStr(
+			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
+		NullifierSessionID: big.NewInt(32),
+	}
+
+	bytesInputs, err := in.InputsMarshal()
+	require.Nil(t, err)
+
+	exp := it.TestData(t, "V3_mtp_noop_inputs", string(bytesInputs), *generate)
+	require.JSONEq(t, exp, string(bytesInputs))
+
+}
+
 func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
 	out := new(AtomicQueryV3PubSignals)
 	err := out.PubSignalsUnmarshal([]byte(

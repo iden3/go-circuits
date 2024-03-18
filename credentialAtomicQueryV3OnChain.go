@@ -159,10 +159,6 @@ func (a AtomicQueryV3OnChainInputs) Validate() error {
 		return errors.New(ErrorEmptyClaimNonRevProof)
 	}
 
-	if a.Query.Values == nil {
-		return errors.New(ErrorEmptyQueryValue)
-	}
-
 	if err := a.Query.ValidateValueArraySize(a.GetValueArrSize()); err != nil {
 		return err
 	}
