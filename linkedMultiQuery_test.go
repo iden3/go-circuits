@@ -52,6 +52,43 @@ func TestLinkedMultiQueryInputs_PrepareInputs(t *testing.T) {
 	require.JSONEq(t, exp, string(bytesInputs))
 }
 
+// test if query slice length is less than LinkedMultiQueryLength
+func TestLinkedMultiQueryInputs_PrepareInputs_Ln(t *testing.T) {
+	user := it.NewIdentity(t, userPK)
+	subjectID := user.ID
+	claim := it.DefaultUserClaim(t, subjectID)
+	in := LinkedMultiQueryInputs{
+		LinkNonce: big.NewInt(35346346369657418),
+		Claim:     claim,
+	}
+	in.Query = append(in.Query,
+		&Query{
+			ValueProof: nil,
+			Operator:   EQ,
+			Values:     []*big.Int{big.NewInt(10)},
+			SlotIndex:  2,
+		},
+		&Query{
+			ValueProof: nil,
+			Operator:   LT,
+			Values:     []*big.Int{big.NewInt(133)},
+			SlotIndex:  2,
+		},
+		&Query{
+			ValueProof: nil,
+			Operator:   LTE,
+			Values:     []*big.Int{big.NewInt(555)},
+			SlotIndex:  2,
+		},
+	)
+
+	bytesInputs, err := in.InputsMarshal()
+	require.NoError(t, err)
+
+	exp := it.TestData(t, "linkedMultiQuery_inputs", string(bytesInputs), *generate)
+	require.JSONEq(t, exp, string(bytesInputs))
+}
+
 func TestLinkedMultiQueryPubSignals_CircuitUnmarshal(t *testing.T) {
 	out := new(LinkedMultiQueryPubSignals)
 	err := out.PubSignalsUnmarshal([]byte(

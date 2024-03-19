@@ -56,7 +56,7 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 	s.ActualValueArraySize = make([]int, LinkedMultiQueryLength)
 
 	for i := 0; i < LinkedMultiQueryLength; i++ {
-		if l.Query[i] == nil {
+		if i >= len(l.Query) || l.Query[i] == nil {
 			s.ClaimPathMtp[i] = PrepareSiblingsStr([]*merkletree.Hash{}, l.GetMTLevelsClaim())
 
 			s.ClaimPathMtpNoAux[i] = "0"
