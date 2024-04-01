@@ -8,6 +8,7 @@ import (
 
 	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-merkletree-sql/v2"
+	"github.com/pkg/errors"
 )
 
 const LinkedMultiQueryLength = 10
@@ -37,8 +38,41 @@ type linkedMultiQueryCircuitInputs struct {
 	ActualValueArraySize []int              `json:"valueArraySize"`
 }
 
+func (l LinkedMultiQueryInputs) Validate() error {
+	if l.LinkNonce == nil {
+		return errors.New(ErrorEmptyLinkNonce)
+	}
+
+	if l.Claim == nil {
+		return errors.New(ErrorEmptyClaim)
+	}
+
+	if len(l.Query) == 0 {
+		return errors.New(ErrorEmptyQueries)
+	}
+
+	if len(l.Query) > LinkedMultiQueryLength {
+		return errors.New(ErrorTooManyQueries)
+	}
+
+	for _, q := range l.Query {
+		if q == nil {
+			continue
+		}
+		if err := q.ValidateValueArraySize(l.GetValueArrSize()); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 // InputsMarshal returns Circom private inputs for linkedMultiQuery10.circom
 func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
+	if err := l.Validate(); err != nil {
+		return nil, err
+	}
+
 	s := linkedMultiQueryCircuitInputs{}
 	s.LinkNonce = l.LinkNonce.String()
 	s.IssuerClaim = l.Claim
