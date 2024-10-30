@@ -34,7 +34,7 @@ func PrepareSiblingsStr(siblings []*merkletree.Hash, levels int) []string {
 	return HashToStr(siblings)
 }
 
-// CircomSiblingsFromSiblings returns the full siblings compatible with circom
+// CircomSiblings returns the full siblings compatible with circom
 func CircomSiblings(proof *merkletree.Proof, levels int) []*merkletree.Hash {
 	siblings := proof.AllSiblings()
 	// Add the rest of empty levels to the siblings

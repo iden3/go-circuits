@@ -142,6 +142,18 @@ type AuthV2PubSignals struct {
 	GISTRoot  *merkletree.Hash `json:"GISTRoot"`
 }
 
+func (ao *AuthV2PubSignals) GetStatesInfo() StatesInfo {
+	return StatesInfo{
+		States: []States{},
+		Gists: []Gists{
+			{
+				ID:   ao.UserID,
+				Root: ao.GISTRoot,
+			},
+		},
+	}
+}
+
 // PubSignalsUnmarshal unmarshal auth.circom public inputs to AuthPubSignals
 func (a *AuthV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string

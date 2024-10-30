@@ -164,7 +164,7 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// AtomicQueryMTPPubSignals public signals
+// AtomicQueryMTPV2PubSignals public signals
 type AtomicQueryMTPV2PubSignals struct {
 	BaseConfig
 	RequestID              *big.Int         `json:"requestID"`

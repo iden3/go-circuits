@@ -310,6 +310,27 @@ type AtomicQuerySigV2OnChainPubSignals struct {
 	GlobalRoot             *merkletree.Hash `json:"gistRoot"`
 }
 
+func (ao *AtomicQuerySigV2OnChainPubSignals) GetStatesInfo() StatesInfo {
+	return StatesInfo{
+		States: []States{
+			{
+				ID:    ao.IssuerID,
+				State: ao.IssuerAuthState,
+			},
+			{
+				ID:    ao.IssuerID,
+				State: ao.IssuerClaimNonRevState,
+			},
+		},
+		Gists: []Gists{
+			{
+				ID:   ao.UserID,
+				Root: ao.GlobalRoot,
+			},
+		},
+	}
+}
+
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
 func (ao *AtomicQuerySigV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) error {
 	// expected order:
