@@ -205,18 +205,18 @@ type StateInfoPubSignals interface {
 
 // StatesInfo struct. A collection of states and gists
 type StatesInfo struct {
-	States []States
-	Gists  []Gists
+	States []State
+	Gists  []Gist
 }
 
-// States information
-type States struct {
+// State information
+type State struct {
 	ID    *core.ID
 	State *merkletree.Hash
 }
 
-// Gists information
-type Gists struct {
+// Gist information
+type Gist struct {
 	ID   *core.ID
 	Root *merkletree.Hash
 }

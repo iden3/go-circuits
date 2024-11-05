@@ -269,7 +269,7 @@ type AtomicQueryMTPV2OnChainPubSignals struct {
 
 func (ao *AtomicQueryMTPV2OnChainPubSignals) GetStatesInfo() StatesInfo {
 	return StatesInfo{
-		States: []States{
+		States: []State{
 			{
 				ID:    ao.IssuerID,
 				State: ao.IssuerClaimIdenState,
@@ -279,7 +279,7 @@ func (ao *AtomicQueryMTPV2OnChainPubSignals) GetStatesInfo() StatesInfo {
 				State: ao.IssuerClaimNonRevState,
 			},
 		},
-		Gists: []Gists{
+		Gists: []Gist{
 			{
 				ID:   ao.UserID,
 				Root: ao.GlobalRoot,

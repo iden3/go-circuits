@@ -466,7 +466,7 @@ type AtomicQueryV3OnChainPubSignals struct {
 
 func (ao *AtomicQueryV3OnChainPubSignals) GetStatesInfo() StatesInfo {
 	return StatesInfo{
-		States: []States{
+		States: []State{
 			{
 				ID:    ao.IssuerID,
 				State: ao.IssuerState,
@@ -476,7 +476,7 @@ func (ao *AtomicQueryV3OnChainPubSignals) GetStatesInfo() StatesInfo {
 				State: ao.IssuerClaimNonRevState,
 			},
 		},
-		Gists: []Gists{
+		Gists: []Gist{
 			{
 				ID:   ao.UserID,
 				Root: ao.GlobalRoot,

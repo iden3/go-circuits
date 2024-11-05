@@ -144,8 +144,8 @@ type AuthV2PubSignals struct {
 
 func (ao *AuthV2PubSignals) GetStatesInfo() StatesInfo {
 	return StatesInfo{
-		States: []States{},
-		Gists: []Gists{
+		States: []State{},
+		Gists: []Gist{
 			{
 				ID:   ao.UserID,
 				Root: ao.GISTRoot,
