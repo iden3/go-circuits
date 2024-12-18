@@ -267,6 +267,27 @@ type AtomicQueryMTPV2OnChainPubSignals struct {
 	GlobalRoot             *merkletree.Hash `json:"gistRoot"`
 }
 
+func (ao *AtomicQueryMTPV2OnChainPubSignals) GetStatesInfo() StatesInfo {
+	return StatesInfo{
+		States: []State{
+			{
+				ID:    ao.IssuerID,
+				State: ao.IssuerClaimIdenState,
+			},
+			{
+				ID:    ao.IssuerID,
+				State: ao.IssuerClaimNonRevState,
+			},
+		},
+		Gists: []Gist{
+			{
+				ID:   ao.UserID,
+				Root: ao.GlobalRoot,
+			},
+		},
+	}
+}
+
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryMTPV2OnChain.circom public signals array to AtomicQueryMTPPubSignals
 func (ao *AtomicQueryMTPV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) error {
 

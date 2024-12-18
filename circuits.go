@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"sync"
 
+	core "github.com/iden3/go-iden3-core/v2"
+	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/pkg/errors"
 )
 
@@ -13,7 +15,7 @@ type CircuitID string
 const (
 	// AuthCircuitID is a type that must be used for auth.circom
 	AuthCircuitID CircuitID = "auth"
-	// AuthCircuitID is a type that must be used for authV2.circom
+	// AuthV2CircuitID is a type that must be used for authV2.circom
 	AuthV2CircuitID CircuitID = "authV2"
 	// StateTransitionCircuitID is a type that must be used for stateTransition.circom
 	StateTransitionCircuitID CircuitID = "stateTransition"
@@ -158,7 +160,7 @@ func (c BaseConfig) GetValueArrSize() int {
 	return c.ValueArraySize
 }
 
-// GetMTLevel max circuit MT levels on chain
+// GetMTLevelOnChain max circuit MT levels on chain
 func (c BaseConfig) GetMTLevelOnChain() int {
 	if c.MTLevelOnChain == 0 {
 		return defaultMTLevelsOnChain
@@ -194,6 +196,29 @@ type PubSignalsMapper interface {
 type PubSignals interface {
 	PubSignalsUnmarshaller
 	PubSignalsMapper
+}
+
+// StateInfoPubSignals interface implemented by types that can return states info
+type StateInfoPubSignals interface {
+	GetStatesInfo() StatesInfo
+}
+
+// StatesInfo struct. A collection of states and gists
+type StatesInfo struct {
+	States []State
+	Gists  []Gist
+}
+
+// State information
+type State struct {
+	ID    *core.ID
+	State *merkletree.Hash
+}
+
+// Gist information
+type Gist struct {
+	ID   *core.ID
+	Root *merkletree.Hash
 }
 
 // KeyLoader interface, if key should be fetched from file system, CDN, IPFS etc,

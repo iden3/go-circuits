@@ -464,6 +464,27 @@ type AtomicQueryV3OnChainPubSignals struct {
 	IsBJJAuthEnabled       int              `json:"isBJJAuthEnabled"`
 }
 
+func (ao *AtomicQueryV3OnChainPubSignals) GetStatesInfo() StatesInfo {
+	return StatesInfo{
+		States: []State{
+			{
+				ID:    ao.IssuerID,
+				State: ao.IssuerState,
+			},
+			{
+				ID:    ao.IssuerID,
+				State: ao.IssuerClaimNonRevState,
+			},
+		},
+		Gists: []Gist{
+			{
+				ID:   ao.UserID,
+				Root: ao.GlobalRoot,
+			},
+		},
+	}
+}
+
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3OnChain.circom public signals
 func (ao *AtomicQueryV3OnChainPubSignals) PubSignalsUnmarshal(data []byte) error {
 	// expected order:
