@@ -1,6 +1,8 @@
 package circuits
 
 import (
+	"bytes"
+	"encoding/json"
 	"reflect"
 	"sync"
 
@@ -198,27 +200,104 @@ type PubSignals interface {
 	PubSignalsMapper
 }
 
-// StateInfoPubSignals interface implemented by types that can return states info
-type StateInfoPubSignals interface {
-	GetStatesInfo() StatesInfo
+// StatesInfoProvider interface should be implemented by types that can return
+// states info
+type StatesInfoProvider interface {
+	GetStatesInfo() (StatesInfo, error)
 }
 
 // StatesInfo struct. A collection of states and gists
 type StatesInfo struct {
-	States []State
-	Gists  []Gist
+	States []State `json:"states"`
+	Gists  []Gist  `json:"gists"`
 }
 
 // State information
 type State struct {
-	ID    *core.ID
-	State *merkletree.Hash
+	ID    core.ID         `json:"id"`
+	State merkletree.Hash `json:"state"`
+}
+
+func (s *State) UnmarshalJSON(i []byte) error {
+	var j struct {
+		ID    *jsonInt `json:"id"`
+		State *jsonInt `json:"state"`
+	}
+	err := json.Unmarshal(i, &j)
+	if err != nil {
+		return err
+	}
+
+	if j.ID == nil {
+		return errors.New("id is nil")
+	}
+	s.ID, err = core.IDFromInt(j.ID.BigInt())
+	if err != nil {
+		return err
+	}
+
+	h, err := merkletree.NewHashFromBigInt(j.State.BigInt())
+	if err != nil {
+		return err
+	}
+	s.State = *h
+
+	return nil
+}
+
+func (s State) MarshalJSON() ([]byte, error) {
+	var b bytes.Buffer
+	b.Grow(256) // 20 + 2*78 + padding ≈ 256
+	b.Write([]byte(`{"id":"`))
+	b.Write([]byte(s.ID.BigInt().String()))
+	b.Write([]byte(`","state":"`))
+	b.Write([]byte(s.State.BigInt().String()))
+	b.Write([]byte(`"}`))
+	return b.Bytes(), nil
 }
 
 // Gist information
 type Gist struct {
-	ID   *core.ID
-	Root *merkletree.Hash
+	ID   core.ID         `json:"id"`
+	Root merkletree.Hash `json:"root"`
+}
+
+func (g *Gist) UnmarshalJSON(i []byte) error {
+	var j struct {
+		ID   *jsonInt `json:"id"`
+		Root *jsonInt `json:"root"`
+	}
+	err := json.Unmarshal(i, &j)
+	if err != nil {
+		return err
+	}
+
+	if j.ID == nil {
+		return errors.New("id is nil")
+	}
+	g.ID, err = core.IDFromInt(j.ID.BigInt())
+	if err != nil {
+		return err
+	}
+
+	h, err := merkletree.NewHashFromBigInt(j.Root.BigInt())
+	if err != nil {
+		return err
+	}
+	g.Root = *h
+
+	return nil
+}
+
+func (g Gist) MarshalJSON() ([]byte, error) {
+	var b bytes.Buffer
+	b.Grow(256) // 20 + 2*78 + padding ≈ 256
+	b.Write([]byte(`{"id":"`))
+	b.Write([]byte(g.ID.BigInt().String()))
+	b.Write([]byte(`","root":"`))
+	b.Write([]byte(g.Root.BigInt().String()))
+	b.Write([]byte(`"}`))
+	return b.Bytes(), nil
 }
 
 // KeyLoader interface, if key should be fetched from file system, CDN, IPFS etc,

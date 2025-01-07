@@ -13,8 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
-
+func authV2Inputs(t testing.TB) AuthV2Inputs {
 	ctx := context.Background()
 	challenge := big.NewInt(10)
 
@@ -42,7 +41,7 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 	signature, err := user.SignBBJJ(challenge.Bytes())
 	require.NoError(t, err)
 
-	inputs := AuthV2Inputs{
+	return AuthV2Inputs{
 		GenesisID:          &user.ID,
 		ProfileNonce:       nonce,
 		AuthClaim:          user.AuthClaim,
@@ -56,13 +55,37 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 		Signature: signature,
 		Challenge: challenge,
 	}
+}
 
+func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
+	inputs := authV2Inputs(t)
 	circuitInputJSON, err := inputs.InputsMarshal()
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	//t.Log(string(circuitInputJSON))
 	exp := it.TestData(t, "authV2_inputs", string(circuitInputJSON), *generate)
 	require.JSONEq(t, exp, string(circuitInputJSON))
+}
+
+func TestAuthV2Inputs_GetStatesInfo(t *testing.T) {
+	inputs := authV2Inputs(t)
+	statesInfo, err := inputs.GetStatesInfo()
+	require.NoError(t, err)
+
+	statesInfoJsonBytes, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+
+	want := `{
+  "states":[],
+  "gists":[
+    {
+      "id":"26109404700696283154998654512117952420503675471097392618762221546565140481",
+      "root":"11098939821764568131087645431296528907277253709936443029379587475821759259406"
+    }
+  ]
+}`
+
+	require.JSONEq(t, want, string(statesInfoJsonBytes))
 }
 
 func TestAuthV2Inputs_InputsMarshal_fromJson(t *testing.T) {
@@ -163,7 +186,7 @@ func TestAuthV2Circuit_CircuitUnmarshal(t *testing.T) {
 	assert.Equal(t, &identifier, ao.UserID)
 }
 
-func GetTreeState(t *testing.T, it *it.IdentityTest) TreeState {
+func GetTreeState(t testing.TB, it *it.IdentityTest) TreeState {
 	return TreeState{
 		State:          it.State(t),
 		ClaimsRoot:     it.Clt.Root(),

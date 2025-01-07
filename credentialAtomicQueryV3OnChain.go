@@ -445,6 +445,74 @@ func (a AtomicQueryV3OnChainInputs) fillSigProofWithZero(s *atomicQueryV3OnChain
 	s.IssuerAuthState = &merkletree.HashZero
 }
 
+func (a AtomicQueryV3OnChainInputs) GetStatesInfo() (StatesInfo, error) {
+
+	if err := a.Validate(); err != nil {
+		return StatesInfo{}, err
+	}
+
+	issuerID := a.Claim.IssuerID
+	var issuerState merkletree.Hash
+	switch a.ProofType {
+	case BJJSignatureProofType:
+		if a.Claim.SignatureProof == nil {
+			return StatesInfo{}, errors.New(ErrorEmptySignatureProof)
+		}
+		if a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State == nil {
+			return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+		}
+		issuerState = *a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State
+	case Iden3SparseMerkleTreeProofType:
+		if a.Claim.IncProof == nil {
+			return StatesInfo{}, errors.New(ErrorEmptyMTPProof)
+		}
+		if a.Claim.IncProof.TreeState.State == nil {
+			return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+		}
+		issuerState = *a.Claim.IncProof.TreeState.State
+	default:
+		return StatesInfo{}, errors.New(ErrorInvalidProofType)
+	}
+
+	if a.Claim.NonRevProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	userID, err := core.ProfileID(*a.ID, a.ProfileNonce)
+	if err != nil {
+		return StatesInfo{}, err
+	}
+
+	if a.GISTProof.Root == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyGISTProof)
+	}
+
+	statesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    *issuerID,
+				State: issuerState,
+			},
+		},
+		Gists: []Gist{
+			{
+				ID:   userID,
+				Root: *a.GISTProof.Root,
+			},
+		},
+	}
+
+	nonRevProofState := *a.Claim.NonRevProof.TreeState.State
+	if issuerState != nonRevProofState {
+		statesInfo.States = append(statesInfo.States, State{
+			ID:    *issuerID,
+			State: nonRevProofState,
+		})
+	}
+
+	return statesInfo, nil
+}
+
 // AtomicQueryV3OnChainPubSignals public inputs
 type AtomicQueryV3OnChainPubSignals struct {
 	BaseConfig
@@ -462,27 +530,6 @@ type AtomicQueryV3OnChainPubSignals struct {
 	Nullifier              *big.Int         `json:"nullifier"`
 	OperatorOutput         *big.Int         `json:"operatorOutput"`
 	IsBJJAuthEnabled       int              `json:"isBJJAuthEnabled"`
-}
-
-func (ao *AtomicQueryV3OnChainPubSignals) GetStatesInfo() StatesInfo {
-	return StatesInfo{
-		States: []State{
-			{
-				ID:    ao.IssuerID,
-				State: ao.IssuerState,
-			},
-			{
-				ID:    ao.IssuerID,
-				State: ao.IssuerClaimNonRevState,
-			},
-		},
-		Gists: []Gist{
-			{
-				ID:   ao.UserID,
-				Root: ao.GlobalRoot,
-			},
-		},
-	}
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryV3OnChain.circom public signals

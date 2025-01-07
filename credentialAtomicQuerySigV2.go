@@ -206,6 +206,43 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (a AtomicQuerySigV2Inputs) GetStatesInfo() (StatesInfo, error) {
+	if err := a.Validate(); err != nil {
+		return StatesInfo{}, err
+	}
+
+	issuerID := a.Claim.IssuerID
+	var issuerState merkletree.Hash
+	if a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+	issuerState = *a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State
+
+	if a.Claim.NonRevProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	statesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    *issuerID,
+				State: issuerState,
+			},
+		},
+		Gists: []Gist{},
+	}
+
+	nonRevProofState := *a.Claim.NonRevProof.TreeState.State
+	if issuerState != nonRevProofState {
+		statesInfo.States = append(statesInfo.States, State{
+			ID:    *issuerID,
+			State: nonRevProofState,
+		})
+	}
+
+	return statesInfo, nil
+}
+
 // AtomicQuerySigV2PubSignals public inputs
 type AtomicQuerySigV2PubSignals struct {
 	BaseConfig

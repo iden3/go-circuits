@@ -10,8 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
-
+func createV3Inputs_Sig(t testing.TB) AtomicQueryV3Inputs {
 	user := it.NewIdentity(t, userPK)
 
 	issuer := it.NewIdentity(t, issuerPK)
@@ -31,7 +30,7 @@ func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
 	issuerAuthClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, issuer.AuthClaim)
 	issuerAuthClaimMtp, _ := issuer.ClaimMTPRaw(t, issuer.AuthClaim)
 
-	in := AtomicQueryV3Inputs{
+	return AtomicQueryV3Inputs{
 		RequestID:                big.NewInt(23),
 		ID:                       &user.ID,
 		ProfileNonce:             profileNonce,
@@ -84,7 +83,10 @@ func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
 			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
 		NullifierSessionID: big.NewInt(32),
 	}
+}
 
+func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
+	in := createV3Inputs_Sig(t)
 	bytesInputs, err := in.InputsMarshal()
 	require.Nil(t, err)
 
@@ -92,6 +94,27 @@ func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
 
 	exp := it.TestData(t, "V3_sig_inputs", string(bytesInputs), *generate)
 	require.JSONEq(t, exp, string(bytesInputs))
+}
+
+func TestAttrQueryV3_SigPart_GetStateInfo(t *testing.T) {
+	in := createV3Inputs_Sig(t)
+	statesInfo, err := in.GetStatesInfo()
+	require.NoError(t, err)
+
+	statesInfoJsonBytes, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+
+	wantStatesInfoJson := `{
+  "states":[
+    {
+      "id":"27918766665310231445021466320959318414450284884582375163563581940319453185",
+      "state":"20177832565449474772630743317224985532862797657496372535616634430055981993180"
+    }
+  ],
+  "gists":[]
+}`
+
+	require.JSONEq(t, wantStatesInfoJson, string(statesInfoJsonBytes))
 }
 
 func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {

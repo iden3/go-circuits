@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAttrQueryMTPV2OnChain_PrepareInputs(t *testing.T) {
+func queryMTPV2OnChainInputs(t testing.TB) AtomicQueryMTPV2OnChainInputs {
 	challenge := big.NewInt(10)
 
 	// generate identity
@@ -50,7 +50,7 @@ func TestAttrQueryMTPV2OnChain_PrepareInputs(t *testing.T) {
 
 	issuerClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, claim)
 
-	in := AtomicQueryMTPV2OnChainInputs{
+	return AtomicQueryMTPV2OnChainInputs{
 		RequestID:                big.NewInt(23),
 		ID:                       &user.ID,
 		ProfileNonce:             nonce,
@@ -95,13 +95,41 @@ func TestAttrQueryMTPV2OnChain_PrepareInputs(t *testing.T) {
 		Signature: signature,
 		Challenge: challenge,
 	}
+}
 
+func TestAttrQueryMTPV2OnChain_PrepareInputs(t *testing.T) {
+	in := queryMTPV2OnChainInputs(t)
 	bytesInputs, err := in.InputsMarshal()
 	require.Nil(t, err)
 	exp := it.TestData(t, "mtpV2OnChain_inputs", string(bytesInputs), *generate)
 	t.Log(string(bytesInputs))
 	require.JSONEq(t, exp, string(bytesInputs))
 
+}
+
+func TestAttrQueryMTPV2OnChain_GetStatesInfo(t *testing.T) {
+	in := queryMTPV2OnChainInputs(t)
+	statesInfo, err := in.GetStatesInfo()
+	require.NoError(t, err)
+
+	bs, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+
+	wantStatesInfo := `{
+  "states": [
+    {
+      "id": "27918766665310231445021466320959318414450284884582375163563581940319453185",
+      "state": "19157496396839393206871475267813888069926627705277243727237933406423274512449"
+    }
+  ],
+  "gists": [
+    {
+      "id": "26109404700696283154998654512117952420503675471097392618762221546565140481",
+      "root": "11098939821764568131087645431296528907277253709936443029379587475821759259406"
+    }
+  ]
+}`
+	require.JSONEq(t, wantStatesInfo, string(bs))
 }
 
 func TestAtomicQueryMTPVOnChain2Outputs_CircuitUnmarshal(t *testing.T) {

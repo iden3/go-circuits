@@ -251,6 +251,60 @@ func (a AtomicQueryMTPV2OnChainInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (a AtomicQueryMTPV2OnChainInputs) GetStatesInfo() (StatesInfo, error) {
+	if err := a.Validate(); err != nil {
+		return StatesInfo{}, err
+	}
+
+	if a.Claim.IssuerID == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyClaim)
+	}
+	issuerID := *a.Claim.IssuerID
+
+	if a.Claim.IncProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	if a.Claim.NonRevProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	userID, err := core.ProfileID(*a.ID, a.ProfileNonce)
+	if err != nil {
+		return StatesInfo{}, err
+	}
+
+	if a.GISTProof.Root == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyGISTProof)
+	}
+
+	statesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    issuerID,
+				State: *a.Claim.IncProof.TreeState.State,
+			},
+		},
+		Gists: []Gist{
+			{
+				ID:   userID,
+				Root: *a.GISTProof.Root,
+			},
+		},
+	}
+
+	nonRevProofState := *a.Claim.NonRevProof.TreeState.State
+
+	if statesInfo.States[0].State != nonRevProofState {
+		statesInfo.States = append(statesInfo.States, State{
+			ID:    issuerID,
+			State: nonRevProofState,
+		})
+	}
+
+	return statesInfo, nil
+}
+
 // AtomicQueryMTPPubSignals public signals
 type AtomicQueryMTPV2OnChainPubSignals struct {
 	BaseConfig
@@ -265,27 +319,6 @@ type AtomicQueryMTPV2OnChainPubSignals struct {
 	QueryHash              *big.Int         `json:"circuitQueryHash"`
 	Challenge              *big.Int         `json:"challenge"`
 	GlobalRoot             *merkletree.Hash `json:"gistRoot"`
-}
-
-func (ao *AtomicQueryMTPV2OnChainPubSignals) GetStatesInfo() StatesInfo {
-	return StatesInfo{
-		States: []State{
-			{
-				ID:    ao.IssuerID,
-				State: ao.IssuerClaimIdenState,
-			},
-			{
-				ID:    ao.IssuerID,
-				State: ao.IssuerClaimNonRevState,
-			},
-		},
-		Gists: []Gist{
-			{
-				ID:   ao.UserID,
-				Root: ao.GlobalRoot,
-			},
-		},
-	}
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQueryMTPV2OnChain.circom public signals array to AtomicQueryMTPPubSignals

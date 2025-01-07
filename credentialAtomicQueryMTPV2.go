@@ -164,6 +164,46 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (a AtomicQueryMTPV2Inputs) GetStatesInfo() (StatesInfo, error) {
+	if err := a.Validate(); err != nil {
+		return StatesInfo{}, err
+	}
+
+	if a.Claim.IssuerID == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyClaim)
+	}
+	issuerID := *a.Claim.IssuerID
+
+	if a.Claim.IncProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	if a.Claim.NonRevProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	statesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    issuerID,
+				State: *a.Claim.IncProof.TreeState.State,
+			},
+		},
+		Gists: []Gist{},
+	}
+
+	nonRevProofState := *a.Claim.NonRevProof.TreeState.State
+
+	if statesInfo.States[0].State != nonRevProofState {
+		statesInfo.States = append(statesInfo.States, State{
+			ID:    issuerID,
+			State: nonRevProofState,
+		})
+	}
+
+	return statesInfo, nil
+}
+
 // AtomicQueryMTPV2PubSignals public signals
 type AtomicQueryMTPV2PubSignals struct {
 	BaseConfig

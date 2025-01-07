@@ -12,8 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAttrQueryV3OnChain_SigPart_PrepareInputs(t *testing.T) {
-
+func createV3OnChaneInputs_Sig(t testing.TB) AtomicQueryV3OnChainInputs {
 	user := it.NewIdentity(t, userPK)
 
 	issuer := it.NewIdentity(t, issuerPK)
@@ -110,6 +109,12 @@ func TestAttrQueryV3OnChain_SigPart_PrepareInputs(t *testing.T) {
 		IsBJJAuthEnabled:   1,
 	}
 
+	return in
+}
+
+func TestAttrQueryV3OnChain_SigPart_PrepareInputs(t *testing.T) {
+	in := createV3OnChaneInputs_Sig(t)
+
 	bytesInputs, err := in.InputsMarshal()
 	require.Nil(t, err)
 
@@ -117,6 +122,32 @@ func TestAttrQueryV3OnChain_SigPart_PrepareInputs(t *testing.T) {
 
 	exp := it.TestData(t, "onchain_V3_sig_inputs", string(bytesInputs), *generate)
 	require.JSONEq(t, exp, string(bytesInputs))
+}
+
+func TestAttrQueryV3OnChain_SigPart_GetStatesInfo(t *testing.T) {
+	in := createV3OnChaneInputs_Sig(t)
+
+	statesInfo, err := in.GetStatesInfo()
+	require.NoError(t, err)
+
+	bs, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+
+	wantStatesInfo := `{
+  "states": [
+    {
+      "id": "27918766665310231445021466320959318414450284884582375163563581940319453185",
+      "state": "20177832565449474772630743317224985532862797657496372535616634430055981993180"
+    }
+  ],
+  "gists": [
+    {
+      "id": "26109404700696283154998654512117952420503675471097392618762221546565140481",
+      "root": "11098939821764568131087645431296528907277253709936443029379587475821759259406"
+    }
+  ]
+}`
+	require.JSONEq(t, wantStatesInfo, string(bs))
 }
 
 func TestAttrQueryV3OnChain_SigPart_Noop_PrepareInputs(t *testing.T) {

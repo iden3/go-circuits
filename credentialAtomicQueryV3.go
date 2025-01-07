@@ -322,6 +322,60 @@ func (a AtomicQueryV3Inputs) fillSigProofWithZero(s *atomicQueryV3CircuitInputs)
 	s.IssuerAuthState = &merkletree.HashZero
 }
 
+func (a AtomicQueryV3Inputs) GetStatesInfo() (StatesInfo, error) {
+
+	if err := a.Validate(); err != nil {
+		return StatesInfo{}, err
+	}
+
+	issuerID := a.Claim.IssuerID
+	var issuerState merkletree.Hash
+	switch a.ProofType {
+	case BJJSignatureProofType:
+		if a.Claim.SignatureProof == nil {
+			return StatesInfo{}, errors.New(ErrorEmptySignatureProof)
+		}
+		if a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State == nil {
+			return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+		}
+		issuerState = *a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State
+	case Iden3SparseMerkleTreeProofType:
+		if a.Claim.IncProof == nil {
+			return StatesInfo{}, errors.New(ErrorEmptyMTPProof)
+		}
+		if a.Claim.IncProof.TreeState.State == nil {
+			return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+		}
+		issuerState = *a.Claim.IncProof.TreeState.State
+	default:
+		return StatesInfo{}, errors.New(ErrorInvalidProofType)
+	}
+
+	if a.Claim.NonRevProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	statesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    *issuerID,
+				State: issuerState,
+			},
+		},
+		Gists: []Gist{},
+	}
+
+	nonRefProofState := *a.Claim.NonRevProof.TreeState.State
+	if issuerState != nonRefProofState {
+		statesInfo.States = append(statesInfo.States, State{
+			ID:    *issuerID,
+			State: nonRefProofState,
+		})
+	}
+
+	return statesInfo, nil
+}
+
 // AtomicQueryV3PubSignals public inputs
 type AtomicQueryV3PubSignals struct {
 	BaseConfig
