@@ -251,7 +251,7 @@ func (a AtomicQueryMTPV2OnChainInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (a AtomicQueryMTPV2OnChainInputs) GetStatesInfo() (StatesInfo, error) {
+func (a AtomicQueryMTPV2OnChainInputs) GetPublicStatesInfo() (StatesInfo, error) {
 	if err := a.Validate(); err != nil {
 		return StatesInfo{}, err
 	}

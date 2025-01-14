@@ -135,8 +135,9 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// GetStatesInfo returns states and gists information, implements StatesInfoProvider interface
-func (a AuthV2Inputs) GetStatesInfo() (StatesInfo, error) {
+// GetPublicStatesInfo returns states and gists information,
+// implements PublicStatesInfoProvider interface
+func (a AuthV2Inputs) GetPublicStatesInfo() (StatesInfo, error) {
 
 	if err := a.Validate(); err != nil {
 		return StatesInfo{}, err

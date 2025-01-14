@@ -206,7 +206,7 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (a AtomicQuerySigV2Inputs) GetStatesInfo() (StatesInfo, error) {
+func (a AtomicQuerySigV2Inputs) GetPublicStatesInfo() (StatesInfo, error) {
 	if err := a.Validate(); err != nil {
 		return StatesInfo{}, err
 	}

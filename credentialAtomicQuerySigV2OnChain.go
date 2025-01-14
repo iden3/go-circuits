@@ -294,7 +294,7 @@ func (a AtomicQuerySigV2OnChainInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-func (a AtomicQuerySigV2OnChainInputs) GetStatesInfo() (StatesInfo, error) {
+func (a AtomicQuerySigV2OnChainInputs) GetPublicStatesInfo() (StatesInfo, error) {
 	if err := a.Validate(); err != nil {
 		return StatesInfo{}, err
 	}

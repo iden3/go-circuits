@@ -107,9 +107,9 @@ func TestAttrQueryMTPV2OnChain_PrepareInputs(t *testing.T) {
 
 }
 
-func TestAttrQueryMTPV2OnChain_GetStatesInfo(t *testing.T) {
+func TestAttrQueryMTPV2OnChain_GetPublicStatesInfo(t *testing.T) {
 	in := queryMTPV2OnChainInputs(t)
-	statesInfo, err := in.GetStatesInfo()
+	statesInfo, err := in.GetPublicStatesInfo()
 	require.NoError(t, err)
 
 	bs, err := json.Marshal(statesInfo)

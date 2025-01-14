@@ -117,9 +117,9 @@ func TestAttrQuerySigV2OnChain_PrepareInputs(t *testing.T) {
 	require.JSONEq(t, exp, string(bytesInputs))
 }
 
-func TestAttrQuerySigV2OnChain_GetStatesInfo(t *testing.T) {
+func TestAttrQuerySigV2OnChain_GetPublicStatesInfo(t *testing.T) {
 	in := querySigV2OnChainInputs(t)
-	statesInfo, err := in.GetStatesInfo()
+	statesInfo, err := in.GetPublicStatesInfo()
 	require.NoError(t, err)
 
 	bs, err := json.Marshal(statesInfo)

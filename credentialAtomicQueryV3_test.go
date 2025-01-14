@@ -96,9 +96,9 @@ func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
 	require.JSONEq(t, exp, string(bytesInputs))
 }
 
-func TestAttrQueryV3_SigPart_GetStateInfo(t *testing.T) {
+func TestAttrQueryV3_SigPart_GetPublicStateInfo(t *testing.T) {
 	in := createV3Inputs_Sig(t)
-	statesInfo, err := in.GetStatesInfo()
+	statesInfo, err := in.GetPublicStatesInfo()
 	require.NoError(t, err)
 
 	statesInfoJsonBytes, err := json.Marshal(statesInfo)

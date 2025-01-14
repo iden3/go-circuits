@@ -445,7 +445,7 @@ func (a AtomicQueryV3OnChainInputs) fillSigProofWithZero(s *atomicQueryV3OnChain
 	s.IssuerAuthState = &merkletree.HashZero
 }
 
-func (a AtomicQueryV3OnChainInputs) GetStatesInfo() (StatesInfo, error) {
+func (a AtomicQueryV3OnChainInputs) GetPublicStatesInfo() (StatesInfo, error) {
 
 	if err := a.Validate(); err != nil {
 		return StatesInfo{}, err

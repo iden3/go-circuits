@@ -67,9 +67,9 @@ func TestAuthV2Inputs_InputsMarshal(t *testing.T) {
 	require.JSONEq(t, exp, string(circuitInputJSON))
 }
 
-func TestAuthV2Inputs_GetStatesInfo(t *testing.T) {
+func TestAuthV2Inputs_GetPublicStatesInfo(t *testing.T) {
 	inputs := authV2Inputs(t)
-	statesInfo, err := inputs.GetStatesInfo()
+	statesInfo, err := inputs.GetPublicStatesInfo()
 	require.NoError(t, err)
 
 	statesInfoJsonBytes, err := json.Marshal(statesInfo)

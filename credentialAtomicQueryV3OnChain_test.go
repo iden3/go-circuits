@@ -124,10 +124,10 @@ func TestAttrQueryV3OnChain_SigPart_PrepareInputs(t *testing.T) {
 	require.JSONEq(t, exp, string(bytesInputs))
 }
 
-func TestAttrQueryV3OnChain_SigPart_GetStatesInfo(t *testing.T) {
+func TestAttrQueryV3OnChain_SigPart_GetPublicStatesInfo(t *testing.T) {
 	in := createV3OnChaneInputs_Sig(t)
 
-	statesInfo, err := in.GetStatesInfo()
+	statesInfo, err := in.GetPublicStatesInfo()
 	require.NoError(t, err)
 
 	bs, err := json.Marshal(statesInfo)

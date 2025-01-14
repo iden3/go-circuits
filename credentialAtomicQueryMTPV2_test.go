@@ -73,9 +73,9 @@ func TestAttrQueryMTPV2_PrepareInputs(t *testing.T) {
 	require.JSONEq(t, exp, string(bytesInputs))
 }
 
-func TestAttrQueryMTPV2_GetStatesInfo(t *testing.T) {
+func TestAttrQueryMTPV2_GetPublicStatesInfo(t *testing.T) {
 	in := queryMTPV2Inputs(t)
-	statesInfo, err := in.GetStatesInfo()
+	statesInfo, err := in.GetPublicStatesInfo()
 	require.NoError(t, err)
 
 	bs, err := json.Marshal(statesInfo)

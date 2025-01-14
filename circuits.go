@@ -200,10 +200,10 @@ type PubSignals interface {
 	PubSignalsMapper
 }
 
-// StatesInfoProvider interface should be implemented by types that can return
+// PublicStatesInfoProvider interface should be implemented by types that can return
 // states info
-type StatesInfoProvider interface {
-	GetStatesInfo() (StatesInfo, error)
+type PublicStatesInfoProvider interface {
+	GetPublicStatesInfo() (StatesInfo, error)
 }
 
 // StatesInfo struct. A collection of states and gists
