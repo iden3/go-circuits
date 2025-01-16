@@ -294,6 +294,58 @@ func (a AtomicQuerySigV2OnChainInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (a AtomicQuerySigV2OnChainInputs) GetPublicStatesInfo() (StatesInfo, error) {
+	if err := a.Validate(); err != nil {
+		return StatesInfo{}, err
+	}
+
+	issuerID := a.Claim.IssuerID
+	var issuerState merkletree.Hash
+	if a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+	issuerState = *a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State
+
+	if a.Claim.NonRevProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	userID, err := core.ProfileID(*a.ID, a.ProfileNonce)
+	if err != nil {
+		return StatesInfo{}, err
+	}
+
+	if a.GISTProof.Root == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyGISTProof)
+	}
+
+	statesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    *issuerID,
+				State: issuerState,
+			},
+		},
+		Gists: []Gist{
+			{
+				ID:   userID,
+				Root: *a.GISTProof.Root,
+			},
+		},
+	}
+
+	nonRevProofState := *a.Claim.NonRevProof.TreeState.State
+	if issuerState != nonRevProofState {
+		statesInfo.States = append(statesInfo.States, State{
+			ID:    *issuerID,
+			State: nonRevProofState,
+		})
+	}
+
+	return statesInfo, nil
+}
+
+
 // AtomicQuerySigV2OnChainPubSignals public inputs
 type AtomicQuerySigV2OnChainPubSignals struct {
 	BaseConfig
@@ -308,27 +360,6 @@ type AtomicQuerySigV2OnChainPubSignals struct {
 	QueryHash              *big.Int         `json:"circuitQueryHash"`
 	Challenge              *big.Int         `json:"challenge"`
 	GlobalRoot             *merkletree.Hash `json:"gistRoot"`
-}
-
-func (ao *AtomicQuerySigV2OnChainPubSignals) GetStatesInfo() StatesInfo {
-	return StatesInfo{
-		States: []State{
-			{
-				ID:    ao.IssuerID,
-				State: ao.IssuerAuthState,
-			},
-			{
-				ID:    ao.IssuerID,
-				State: ao.IssuerClaimNonRevState,
-			},
-		},
-		Gists: []Gist{
-			{
-				ID:   ao.UserID,
-				Root: ao.GlobalRoot,
-			},
-		},
-	}
 }
 
 // PubSignalsUnmarshal unmarshal credentialAtomicQuerySig.circom public signals
@@ -430,4 +461,33 @@ func (ao *AtomicQuerySigV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) er
 // GetObjMap returns struct field as a map
 func (ao AtomicQuerySigV2OnChainPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
+}
+
+func (ao AtomicQuerySigV2OnChainPubSignals) GetStatesInfo() (StatesInfo, error) {
+	if ao.UserID == nil || ao.IssuerID == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyID)
+	}
+
+	if ao.IssuerAuthState == nil || ao.IssuerClaimNonRevState == nil ||
+		ao.GlobalRoot == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	states := []State{
+		{
+			ID:    *ao.IssuerID,
+			State: *ao.IssuerAuthState,
+		},
+	}
+	if *ao.IssuerClaimNonRevState != *ao.IssuerAuthState {
+		states = append(states, State{
+			ID:    *ao.IssuerID,
+			State: *ao.IssuerClaimNonRevState,
+		})
+	}
+
+	return StatesInfo{
+		States: states,
+		Gists:  []Gist{{ID: *ao.UserID, Root: *ao.GlobalRoot}},
+	}, nil
 }

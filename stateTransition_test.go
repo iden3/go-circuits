@@ -15,8 +15,8 @@ func TestStateTransitionOutput_GetJSONObj(t *testing.T) {
 	id, err := core.IDFromString("1124NoAu14diR5EM1kgUha2uHFkvUrPrTXMtf4tncZ")
 	assert.Nil(t, err)
 
-	newState := hashFromInt(big.NewInt(1))
-	oldState := hashFromInt(big.NewInt(2))
+	newState := hashPtrFromInt(big.NewInt(1))
+	oldState := hashPtrFromInt(big.NewInt(2))
 
 	sto := StateTransitionPubSignals{
 		UserID:       &id,

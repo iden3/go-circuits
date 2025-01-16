@@ -11,8 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAttrQuerySigV2OnChain_PrepareInputs(t *testing.T) {
-
+func querySigV2OnChainInputs(t testing.TB) AtomicQuerySigV2OnChainInputs {
 	user := it.NewIdentity(t, userPK)
 
 	issuer := it.NewIdentity(t, issuerPK)
@@ -49,7 +48,7 @@ func TestAttrQuerySigV2OnChain_PrepareInputs(t *testing.T) {
 	signature, err := user.SignBBJJ(challenge.Bytes())
 	require.NoError(t, err)
 
-	in := AtomicQuerySigV2OnChainInputs{
+	return AtomicQuerySigV2OnChainInputs{
 		RequestID:                big.NewInt(23),
 		ID:                       &user.ID,
 		ProfileNonce:             profileNonce,
@@ -107,13 +106,40 @@ func TestAttrQuerySigV2OnChain_PrepareInputs(t *testing.T) {
 		Signature: signature,
 		Challenge: challenge,
 	}
+}
 
+func TestAttrQuerySigV2OnChain_PrepareInputs(t *testing.T) {
+	in := querySigV2OnChainInputs(t)
 	bytesInputs, err := in.InputsMarshal()
 	require.Nil(t, err)
 
 	exp := it.TestData(t, "sigV2OnChain_inputs", string(bytesInputs), *generate)
 	require.JSONEq(t, exp, string(bytesInputs))
+}
 
+func TestAttrQuerySigV2OnChain_GetPublicStatesInfo(t *testing.T) {
+	in := querySigV2OnChainInputs(t)
+	statesInfo, err := in.GetPublicStatesInfo()
+	require.NoError(t, err)
+
+	bs, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+
+	wantStatesInfo := `{
+  "states": [
+    {
+      "id": "27918766665310231445021466320959318414450284884582375163563581940319453185",
+      "state": "20177832565449474772630743317224985532862797657496372535616634430055981993180"
+    }
+  ],
+  "gists": [
+    {
+      "id": "26109404700696283154998654512117952420503675471097392618762221546565140481",
+      "root": "11098939821764568131087645431296528907277253709936443029379587475821759259406"
+    }
+  ]
+}`
+	require.JSONEq(t, wantStatesInfo, string(bs))
 }
 
 func TestAtomicQuerySigV2OnChainOutputs_CircuitUnmarshal(t *testing.T) {
@@ -172,4 +198,24 @@ func TestAtomicQuerySigV2OnChainOutputs_CircuitUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	require.JSONEq(t, string(jsonExp), string(jsonOut))
+
+	statesInfo, err := exp.GetStatesInfo()
+	require.NoError(t, err)
+	wantStatesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    idFromInt("27918766665310231445021466320959318414450284884582375163563581940319453185"),
+				State: hashFromInt("20177832565449474772630743317224985532862797657496372535616634430055981993180"),
+			},
+		},
+		Gists: []Gist{
+			{
+				ID:   idFromInt("26109404700696283154998654512117952420503675471097392618762221546565140481"),
+				Root: hashFromInt("11098939821764568131087645431296528907277253709936443029379587475821759259406"),
+			},
+		},
+	}
+	j, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+	require.Equal(t, wantStatesInfo, statesInfo, string(j))
 }

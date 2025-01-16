@@ -34,6 +34,13 @@ func (j *jsonInt) MarshalJSON() ([]byte, error) {
 	return json.Marshal((*big.Int)(j).String())
 }
 
+func (j *jsonInt) BigInt() *big.Int {
+	if j == nil {
+		return nil
+	}
+	return (*big.Int)(j)
+}
+
 type jsonSignature babyjub.Signature
 
 func (s *jsonSignature) UnmarshalJSON(bytes []byte) error {

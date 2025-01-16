@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	it "github.com/iden3/go-circuits/v2/testing"
+	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/stretchr/testify/require"
 )
@@ -27,10 +28,8 @@ const (
 	timestamp = 1642074362
 )
 
-func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
-
+func querySigV2Inputs(t testing.TB) AtomicQuerySigV2Inputs {
 	user := it.NewIdentity(t, userPK)
-
 	issuer := it.NewIdentity(t, issuerPK)
 
 	subjectID := user.ID
@@ -48,7 +47,7 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 	issuerAuthClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, issuer.AuthClaim)
 	issuerAuthClaimMtp, _ := issuer.ClaimMTPRaw(t, issuer.AuthClaim)
 
-	in := AtomicQuerySigV2Inputs{
+	return AtomicQuerySigV2Inputs{
 		RequestID:                big.NewInt(23),
 		ID:                       &user.ID,
 		ProfileNonce:             profileNonce,
@@ -96,13 +95,36 @@ func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
 		},
 		CurrentTimeStamp: timestamp,
 	}
+}
 
+func TestAttrQuerySigV2_PrepareInputs(t *testing.T) {
+	in := querySigV2Inputs(t)
 	bytesInputs, err := in.InputsMarshal()
 	require.Nil(t, err)
 
 	exp := it.TestData(t, "sigV2_inputs", string(bytesInputs), *generate)
 	require.JSONEq(t, exp, string(bytesInputs))
 
+}
+
+func TestAttrQuerySigV2_GetPublicStatesInfo(t *testing.T) {
+	in := querySigV2Inputs(t)
+	statesInfo, err := in.GetPublicStatesInfo()
+	require.NoError(t, err)
+
+	bs, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+
+	wantStatesInfo := `{
+  "states": [
+    {
+      "id": "27918766665310231445021466320959318414450284884582375163563581940319453185",
+      "state": "20177832565449474772630743317224985532862797657496372535616634430055981993180"
+    }
+  ],
+  "gists": []
+}`
+	require.JSONEq(t, wantStatesInfo, string(bs))
 }
 
 func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
@@ -216,9 +238,44 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	require.JSONEq(t, string(jsonExp), string(jsonOut))
+
+	statesInfo, err := exp.GetStatesInfo()
+	require.NoError(t, err)
+	wantStatesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    idFromInt("21933750065545691586450392143787330185992517860945727248803138245838110721"),
+				State: hashFromInt("2943483356559152311923412925436024635269538717812859789851139200242297094"),
+			},
+		},
+		Gists: []Gist{},
+	}
+	j, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+	require.Equal(t, wantStatesInfo, statesInfo, string(j))
 }
 
-func hashFromInt(i *big.Int) *merkletree.Hash {
+func idFromInt(i string) core.ID {
+	bi, ok := new(big.Int).SetString(i, 10)
+	if !ok {
+		panic("can't parse int")
+	}
+	id, err := core.IDFromInt(bi)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
+func hashFromInt(i string) merkletree.Hash {
+	h, err := merkletree.NewHashFromString(i)
+	if err != nil {
+		panic(err)
+	}
+	return *h
+}
+
+func hashPtrFromInt(i *big.Int) *merkletree.Hash {
 	h, err := merkletree.NewHashFromBigInt(i)
 	if err != nil {
 		panic(err)

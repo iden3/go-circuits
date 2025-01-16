@@ -135,23 +135,35 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+// GetPublicStatesInfo returns states and gists information,
+// implements PublicStatesInfoProvider interface
+func (a AuthV2Inputs) GetPublicStatesInfo() (StatesInfo, error) {
+
+	if err := a.Validate(); err != nil {
+		return StatesInfo{}, err
+	}
+
+	userID, err := core.ProfileID(*a.GenesisID, a.ProfileNonce)
+	if err != nil {
+		return StatesInfo{}, err
+	}
+	return StatesInfo{
+		States: []State{},
+		Gists: []Gist{
+			{
+				ID:   userID,
+				Root: *a.GISTProof.Root,
+			},
+		},
+	}, nil
+}
+
+
 // AuthV2PubSignals auth.circom public signals
 type AuthV2PubSignals struct {
 	UserID    *core.ID         `json:"userID"`
 	Challenge *big.Int         `json:"challenge"`
 	GISTRoot  *merkletree.Hash `json:"GISTRoot"`
-}
-
-func (ao *AuthV2PubSignals) GetStatesInfo() StatesInfo {
-	return StatesInfo{
-		States: []State{},
-		Gists: []Gist{
-			{
-				ID:   ao.UserID,
-				Root: ao.GISTRoot,
-			},
-		},
-	}
 }
 
 // PubSignalsUnmarshal unmarshal auth.circom public inputs to AuthPubSignals
@@ -185,4 +197,17 @@ func (a *AuthV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 // GetObjMap returns AuthPubSignals as a map
 func (a AuthV2PubSignals) GetObjMap() map[string]interface{} {
 	return toMap(a)
+}
+
+func (a AuthV2PubSignals) GetStatesInfo() (StatesInfo, error) {
+	if a.UserID == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyID)
+	}
+	if a.GISTRoot == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+	return StatesInfo{
+		States: []State{},
+		Gists:  []Gist{{ID: *a.UserID, Root: *a.GISTRoot}},
+	}, nil
 }

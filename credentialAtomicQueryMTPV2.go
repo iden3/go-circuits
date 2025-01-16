@@ -164,6 +164,46 @@ func (a AtomicQueryMTPV2Inputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (a AtomicQueryMTPV2Inputs) GetPublicStatesInfo() (StatesInfo, error) {
+	if err := a.Validate(); err != nil {
+		return StatesInfo{}, err
+	}
+
+	if a.Claim.IssuerID == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyClaim)
+	}
+	issuerID := *a.Claim.IssuerID
+
+	if a.Claim.IncProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	if a.Claim.NonRevProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	statesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    issuerID,
+				State: *a.Claim.IncProof.TreeState.State,
+			},
+		},
+		Gists: []Gist{},
+	}
+
+	nonRevProofState := *a.Claim.NonRevProof.TreeState.State
+
+	if statesInfo.States[0].State != nonRevProofState {
+		statesInfo.States = append(statesInfo.States, State{
+			ID:    issuerID,
+			State: nonRevProofState,
+		})
+	}
+
+	return statesInfo, nil
+}
+
 // AtomicQueryMTPV2PubSignals public signals
 type AtomicQueryMTPV2PubSignals struct {
 	BaseConfig
@@ -318,4 +358,29 @@ func (ao *AtomicQueryMTPV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 // GetObjMap returns struct field as a map
 func (ao AtomicQueryMTPV2PubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
+}
+
+func (ao AtomicQueryMTPV2PubSignals) GetStatesInfo() (StatesInfo, error) {
+	if ao.IssuerID == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyID)
+	}
+
+	if ao.IssuerClaimIdenState == nil || ao.IssuerClaimNonRevState == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	states := []State{
+		{
+			ID:    *ao.IssuerID,
+			State: *ao.IssuerClaimIdenState,
+		},
+	}
+	if *ao.IssuerClaimNonRevState != *ao.IssuerClaimIdenState {
+		states = append(states, State{
+			ID:    *ao.IssuerID,
+			State: *ao.IssuerClaimNonRevState,
+		})
+	}
+
+	return StatesInfo{States: states, Gists: []Gist{}}, nil
 }

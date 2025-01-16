@@ -8,6 +8,7 @@ import (
 	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUnmarshalCircuitOutput(t *testing.T) {
@@ -38,4 +39,56 @@ func TestUnmarshalCircuitOutput_Err(t *testing.T) {
 	_, err := UnmarshalCircuitOutput("Err", []byte("{}"))
 
 	assert.Equal(t, err, ErrorCircuitIDNotFound)
+}
+
+func TestGistJsonMarshallers(t *testing.T) {
+	var in Gist
+	var err error
+	in.ID, err = core.IDFromString("tQomzpDTB6x4EJUaiwk153FVi96jeNfP9WjKp9xys")
+	require.NoError(t, err)
+
+	h, err := merkletree.NewHashFromString("11098939821764568131087645431296528907277253709936443029379587475821759259406")
+	require.NoError(t, err)
+	in.Root = *h
+
+	wantJson := `{
+  "id": "26109404700696283154998654512117952420503675471097392618762221546565140481",
+  "root": "11098939821764568131087645431296528907277253709936443029379587475821759259406"
+}`
+
+	inJsonBytes, err := json.Marshal(in)
+	require.NoError(t, err)
+
+	require.JSONEq(t, wantJson, string(inJsonBytes))
+
+	var out Gist
+	err = json.Unmarshal(inJsonBytes, &out)
+	require.NoError(t, err)
+	require.Equal(t, in, out)
+}
+
+func TestStateJsonMarshallers(t *testing.T) {
+	var in State
+	var err error
+	in.ID, err = core.IDFromString("tQomzpDTB6x4EJUaiwk153FVi96jeNfP9WjKp9xys")
+	require.NoError(t, err)
+
+	h, err := merkletree.NewHashFromString("11098939821764568131087645431296528907277253709936443029379587475821759259406")
+	require.NoError(t, err)
+	in.State = *h
+
+	wantJson := `{
+  "id": "26109404700696283154998654512117952420503675471097392618762221546565140481",
+  "state": "11098939821764568131087645431296528907277253709936443029379587475821759259406"
+}`
+
+	inJsonBytes, err := json.Marshal(in)
+	require.NoError(t, err)
+
+	require.JSONEq(t, wantJson, string(inJsonBytes))
+
+	var out State
+	err = json.Unmarshal(inJsonBytes, &out)
+	require.NoError(t, err)
+	require.Equal(t, in, out)
 }

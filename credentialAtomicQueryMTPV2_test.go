@@ -9,8 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestAttrQueryMTPV2_PrepareInputs(t *testing.T) {
-
+func queryMTPV2Inputs(t testing.TB) AtomicQueryMTPV2Inputs {
 	user := it.NewIdentity(t, userPK)
 	issuer := it.NewIdentity(t, issuerPK)
 
@@ -27,7 +26,7 @@ func TestAttrQueryMTPV2_PrepareInputs(t *testing.T) {
 
 	issuerClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, claim)
 
-	in := AtomicQueryMTPV2Inputs{
+	return AtomicQueryMTPV2Inputs{
 		RequestID:                big.NewInt(23),
 		ID:                       &user.ID,
 		ProfileNonce:             nonce,
@@ -62,14 +61,36 @@ func TestAttrQueryMTPV2_PrepareInputs(t *testing.T) {
 		},
 		CurrentTimeStamp: timestamp,
 	}
+}
 
+func TestAttrQueryMTPV2_PrepareInputs(t *testing.T) {
+	in := queryMTPV2Inputs(t)
 	bytesInputs, err := in.InputsMarshal()
 	require.Nil(t, err)
 
 	exp := it.TestData(t, "mtpV2_inputs", string(bytesInputs), *generate)
 	t.Log(string(bytesInputs))
 	require.JSONEq(t, exp, string(bytesInputs))
+}
 
+func TestAttrQueryMTPV2_GetPublicStatesInfo(t *testing.T) {
+	in := queryMTPV2Inputs(t)
+	statesInfo, err := in.GetPublicStatesInfo()
+	require.NoError(t, err)
+
+	bs, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+
+	wantStatesInfo := `{
+  "states": [
+    {
+      "id": "27918766665310231445021466320959318414450284884582375163563581940319453185",
+      "state": "19157496396839393206871475267813888069926627705277243727237933406423274512449"
+    }
+  ],
+  "gists": []
+}`
+	require.JSONEq(t, wantStatesInfo, string(bs))
 }
 
 func TestAtomicQueryMTPV2Outputs_CircuitUnmarshal(t *testing.T) {
@@ -184,4 +205,19 @@ func TestAtomicQueryMTPV2Outputs_CircuitUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	require.JSONEq(t, string(jsonExp), string(jsonOut))
+
+	statesInfo, err := exp.GetStatesInfo()
+	require.NoError(t, err)
+	wantStatesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    idFromInt("23528770672049181535970744460798517976688641688582489375761566420828291073"),
+				State: hashFromInt("5687720250943511874245715094520098014548846873346473635855112185560372332782"),
+			},
+		},
+		Gists: []Gist{},
+	}
+	j, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+	require.Equal(t, wantStatesInfo, statesInfo, string(j))
 }

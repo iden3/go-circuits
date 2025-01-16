@@ -206,6 +206,43 @@ func (a AtomicQuerySigV2Inputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
+func (a AtomicQuerySigV2Inputs) GetPublicStatesInfo() (StatesInfo, error) {
+	if err := a.Validate(); err != nil {
+		return StatesInfo{}, err
+	}
+
+	issuerID := a.Claim.IssuerID
+	var issuerState merkletree.Hash
+	if a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+	issuerState = *a.Claim.SignatureProof.IssuerAuthIncProof.TreeState.State
+
+	if a.Claim.NonRevProof.TreeState.State == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	statesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    *issuerID,
+				State: issuerState,
+			},
+		},
+		Gists: []Gist{},
+	}
+
+	nonRevProofState := *a.Claim.NonRevProof.TreeState.State
+	if issuerState != nonRevProofState {
+		statesInfo.States = append(statesInfo.States, State{
+			ID:    *issuerID,
+			State: nonRevProofState,
+		})
+	}
+
+	return statesInfo, nil
+}
+
 // AtomicQuerySigV2PubSignals public inputs
 type AtomicQuerySigV2PubSignals struct {
 	BaseConfig
@@ -359,4 +396,29 @@ func (ao *AtomicQuerySigV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 // GetObjMap returns struct field as a map
 func (ao AtomicQuerySigV2PubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
+}
+
+func (ao AtomicQuerySigV2PubSignals) GetStatesInfo() (StatesInfo, error) {
+	if ao.IssuerID == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyID)
+	}
+
+	if ao.IssuerAuthState == nil || ao.IssuerClaimNonRevState == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	states := []State{
+		{
+			ID:    *ao.IssuerID,
+			State: *ao.IssuerAuthState,
+		},
+	}
+	if *ao.IssuerClaimNonRevState != *ao.IssuerAuthState {
+		states = append(states, State{
+			ID:    *ao.IssuerID,
+			State: *ao.IssuerClaimNonRevState,
+		})
+	}
+
+	return StatesInfo{States: states, Gists: []Gist{}}, nil
 }
