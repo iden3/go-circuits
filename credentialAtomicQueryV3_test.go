@@ -379,6 +379,21 @@ func TestAtomicQueryV3Outputs_Sig_CircuitUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	require.JSONEq(t, string(jsonExp), string(jsonOut))
+
+	statesInfo, err := exp.GetStatesInfo()
+	require.NoError(t, err)
+	wantStatesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    idFromInt("21933750065545691586450392143787330185992517860945727248803138245838110721"),
+				State: hashFromInt("2943483356559152311923412925436024635269538717812859789851139200242297094"),
+			},
+		},
+		Gists: []Gist{},
+	}
+	j, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+	require.Equal(t, wantStatesInfo, statesInfo, string(j))
 }
 
 func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {

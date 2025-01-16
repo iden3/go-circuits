@@ -190,4 +190,24 @@ func TestAtomicQueryMTPVOnChain2Outputs_CircuitUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	require.JSONEq(t, string(jsonExp), string(jsonOut))
+
+	statesInfo, err := exp.GetStatesInfo()
+	require.NoError(t, err)
+	wantStatesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    idFromInt("27918766665310231445021466320959318414450284884582375163563581940319453185"),
+				State: hashFromInt("19157496396839393206871475267813888069926627705277243727237933406423274512449"),
+			},
+		},
+		Gists: []Gist{
+			{
+				ID:   idFromInt("26109404700696283154998654512117952420503675471097392618762221546565140481"),
+				Root: hashFromInt("11098939821764568131087645431296528907277253709936443029379587475821759259406"),
+			},
+		},
+	}
+	j, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+	require.Equal(t, wantStatesInfo, statesInfo, string(j))
 }

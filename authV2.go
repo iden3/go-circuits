@@ -198,3 +198,16 @@ func (a *AuthV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 func (a AuthV2PubSignals) GetObjMap() map[string]interface{} {
 	return toMap(a)
 }
+
+func (a AuthV2PubSignals) GetStatesInfo() (StatesInfo, error) {
+	if a.UserID == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyID)
+	}
+	if a.GISTRoot == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+	return StatesInfo{
+		States: []State{},
+		Gists:  []Gist{{ID: *a.UserID, Root: *a.GISTRoot}},
+	}, nil
+}

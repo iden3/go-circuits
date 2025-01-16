@@ -205,4 +205,19 @@ func TestAtomicQueryMTPV2Outputs_CircuitUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	require.JSONEq(t, string(jsonExp), string(jsonOut))
+
+	statesInfo, err := exp.GetStatesInfo()
+	require.NoError(t, err)
+	wantStatesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    idFromInt("23528770672049181535970744460798517976688641688582489375761566420828291073"),
+				State: hashFromInt("5687720250943511874245715094520098014548846873346473635855112185560372332782"),
+			},
+		},
+		Gists: []Gist{},
+	}
+	j, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+	require.Equal(t, wantStatesInfo, statesInfo, string(j))
 }

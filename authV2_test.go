@@ -9,7 +9,6 @@ import (
 	it "github.com/iden3/go-circuits/v2/testing"
 	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-merkletree-sql/v2"
-	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -161,29 +160,44 @@ func TestAuthV2Circuit_CircuitUnmarshal(t *testing.T) {
 	// generate mock Data.
 	intID, b := new(big.Int).SetString("19224224881555258540966250468059781351205177043309252290095510834143232000",
 		10)
-	assert.True(t, b)
+	require.True(t, b)
 	identifier, err := core.IDFromInt(intID)
-	assert.Nil(t, err)
+	require.NoError(t, err)
 
 	challenge := big.NewInt(1)
 
 	stateInt, b := new(big.Int).SetString(
 		"18656147546666944484453899241916469544090258810192803949522794490493271005313",
 		10)
-	assert.True(t, b)
+	require.True(t, b)
 	state, err := merkletree.NewHashFromBigInt(stateInt)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	out := []string{identifier.BigInt().String(), challenge.String(), state.BigInt().String()}
 	bytesOut, err := json.Marshal(out)
-	assert.NoError(t, err)
+	require.NoError(t, err)
 
 	ao := AuthV2PubSignals{}
 	err = ao.PubSignalsUnmarshal(bytesOut)
-	assert.NoError(t, err)
-	assert.Equal(t, challenge, ao.Challenge)
-	assert.Equal(t, state, ao.GISTRoot)
-	assert.Equal(t, &identifier, ao.UserID)
+	require.NoError(t, err)
+	require.Equal(t, challenge, ao.Challenge)
+	require.Equal(t, state, ao.GISTRoot)
+	require.Equal(t, &identifier, ao.UserID)
+
+	statesInfo, err := ao.GetStatesInfo()
+	require.NoError(t, err)
+	wantStatesInfo := StatesInfo{
+		States: []State{},
+		Gists: []Gist{
+			{
+				ID:   idFromInt("19224224881555258540966250468059781351205177043309252290095510834143232000"),
+				Root: hashFromInt("18656147546666944484453899241916469544090258810192803949522794490493271005313"),
+			},
+		},
+	}
+	j, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+	require.Equal(t, wantStatesInfo, statesInfo, string(j))
 }
 
 func GetTreeState(t testing.TB, it *it.IdentityTest) TreeState {

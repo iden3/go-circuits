@@ -420,3 +420,32 @@ func (ao *AtomicQueryMTPV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) er
 func (ao AtomicQueryMTPV2OnChainPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
 }
+
+func (ao AtomicQueryMTPV2OnChainPubSignals) GetStatesInfo() (StatesInfo, error) {
+	if ao.IssuerID == nil || ao.UserID == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyID)
+	}
+
+	if ao.IssuerClaimIdenState == nil || ao.IssuerClaimNonRevState == nil ||
+		ao.GlobalRoot == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	states := []State{
+		{
+			ID:    *ao.IssuerID,
+			State: *ao.IssuerClaimIdenState,
+		},
+	}
+	if *ao.IssuerClaimNonRevState != *ao.IssuerClaimIdenState {
+		states = append(states, State{
+			ID:    *ao.IssuerID,
+			State: *ao.IssuerClaimNonRevState,
+		})
+	}
+
+	return StatesInfo{
+		States: states,
+		Gists:  []Gist{{ID: *ao.UserID, Root: *ao.GlobalRoot}},
+	}, nil
+}

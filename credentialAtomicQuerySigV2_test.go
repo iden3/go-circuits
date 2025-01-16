@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	it "github.com/iden3/go-circuits/v2/testing"
+	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/stretchr/testify/require"
 )
@@ -237,9 +238,44 @@ func TestAtomicQuerySigOutputs_CircuitUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	require.JSONEq(t, string(jsonExp), string(jsonOut))
+
+	statesInfo, err := exp.GetStatesInfo()
+	require.NoError(t, err)
+	wantStatesInfo := StatesInfo{
+		States: []State{
+			{
+				ID:    idFromInt("21933750065545691586450392143787330185992517860945727248803138245838110721"),
+				State: hashFromInt("2943483356559152311923412925436024635269538717812859789851139200242297094"),
+			},
+		},
+		Gists: []Gist{},
+	}
+	j, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+	require.Equal(t, wantStatesInfo, statesInfo, string(j))
 }
 
-func hashFromInt(i *big.Int) *merkletree.Hash {
+func idFromInt(i string) core.ID {
+	bi, ok := new(big.Int).SetString(i, 10)
+	if !ok {
+		panic("can't parse int")
+	}
+	id, err := core.IDFromInt(bi)
+	if err != nil {
+		panic(err)
+	}
+	return id
+}
+
+func hashFromInt(i string) merkletree.Hash {
+	h, err := merkletree.NewHashFromString(i)
+	if err != nil {
+		panic(err)
+	}
+	return *h
+}
+
+func hashPtrFromInt(i *big.Int) *merkletree.Hash {
 	h, err := merkletree.NewHashFromBigInt(i)
 	if err != nil {
 		panic(err)

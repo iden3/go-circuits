@@ -462,3 +462,32 @@ func (ao *AtomicQuerySigV2OnChainPubSignals) PubSignalsUnmarshal(data []byte) er
 func (ao AtomicQuerySigV2OnChainPubSignals) GetObjMap() map[string]interface{} {
 	return toMap(ao)
 }
+
+func (ao AtomicQuerySigV2OnChainPubSignals) GetStatesInfo() (StatesInfo, error) {
+	if ao.UserID == nil || ao.IssuerID == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyID)
+	}
+
+	if ao.IssuerAuthState == nil || ao.IssuerClaimNonRevState == nil ||
+		ao.GlobalRoot == nil {
+		return StatesInfo{}, errors.New(ErrorEmptyStateHash)
+	}
+
+	states := []State{
+		{
+			ID:    *ao.IssuerID,
+			State: *ao.IssuerAuthState,
+		},
+	}
+	if *ao.IssuerClaimNonRevState != *ao.IssuerAuthState {
+		states = append(states, State{
+			ID:    *ao.IssuerID,
+			State: *ao.IssuerClaimNonRevState,
+		})
+	}
+
+	return StatesInfo{
+		States: states,
+		Gists:  []Gist{{ID: *ao.UserID, Root: *ao.GlobalRoot}},
+	}, nil
+}
