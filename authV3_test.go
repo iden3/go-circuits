@@ -70,7 +70,7 @@ func TestAuthV3Inputs_InputsMarshal(t *testing.T) {
 	require.JSONEq(t, exp, string(circuitInputJSON))
 }
 
-func TestAuthV3_8_32_Inputs_InputsMarshal(t *testing.T) {
+func TestAuthV3_8_32Inputs_InputsMarshal(t *testing.T) {
 	inputs := authV3Inputs(t, true)
 	circuitInputJSON, err := inputs.InputsMarshal()
 	require.NoError(t, err)
@@ -100,7 +100,7 @@ func TestAuthV3Inputs_GetPublicStatesInfo(t *testing.T) {
 	require.JSONEq(t, want, string(statesInfoJsonBytes))
 }
 
-func TestAuthV3_8_32_Inputs_GetPublicStatesInfo(t *testing.T) {
+func TestAuthV3_8_32Inputs_GetPublicStatesInfo(t *testing.T) {
 	inputs := authV3Inputs(t, true)
 	statesInfo, err := inputs.GetPublicStatesInfo()
 	require.NoError(t, err)

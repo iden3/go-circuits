@@ -21,8 +21,8 @@ const (
 	AuthV2CircuitID CircuitID = "authV2"
 	// AuthV3CircuitID is a type that must be used for authV3.circom
 	AuthV3CircuitID CircuitID = "authV3"
-	// AuthV3_8_32_CircuitID is a type that must be used for authV3-8-32.circom
-	AuthV3_8_32_CircuitID CircuitID = "authV3-8-32"
+	// AuthV3_8_32CircuitID is a type that must be used for authV3-8-32.circom
+	AuthV3_8_32CircuitID CircuitID = "authV3-8-32"
 	// StateTransitionCircuitID is a type that must be used for stateTransition.circom
 	StateTransitionCircuitID CircuitID = "stateTransition"
 	// AtomicQueryMTPCircuitID is a type for credentialAtomicQueryMTP.circom
