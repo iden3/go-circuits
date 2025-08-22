@@ -56,7 +56,7 @@ func authV3Inputs(t testing.TB, isAuthV3_8_32 bool) AuthV3Inputs {
 	}
 
 	if isAuthV3_8_32 {
-		inputs.BaseConfig = BaseConfig{MTLevel: 8, ValueArraySize: 32, MTLevelOnChain: 32}
+		inputs.BaseConfig = BaseConfig{MTLevel: 8, MTLevelOnChain: 32}
 	}
 	return inputs
 }
