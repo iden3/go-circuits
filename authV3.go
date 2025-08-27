@@ -30,41 +30,6 @@ type AuthV3Inputs struct {
 	Challenge *big.Int           `json:"challenge"`
 }
 
-// authV3CircuitInputs type reflect authV3.circom/authV3-8-32.circom private inputs required by prover
-type authV3CircuitInputs struct {
-	// ID
-	GenesisID    string `json:"genesisID"`
-	ProfileNonce string `json:"profileNonce"`
-
-	// AuthClaim proof of inclusion
-	AuthClaim    *core.Claim        `json:"authClaim"`
-	AuthClaimMtp []*merkletree.Hash `json:"authClaimIncMtp"`
-
-	// AuthClaim non revocation proof
-	AuthClaimNonRevMtp      []*merkletree.Hash `json:"authClaimNonRevMtp"`
-	AuthClaimNonRevMtpAuxHi *merkletree.Hash   `json:"authClaimNonRevMtpAuxHi"`
-	AuthClaimNonRevMtpAuxHv *merkletree.Hash   `json:"authClaimNonRevMtpAuxHv"`
-	AuthClaimNonRevMtpNoAux string             `json:"authClaimNonRevMtpNoAux"`
-
-	Challenge             string `json:"challenge"`
-	ChallengeSignatureR8X string `json:"challengeSignatureR8x"`
-	ChallengeSignatureR8Y string `json:"challengeSignatureR8y"`
-	ChallengeSignatureS   string `json:"challengeSignatureS"`
-
-	// User State
-	ClaimsTreeRoot *merkletree.Hash `json:"claimsTreeRoot"`
-	RevTreeRoot    *merkletree.Hash `json:"revTreeRoot"`
-	RootsTreeRoot  *merkletree.Hash `json:"rootsTreeRoot"`
-	State          *merkletree.Hash `json:"state"`
-
-	// Global on-cain state
-	GISTRoot     *merkletree.Hash   `json:"gistRoot"`
-	GISTMtp      []*merkletree.Hash `json:"gistMtp"`
-	GISTMtpAuxHi *merkletree.Hash   `json:"gistMtpAuxHi"`
-	GISTMtpAuxHv *merkletree.Hash   `json:"gistMtpAuxHv"`
-	GISTMtpNoAux string             `json:"gistMtpNoAux"`
-}
-
 func (a AuthV3Inputs) Validate() error {
 
 	if a.GenesisID == nil {
@@ -101,7 +66,7 @@ func (a AuthV3Inputs) InputsMarshal() ([]byte, error) {
 		return nil, err
 	}
 
-	s := authV3CircuitInputs{
+	s := authCircuitInputs{
 		GenesisID:    a.GenesisID.BigInt().String(),
 		ProfileNonce: a.ProfileNonce.String(),
 		AuthClaim:    a.AuthClaim,

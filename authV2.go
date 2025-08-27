@@ -31,7 +31,7 @@ type AuthV2Inputs struct {
 }
 
 // authCircuitInputs type reflect auth.circom private inputs required by prover
-type authV2CircuitInputs struct {
+type authCircuitInputs struct {
 	// ID
 	GenesisID    string `json:"genesisID"`
 	ProfileNonce string `json:"profileNonce"`
@@ -101,7 +101,7 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 		return nil, err
 	}
 
-	s := authV2CircuitInputs{
+	s := authCircuitInputs{
 		GenesisID:    a.GenesisID.BigInt().String(),
 		ProfileNonce: a.ProfileNonce.String(),
 		AuthClaim:    a.AuthClaim,
@@ -157,7 +157,6 @@ func (a AuthV2Inputs) GetPublicStatesInfo() (StatesInfo, error) {
 		},
 	}, nil
 }
-
 
 // AuthV2PubSignals auth.circom public signals
 type AuthV2PubSignals struct {
