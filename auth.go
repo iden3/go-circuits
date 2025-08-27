@@ -24,8 +24,8 @@ type AuthInputs struct {
 	Challenge *big.Int
 }
 
-// authCircuitInputs type reflect auth.circom private inputs required by prover
-type authCircuitInputs struct {
+// authV1CircuitInputs type reflect auth.circom private inputs required by prover
+type authV1CircuitInputs struct {
 	UserAuthClaim               *core.Claim      `json:"userAuthClaim"`
 	UserAuthClaimMtp            []string         `json:"userAuthClaimMtp"`
 	UserAuthClaimNonRevMtp      []string         `json:"userAuthClaimNonRevMtp"`
@@ -58,7 +58,7 @@ func (a AuthInputs) InputsMarshal() ([]byte, error) {
 		return nil, errors.New(ErrorEmptyChallengeSignature)
 	}
 
-	s := authCircuitInputs{
+	s := authV1CircuitInputs{
 		UserAuthClaim: a.AuthClaim.Claim,
 		UserAuthClaimMtp: PrepareSiblingsStr(a.AuthClaim.IncProof.Proof.AllSiblings(),
 			a.GetMTLevel()),

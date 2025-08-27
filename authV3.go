@@ -11,8 +11,8 @@ import (
 	"github.com/pkg/errors"
 )
 
-// AuthV2Inputs type represent authV2.circom inputs
-type AuthV2Inputs struct {
+// AuthV3Inputs type represent authV3.circom/authV3-8-32.circom inputs
+type AuthV3Inputs struct {
 	BaseConfig
 
 	GenesisID    *core.ID `json:"genesisID"`
@@ -30,42 +30,7 @@ type AuthV2Inputs struct {
 	Challenge *big.Int           `json:"challenge"`
 }
 
-// authCircuitInputs type reflect auth.circom private inputs required by prover
-type authCircuitInputs struct {
-	// ID
-	GenesisID    string `json:"genesisID"`
-	ProfileNonce string `json:"profileNonce"`
-
-	// AuthClaim proof of inclusion
-	AuthClaim    *core.Claim        `json:"authClaim"`
-	AuthClaimMtp []*merkletree.Hash `json:"authClaimIncMtp"`
-
-	// AuthClaim non revocation proof
-	AuthClaimNonRevMtp      []*merkletree.Hash `json:"authClaimNonRevMtp"`
-	AuthClaimNonRevMtpAuxHi *merkletree.Hash   `json:"authClaimNonRevMtpAuxHi"`
-	AuthClaimNonRevMtpAuxHv *merkletree.Hash   `json:"authClaimNonRevMtpAuxHv"`
-	AuthClaimNonRevMtpNoAux string             `json:"authClaimNonRevMtpNoAux"`
-
-	Challenge             string `json:"challenge"`
-	ChallengeSignatureR8X string `json:"challengeSignatureR8x"`
-	ChallengeSignatureR8Y string `json:"challengeSignatureR8y"`
-	ChallengeSignatureS   string `json:"challengeSignatureS"`
-
-	// User State
-	ClaimsTreeRoot *merkletree.Hash `json:"claimsTreeRoot"`
-	RevTreeRoot    *merkletree.Hash `json:"revTreeRoot"`
-	RootsTreeRoot  *merkletree.Hash `json:"rootsTreeRoot"`
-	State          *merkletree.Hash `json:"state"`
-
-	// Global on-cain state
-	GISTRoot     *merkletree.Hash   `json:"gistRoot"`
-	GISTMtp      []*merkletree.Hash `json:"gistMtp"`
-	GISTMtpAuxHi *merkletree.Hash   `json:"gistMtpAuxHi"`
-	GISTMtpAuxHv *merkletree.Hash   `json:"gistMtpAuxHv"`
-	GISTMtpNoAux string             `json:"gistMtpNoAux"`
-}
-
-func (a AuthV2Inputs) Validate() error {
+func (a AuthV3Inputs) Validate() error {
 
 	if a.GenesisID == nil {
 		return errors.New(ErrorEmptyID)
@@ -95,7 +60,7 @@ func (a AuthV2Inputs) Validate() error {
 }
 
 // InputsMarshal returns Circom private inputs for auth.circom
-func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
+func (a AuthV3Inputs) InputsMarshal() ([]byte, error) {
 
 	if err := a.Validate(); err != nil {
 		return nil, err
@@ -137,7 +102,7 @@ func (a AuthV2Inputs) InputsMarshal() ([]byte, error) {
 
 // GetPublicStatesInfo returns states and gists information,
 // implements PublicStatesInfoProvider interface
-func (a AuthV2Inputs) GetPublicStatesInfo() (StatesInfo, error) {
+func (a AuthV3Inputs) GetPublicStatesInfo() (StatesInfo, error) {
 
 	if err := a.Validate(); err != nil {
 		return StatesInfo{}, err
@@ -158,15 +123,15 @@ func (a AuthV2Inputs) GetPublicStatesInfo() (StatesInfo, error) {
 	}, nil
 }
 
-// AuthV2PubSignals auth.circom public signals
-type AuthV2PubSignals struct {
+// AuthV3PubSignals authV3.circom/authV3-8-32.circom public signals
+type AuthV3PubSignals struct {
 	UserID    *core.ID         `json:"userID"`
 	Challenge *big.Int         `json:"challenge"`
 	GISTRoot  *merkletree.Hash `json:"GISTRoot"`
 }
 
-// PubSignalsUnmarshal unmarshal auth.circom public inputs to AuthPubSignals
-func (a *AuthV2PubSignals) PubSignalsUnmarshal(data []byte) error {
+// PubSignalsUnmarshal unmarshal authV3.circom/authV3-8-32.circom public inputs to AuthPubSignals
+func (a *AuthV3PubSignals) PubSignalsUnmarshal(data []byte) error {
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
@@ -194,11 +159,11 @@ func (a *AuthV2PubSignals) PubSignalsUnmarshal(data []byte) error {
 }
 
 // GetObjMap returns AuthPubSignals as a map
-func (a AuthV2PubSignals) GetObjMap() map[string]interface{} {
+func (a AuthV3PubSignals) GetObjMap() map[string]interface{} {
 	return toMap(a)
 }
 
-func (a AuthV2PubSignals) GetStatesInfo() (StatesInfo, error) {
+func (a AuthV3PubSignals) GetStatesInfo() (StatesInfo, error) {
 	if a.UserID == nil {
 		return StatesInfo{}, errors.New(ErrorEmptyID)
 	}
