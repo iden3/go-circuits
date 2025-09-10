@@ -168,6 +168,19 @@ func (a AtomicQuerySigV2OnChainInputs) Validate() error {
 	if a.Challenge == nil {
 		return errors.New(ErrorEmptyChallenge)
 	}
+
+	profileID, err := core.ProfileID(*a.ID, a.ClaimSubjectProfileNonce)
+	if err != nil {
+		return errors.Errorf("failed to generate profile ID: %v", err)
+	}
+	credentialSubjectID, err := a.Claim.Claim.GetID()
+	if err != nil {
+		return errors.Errorf("failed to get credential subject ID: %v", err)
+	}
+	if profileID.BigInt().Cmp(credentialSubjectID.BigInt()) != 0 {
+		return errors.New(ErrorUserProfileMismatch)
+	}
+
 	return nil
 }
 
@@ -344,7 +357,6 @@ func (a AtomicQuerySigV2OnChainInputs) GetPublicStatesInfo() (StatesInfo, error)
 
 	return statesInfo, nil
 }
-
 
 // AtomicQuerySigV2OnChainPubSignals public inputs
 type AtomicQuerySigV2OnChainPubSignals struct {

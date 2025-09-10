@@ -30,4 +30,5 @@ const (
 	ErrorEmptyMTPProof                   = "empty MTP proof"
 	ErrorInvalidValuesArrSize            = "invalid query Values array size"
 	ErrorEmptyStateHash                  = "empty state hash"
+	ErrorUserProfileMismatch             = "user profile mismatch"
 )
