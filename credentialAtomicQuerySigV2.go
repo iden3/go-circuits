@@ -108,16 +108,9 @@ func (a AtomicQuerySigV2Inputs) Validate() error {
 		return errors.New(ErrorEmptyQueryValue)
 	}
 
-	profileID, err := core.ProfileID(*a.ID, a.ClaimSubjectProfileNonce)
-	if err != nil {
-		return errors.Errorf("failed to generate profile ID: %v", err)
-	}
-	credentialSubjectID, err := a.Claim.Claim.GetID()
-	if err != nil {
-		return errors.Errorf("failed to get credential subject ID: %v", err)
-	}
-	if profileID.BigInt().Cmp(credentialSubjectID.BigInt()) != 0 {
-		return errors.New(ErrorUserProfileMismatch)
+	if err := VerifyCredentialSubjectID(
+		*a.ID, *a.Claim.Claim, a.ClaimSubjectProfileNonce); err != nil {
+		return err
 	}
 
 	return nil

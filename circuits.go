@@ -3,6 +3,7 @@ package circuits
 import (
 	"bytes"
 	"encoding/json"
+	"math/big"
 	"reflect"
 	"sync"
 
@@ -357,4 +358,20 @@ func GetCircuit(id CircuitID) (*Data, error) {
 		return nil, ErrorCircuitIDNotFound
 	}
 	return &circuit, nil
+}
+
+// VerifyCredentialSubjectID checks that the credentialSubject ID in the issuerClaim matches the profileID.
+func VerifyCredentialSubjectID(userID core.ID, issuerClaim core.Claim, nonce *big.Int) error {
+	profileID, err := core.ProfileID(userID, nonce)
+	if err != nil {
+		return errors.Errorf("failed to generate profile ID: %v", err)
+	}
+	credentialSubjectID, err := issuerClaim.GetID()
+	if err != nil {
+		return errors.Errorf("failed to get credential subject ID: %v", err)
+	}
+	if profileID.BigInt().Cmp(credentialSubjectID.BigInt()) != 0 {
+		return errors.New(ErrorUserProfileMismatch)
+	}
+	return nil
 }
