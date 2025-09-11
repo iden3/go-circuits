@@ -30,5 +30,5 @@ const (
 	ErrorEmptyMTPProof                   = "empty MTP proof"
 	ErrorInvalidValuesArrSize            = "invalid query Values array size"
 	ErrorEmptyStateHash                  = "empty state hash"
-	ErrorUserProfileMismatch             = "user profile mismatch"
+	ErrorUserProfileMismatch             = "profile DID derived from genesis does not match the credential subject or incorrect profile nonce"
 )
