@@ -214,7 +214,7 @@ func (a AtomicQueryV3OnChainInputs) Validate() error {
 		return errors.New(ErrorInvalidProofType)
 	}
 
-	if err := VerifyCredentialSubjectID(
+	if err := verifyCredentialSubjectID(
 		*a.ID, *a.Claim.Claim, a.ClaimSubjectProfileNonce); err != nil {
 		return err
 	}

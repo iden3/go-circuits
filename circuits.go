@@ -360,8 +360,8 @@ func GetCircuit(id CircuitID) (*Data, error) {
 	return &circuit, nil
 }
 
-// VerifyCredentialSubjectID checks that the credentialSubject ID in the issuerClaim matches the profileID.
-func VerifyCredentialSubjectID(userID core.ID, issuerClaim core.Claim, nonce *big.Int) error {
+// verifyCredentialSubjectID checks that the credentialSubject ID in the issuerClaim matches the profileID.
+func verifyCredentialSubjectID(userID core.ID, issuerClaim core.Claim, nonce *big.Int) error {
 	profileID, err := core.ProfileID(userID, nonce)
 	if err != nil {
 		return errors.Errorf("failed to generate profile ID: %v", err)

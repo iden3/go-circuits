@@ -108,7 +108,7 @@ func (a AtomicQuerySigV2Inputs) Validate() error {
 		return errors.New(ErrorEmptyQueryValue)
 	}
 
-	if err := VerifyCredentialSubjectID(
+	if err := verifyCredentialSubjectID(
 		*a.ID, *a.Claim.Claim, a.ClaimSubjectProfileNonce); err != nil {
 		return err
 	}
