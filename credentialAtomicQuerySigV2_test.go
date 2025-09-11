@@ -9,6 +9,7 @@ import (
 
 	it "github.com/iden3/go-circuits/v2/testing"
 	core "github.com/iden3/go-iden3-core/v2"
+	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/stretchr/testify/require"
 )
@@ -281,4 +282,17 @@ func hashPtrFromInt(i *big.Int) *merkletree.Hash {
 		panic(err)
 	}
 	return h
+}
+
+func TestAttrQuerySigV2_ErrorUserProfileMismatch(t *testing.T) {
+	did, err := w3c.ParseDID("did:iden3:polygon:amoy:x81nCirrkbsh7qZrbnzhZtkwfY76wjUmygcoYztcS")
+	require.NoError(t, err)
+	userID, err := core.IDFromDID(*did)
+	require.NoError(t, err)
+
+	inputs := querySigV2Inputs(t)
+	inputs.ID = &userID
+
+	err = inputs.Validate()
+	require.Equal(t, err.Error(), ErrorUserProfileMismatch)
 }

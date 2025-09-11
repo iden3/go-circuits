@@ -5,6 +5,7 @@ import (
 	"math/big"
 	"testing"
 
+	it "github.com/iden3/go-circuits/v2/testing"
 	core "github.com/iden3/go-iden3-core/v2"
 	"github.com/iden3/go-merkletree-sql/v2"
 	"github.com/stretchr/testify/assert"
@@ -91,4 +92,89 @@ func TestStateJsonMarshallers(t *testing.T) {
 	err = json.Unmarshal(inJsonBytes, &out)
 	require.NoError(t, err)
 	require.Equal(t, in, out)
+}
+
+func TestVerifyCredentialSubjectID(t *testing.T) {
+	tests := []struct {
+		name         string
+		user         *it.IdentityTest
+		claim        func(t *testing.T) *core.Claim
+		nonceSubject *big.Int
+	}{
+		{
+			name:         "Success. Same profileID with nonce",
+			user:         it.NewIdentity(t, userPK),
+			nonceSubject: big.NewInt(10),
+			claim: func(t *testing.T) *core.Claim {
+				profileID, err := core.ProfileID(it.NewIdentity(t, userPK).ID, big.NewInt(10))
+				require.NoError(t, err)
+				return it.DefaultUserClaim(t, profileID)
+			},
+		},
+		{
+			name:         "Success. Same genesis profileID",
+			user:         it.NewIdentity(t, userPK),
+			nonceSubject: big.NewInt(0),
+			claim: func(t *testing.T) *core.Claim {
+				return it.DefaultUserClaim(t, it.NewIdentity(t, userPK).ID)
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := verifyCredentialSubjectID(tt.user.ID, *tt.claim(t), tt.nonceSubject)
+			require.NoError(t, err)
+		})
+	}
+}
+
+func TestVerifyCredentialSubjectID_Error(t *testing.T) {
+	tests := []struct {
+		name         string
+		userID       *it.IdentityTest
+		claim        func(t *testing.T) *core.Claim
+		nonceSubject *big.Int
+		err          string
+	}{
+		{
+			name:   "Different userID on the claim",
+			userID: it.NewIdentity(t, userPK),
+			claim: func(t *testing.T) *core.Claim {
+				// put another indentity to claim
+				return it.DefaultUserClaim(t, it.NewIdentity(t, issuerPK).ID)
+			},
+			nonceSubject: big.NewInt(10),
+			err:          ErrorUserProfileMismatch,
+		},
+		{
+			name:   "Different nonceSubject on the claim",
+			userID: it.NewIdentity(t, userPK),
+			claim: func(t *testing.T) *core.Claim {
+				profileID, err := core.ProfileID(it.NewIdentity(t, userPK).ID, big.NewInt(11))
+				require.NoError(t, err)
+				return it.DefaultUserClaim(t, profileID)
+			},
+			nonceSubject: big.NewInt(10),
+			err:          ErrorUserProfileMismatch,
+		},
+		{
+			name:   "Different nonceSubject on the claim. Genesis profile",
+			userID: it.NewIdentity(t, userPK),
+			claim: func(t *testing.T) *core.Claim {
+				profileID, err := core.ProfileID(it.NewIdentity(t, userPK).ID, big.NewInt(11))
+				require.NoError(t, err)
+				return it.DefaultUserClaim(t, profileID)
+			},
+			nonceSubject: big.NewInt(0),
+			err:          ErrorUserProfileMismatch,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			err := verifyCredentialSubjectID(tt.userID.ID, *tt.claim(t), tt.nonceSubject)
+			require.EqualError(t, err, tt.err)
+		})
+	}
 }

@@ -8,11 +8,13 @@ import (
 	"testing"
 
 	it "github.com/iden3/go-circuits/v2/testing"
+	core "github.com/iden3/go-iden3-core/v2"
+	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/stretchr/testify/require"
 )
 
-func createV3OnChaneInputs_Sig(t testing.TB) AtomicQueryV3OnChainInputs {
+func createV3OnChainInputs_Sig(t testing.TB) AtomicQueryV3OnChainInputs {
 	user := it.NewIdentity(t, userPK)
 
 	issuer := it.NewIdentity(t, issuerPK)
@@ -112,8 +114,91 @@ func createV3OnChaneInputs_Sig(t testing.TB) AtomicQueryV3OnChainInputs {
 	return in
 }
 
+func createV3OnChainInputs_MTP(t testing.TB) AtomicQueryV3OnChainInputs {
+	user := it.NewIdentity(t, userPK)
+	issuer := it.NewIdentity(t, issuerPK)
+
+	nonce := big.NewInt(0)
+
+	subjectID := user.ID
+	nonceSubject := big.NewInt(0)
+
+	claim := it.DefaultUserClaim(t, subjectID)
+
+	issuer.AddClaim(t, claim)
+
+	issuerClaimMtp, _ := issuer.ClaimMTPRaw(t, claim)
+
+	issuerClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, claim)
+
+	gTree := it.GISTTree(context.Background())
+	err := gTree.Add(context.Background(), issuer.ID.BigInt(), issuer.State(t).BigInt())
+	require.NoError(t, err)
+	globalProof, _, err := gTree.GenerateProof(context.Background(), user.ID.BigInt(), nil)
+	require.NoError(t, err)
+	authClaimIncMTP, _ := user.ClaimMTPRaw(t, user.AuthClaim)
+	authClaimNonRevMTP, _ := user.ClaimRevMTPRaw(t, user.AuthClaim)
+	require.NoError(t, err)
+	challenge := big.NewInt(10)
+	signature, err := user.SignBBJJ(challenge.Bytes())
+	require.NoError(t, err)
+
+	in := AtomicQueryV3OnChainInputs{
+		RequestID:                big.NewInt(23),
+		ID:                       &user.ID,
+		ProfileNonce:             nonce,
+		ClaimSubjectProfileNonce: nonceSubject,
+		Claim: ClaimWithSigAndMTPProof{
+			IssuerID: &issuer.ID,
+			Claim:    claim,
+			IncProof: &MTProof{
+				Proof: issuerClaimMtp,
+				TreeState: TreeState{
+					State:          issuer.State(t),
+					ClaimsRoot:     issuer.Clt.Root(),
+					RevocationRoot: issuer.Ret.Root(),
+					RootOfRoots:    issuer.Rot.Root(),
+				},
+			},
+			NonRevProof: MTProof{
+				TreeState: TreeState{
+					State:          issuer.State(t),
+					ClaimsRoot:     issuer.Clt.Root(),
+					RevocationRoot: issuer.Ret.Root(),
+					RootOfRoots:    issuer.Rot.Root(),
+				},
+				Proof: issuerClaimNonRevMtp,
+			},
+		},
+		Query: Query{
+			ValueProof: nil,
+			Operator:   EQ,
+			Values:     []*big.Int{big.NewInt(10)},
+			SlotIndex:  2,
+		},
+		CurrentTimeStamp:   timestamp,
+		ProofType:          Iden3SparseMerkleTreeProofType,
+		AuthClaim:          user.AuthClaim,
+		AuthClaimIncMtp:    authClaimIncMTP,
+		AuthClaimNonRevMtp: authClaimNonRevMTP,
+		TreeState:          GetTreeState(t, user),
+		GISTProof: GISTProof{
+			Root:  gTree.Root(),
+			Proof: globalProof,
+		},
+		Signature: signature,
+		Challenge: challenge,
+		LinkNonce: big.NewInt(0),
+		VerifierID: it.IDFromStr(
+			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
+		NullifierSessionID: big.NewInt(32),
+		IsBJJAuthEnabled:   1,
+	}
+	return in
+}
+
 func TestAttrQueryV3OnChain_SigPart_PrepareInputs(t *testing.T) {
-	in := createV3OnChaneInputs_Sig(t)
+	in := createV3OnChainInputs_Sig(t)
 
 	bytesInputs, err := in.InputsMarshal()
 	require.Nil(t, err)
@@ -125,7 +210,7 @@ func TestAttrQueryV3OnChain_SigPart_PrepareInputs(t *testing.T) {
 }
 
 func TestAttrQueryV3OnChain_SigPart_GetPublicStatesInfo(t *testing.T) {
-	in := createV3OnChaneInputs_Sig(t)
+	in := createV3OnChainInputs_Sig(t)
 
 	statesInfo, err := in.GetPublicStatesInfo()
 	require.NoError(t, err)
@@ -256,87 +341,7 @@ func TestAttrQueryV3OnChain_SigPart_Noop_PrepareInputs(t *testing.T) {
 }
 
 func TestAttrQueryV3OnChain_MTPPart_PrepareInputs(t *testing.T) {
-
-	user := it.NewIdentity(t, userPK)
-	issuer := it.NewIdentity(t, issuerPK)
-
-	nonce := big.NewInt(0)
-
-	subjectID := user.ID
-	nonceSubject := big.NewInt(0)
-
-	claim := it.DefaultUserClaim(t, subjectID)
-
-	issuer.AddClaim(t, claim)
-
-	issuerClaimMtp, _ := issuer.ClaimMTPRaw(t, claim)
-
-	issuerClaimNonRevMtp, _ := issuer.ClaimRevMTPRaw(t, claim)
-
-	gTree := it.GISTTree(context.Background())
-	err := gTree.Add(context.Background(), issuer.ID.BigInt(), issuer.State(t).BigInt())
-	require.NoError(t, err)
-	globalProof, _, err := gTree.GenerateProof(context.Background(), user.ID.BigInt(), nil)
-	require.NoError(t, err)
-	authClaimIncMTP, _ := user.ClaimMTPRaw(t, user.AuthClaim)
-	authClaimNonRevMTP, _ := user.ClaimRevMTPRaw(t, user.AuthClaim)
-	require.NoError(t, err)
-	challenge := big.NewInt(10)
-	signature, err := user.SignBBJJ(challenge.Bytes())
-	require.NoError(t, err)
-
-	in := AtomicQueryV3OnChainInputs{
-		RequestID:                big.NewInt(23),
-		ID:                       &user.ID,
-		ProfileNonce:             nonce,
-		ClaimSubjectProfileNonce: nonceSubject,
-		Claim: ClaimWithSigAndMTPProof{
-			IssuerID: &issuer.ID,
-			Claim:    claim,
-			IncProof: &MTProof{
-				Proof: issuerClaimMtp,
-				TreeState: TreeState{
-					State:          issuer.State(t),
-					ClaimsRoot:     issuer.Clt.Root(),
-					RevocationRoot: issuer.Ret.Root(),
-					RootOfRoots:    issuer.Rot.Root(),
-				},
-			},
-			NonRevProof: MTProof{
-				TreeState: TreeState{
-					State:          issuer.State(t),
-					ClaimsRoot:     issuer.Clt.Root(),
-					RevocationRoot: issuer.Ret.Root(),
-					RootOfRoots:    issuer.Rot.Root(),
-				},
-				Proof: issuerClaimNonRevMtp,
-			},
-		},
-		Query: Query{
-			ValueProof: nil,
-			Operator:   EQ,
-			Values:     []*big.Int{big.NewInt(10)},
-			SlotIndex:  2,
-		},
-		CurrentTimeStamp:   timestamp,
-		ProofType:          Iden3SparseMerkleTreeProofType,
-		AuthClaim:          user.AuthClaim,
-		AuthClaimIncMtp:    authClaimIncMTP,
-		AuthClaimNonRevMtp: authClaimNonRevMTP,
-		TreeState:          GetTreeState(t, user),
-		GISTProof: GISTProof{
-			Root:  gTree.Root(),
-			Proof: globalProof,
-		},
-		Signature: signature,
-		Challenge: challenge,
-		LinkNonce: big.NewInt(0),
-		VerifierID: it.IDFromStr(
-			t, "21929109382993718606847853573861987353620810345503358891473103689157378049"),
-		NullifierSessionID: big.NewInt(32),
-		IsBJJAuthEnabled:   1,
-	}
-
+	in := createV3OnChainInputs_MTP(t)
 	bytesInputs, err := in.InputsMarshal()
 	require.Nil(t, err)
 
@@ -515,4 +520,30 @@ func TestAtomicQueryV3OnChainOutputs_MTP_CircuitUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	require.JSONEq(t, string(jsonExp), string(jsonOut))
+}
+
+func TestAttrQueryV3OnChain_SigPart_ErrorUserProfileMismatch(t *testing.T) {
+	did, err := w3c.ParseDID("did:iden3:polygon:amoy:x81nCirrkbsh7qZrbnzhZtkwfY76wjUmygcoYztcS")
+	require.NoError(t, err)
+	userID, err := core.IDFromDID(*did)
+	require.NoError(t, err)
+
+	inputs := createV3OnChainInputs_Sig(t)
+	inputs.ID = &userID
+
+	err = inputs.Validate()
+	require.Equal(t, err.Error(), ErrorUserProfileMismatch)
+}
+
+func TestAttrQueryV3OnChain_MtpPart_ErrorUserProfileMismatch(t *testing.T) {
+	did, err := w3c.ParseDID("did:iden3:polygon:amoy:x81nCirrkbsh7qZrbnzhZtkwfY76wjUmygcoYztcS")
+	require.NoError(t, err)
+	userID, err := core.IDFromDID(*did)
+	require.NoError(t, err)
+
+	inputs := createV3OnChainInputs_MTP(t)
+	inputs.ID = &userID
+
+	err = inputs.Validate()
+	require.Equal(t, err.Error(), ErrorUserProfileMismatch)
 }

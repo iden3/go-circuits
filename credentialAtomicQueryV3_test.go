@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	it "github.com/iden3/go-circuits/v2/testing"
+	core "github.com/iden3/go-iden3-core/v2"
+	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/stretchr/testify/require"
 )
 
@@ -85,40 +87,7 @@ func createV3Inputs_Sig(t testing.TB) AtomicQueryV3Inputs {
 	}
 }
 
-func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
-	in := createV3Inputs_Sig(t)
-	bytesInputs, err := in.InputsMarshal()
-	require.Nil(t, err)
-
-	fmt.Println(string(bytesInputs))
-
-	exp := it.TestData(t, "V3_sig_inputs", string(bytesInputs), *generate)
-	require.JSONEq(t, exp, string(bytesInputs))
-}
-
-func TestAttrQueryV3_SigPart_GetPublicStateInfo(t *testing.T) {
-	in := createV3Inputs_Sig(t)
-	statesInfo, err := in.GetPublicStatesInfo()
-	require.NoError(t, err)
-
-	statesInfoJsonBytes, err := json.Marshal(statesInfo)
-	require.NoError(t, err)
-
-	wantStatesInfoJson := `{
-  "states":[
-    {
-      "id":"27918766665310231445021466320959318414450284884582375163563581940319453185",
-      "state":"20177832565449474772630743317224985532862797657496372535616634430055981993180"
-    }
-  ],
-  "gists":[]
-}`
-
-	require.JSONEq(t, wantStatesInfoJson, string(statesInfoJsonBytes))
-}
-
-func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {
-
+func createV3Inputs_Mtp(t testing.TB) AtomicQueryV3Inputs {
 	user := it.NewIdentity(t, userPK)
 	issuer := it.NewIdentity(t, issuerPK)
 
@@ -176,6 +145,22 @@ func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {
 		NullifierSessionID: big.NewInt(32),
 	}
 
+	return in
+}
+
+func TestAttrQueryV3_SigPart_PrepareInputs(t *testing.T) {
+	in := createV3Inputs_Sig(t)
+	bytesInputs, err := in.InputsMarshal()
+	require.Nil(t, err)
+
+	fmt.Println(string(bytesInputs))
+
+	exp := it.TestData(t, "V3_sig_inputs", string(bytesInputs), *generate)
+	require.JSONEq(t, exp, string(bytesInputs))
+}
+
+func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {
+	in := createV3Inputs_Mtp(t)
 	bytesInputs, err := in.InputsMarshal()
 	require.Nil(t, err)
 
@@ -183,6 +168,27 @@ func TestAttrQueryV3_MTPPart_PrepareInputs(t *testing.T) {
 	t.Log(string(bytesInputs))
 	require.JSONEq(t, exp, string(bytesInputs))
 
+}
+
+func TestAttrQueryV3_SigPart_GetPublicStateInfo(t *testing.T) {
+	in := createV3Inputs_Sig(t)
+	statesInfo, err := in.GetPublicStatesInfo()
+	require.NoError(t, err)
+
+	statesInfoJsonBytes, err := json.Marshal(statesInfo)
+	require.NoError(t, err)
+
+	wantStatesInfoJson := `{
+  "states":[
+    {
+      "id":"27918766665310231445021466320959318414450284884582375163563581940319453185",
+      "state":"20177832565449474772630743317224985532862797657496372535616634430055981993180"
+    }
+  ],
+  "gists":[]
+}`
+
+	require.JSONEq(t, wantStatesInfoJson, string(statesInfoJsonBytes))
 }
 
 func TestAttrQueryV3_MTPPart_Noop_PrepareInputs(t *testing.T) {
@@ -524,4 +530,30 @@ func TestAtomicQueryV3Outputs_MTP_CircuitUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 
 	require.JSONEq(t, string(jsonExp), string(jsonOut))
+}
+
+func TestAttrQueryV3_SigPart_ErrorUserProfileMismatch(t *testing.T) {
+	did, err := w3c.ParseDID("did:iden3:polygon:amoy:x81nCirrkbsh7qZrbnzhZtkwfY76wjUmygcoYztcS")
+	require.NoError(t, err)
+	userID, err := core.IDFromDID(*did)
+	require.NoError(t, err)
+
+	inputs := createV3Inputs_Sig(t)
+	inputs.ID = &userID
+
+	err = inputs.Validate()
+	require.Equal(t, err.Error(), ErrorUserProfileMismatch)
+}
+
+func TestAttrQueryV3_MtpPart_ErrorUserProfileMismatch(t *testing.T) {
+	did, err := w3c.ParseDID("did:iden3:polygon:amoy:x81nCirrkbsh7qZrbnzhZtkwfY76wjUmygcoYztcS")
+	require.NoError(t, err)
+	userID, err := core.IDFromDID(*did)
+	require.NoError(t, err)
+
+	inputs := createV3Inputs_Mtp(t)
+	inputs.ID = &userID
+
+	err = inputs.Validate()
+	require.Equal(t, err.Error(), ErrorUserProfileMismatch)
 }

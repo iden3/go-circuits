@@ -146,6 +146,11 @@ func (a AtomicQueryMTPV2OnChainInputs) Validate() error {
 		return errors.New(ErrorEmptyChallenge)
 	}
 
+	if err := verifyCredentialSubjectID(
+		*a.ID, *a.Claim.Claim, a.ClaimSubjectProfileNonce); err != nil {
+		return err
+	}
+
 	return nil
 }
 

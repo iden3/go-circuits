@@ -168,6 +168,12 @@ func (a AtomicQuerySigV2OnChainInputs) Validate() error {
 	if a.Challenge == nil {
 		return errors.New(ErrorEmptyChallenge)
 	}
+
+	if err := verifyCredentialSubjectID(
+		*a.ID, *a.Claim.Claim, a.ClaimSubjectProfileNonce); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -344,7 +350,6 @@ func (a AtomicQuerySigV2OnChainInputs) GetPublicStatesInfo() (StatesInfo, error)
 
 	return statesInfo, nil
 }
-
 
 // AtomicQuerySigV2OnChainPubSignals public inputs
 type AtomicQuerySigV2OnChainPubSignals struct {
