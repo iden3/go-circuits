@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	it "github.com/iden3/go-circuits/v2/testing"
+	core "github.com/iden3/go-iden3-core/v2"
+	"github.com/iden3/go-iden3-core/v2/w3c"
 	"github.com/iden3/go-iden3-crypto/poseidon"
 	"github.com/stretchr/testify/require"
 )
@@ -218,4 +220,17 @@ func TestAtomicQuerySigV2OnChainOutputs_CircuitUnmarshal(t *testing.T) {
 	j, err := json.Marshal(statesInfo)
 	require.NoError(t, err)
 	require.Equal(t, wantStatesInfo, statesInfo, string(j))
+}
+
+func TestAttrQuerySigV2OnChain_ErrorUserProfileMismatch(t *testing.T) {
+	did, err := w3c.ParseDID("did:iden3:polygon:amoy:x81nCirrkbsh7qZrbnzhZtkwfY76wjUmygcoYztcS")
+	require.NoError(t, err)
+	userID, err := core.IDFromDID(*did)
+	require.NoError(t, err)
+
+	inputs := querySigV2OnChainInputs(t)
+	inputs.ID = &userID
+
+	err = inputs.Validate()
+	require.Equal(t, err.Error(), ErrorUserProfileMismatch)
 }
