@@ -105,7 +105,7 @@ func (ao *AtomicQueryV3UniversalPubSignals) PubSignalsUnmarshal(data []byte) err
 
 	// - nullifier
 	if ao.Nullifier, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid link ID value: '%s'", sVals[fieldIdx])
+		return fmt.Errorf("invalid nullifier value: '%s'", sVals[fieldIdx])
 	}
 	fieldIdx++
 
