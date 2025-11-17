@@ -73,7 +73,7 @@ func (ao *AtomicQueryV3UniversalPubSignals) PubSignalsUnmarshal(data []byte) err
 	}
 
 	if len(sVals) != fieldLength+ao.GetValueArrSize() {
-		return fmt.Errorf("invalid number of Output values expected {%d} go {%d} ", fieldLength+ao.GetValueArrSize(), len(sVals))
+		return fmt.Errorf("invalid number of Output values expected {%d} got {%d} ", fieldLength+ao.GetValueArrSize(), len(sVals))
 	}
 
 	fieldIdx := 0
