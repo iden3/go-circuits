@@ -154,7 +154,7 @@ func (ao *AtomicQueryV3UniversalPubSignals) PubSignalsUnmarshal(data []byte) err
 	//  - claimSchema
 	var schemaInt *big.Int
 	if schemaInt, ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
-		return fmt.Errorf("invalid schema value: '%s'", sVals[0])
+		return fmt.Errorf("invalid schema value: '%s'", sVals[fieldIdx])
 	}
 	ao.ClaimSchema = core.NewSchemaHashFromInt(schemaInt)
 	fieldIdx++
