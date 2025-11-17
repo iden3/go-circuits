@@ -62,7 +62,7 @@ func (ao *AtomicQueryV3UniversalPubSignals) PubSignalsUnmarshal(data []byte) err
 	// nullifierSessionID
 
 	// 19 is a number of fields in AtomicQueryV3UniversalPubSignals, values length could be
-	// different base on the circuit configuration. The length could be modified by set value
+	// different based on the circuit configuration. The length could be modified by set value
 	// in ValueArraySize
 	const fieldLength = 19
 
