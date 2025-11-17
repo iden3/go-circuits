@@ -26,7 +26,7 @@ type AtomicQueryV3UniversalPubSignals struct {
 	Timestamp              int64            `json:"timestamp"`
 	Merklized              int              `json:"merklized"`
 	ClaimPathKey           *big.Int         `json:"claimPathKey"`
-	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 revocation not check, // 1 for check revocation
+	IsRevocationChecked    int              `json:"isRevocationChecked"` // 0 for no revocation check, 1 for revocation check
 	ProofType              int              `json:"proofType"`
 	LinkID                 *big.Int         `json:"linkID"`
 	Nullifier              *big.Int         `json:"nullifier"`
