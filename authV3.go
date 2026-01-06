@@ -13,7 +13,7 @@ import (
 
 // AuthV3Inputs type represent authV3.circom/authV3-8-32.circom inputs
 type AuthV3Inputs struct {
-	BaseConfig
+	BaseConfig `json:"-"`
 
 	GenesisID    *core.ID `json:"genesisID"`
 	ProfileNonce *big.Int `json:"profileNonce"`
@@ -28,6 +28,22 @@ type AuthV3Inputs struct {
 
 	Signature *babyjub.Signature `json:"signature"`
 	Challenge *big.Int           `json:"challenge"`
+}
+
+func (a AuthV3Inputs) MarshalJSON() ([]byte, error) {
+	type Alias AuthV3Inputs
+
+	return json.Marshal(&struct {
+		*Alias
+		ProfileNonce *jsonInt       `json:"profileNonce"`
+		Challenge    *jsonInt       `json:"challenge"`
+		Signature    *jsonSignature `json:"signature"`
+	}{
+		Alias:        (*Alias)(&a),
+		ProfileNonce: (*jsonInt)(a.ProfileNonce),
+		Challenge:    (*jsonInt)(a.Challenge),
+		Signature:    (*jsonSignature)(a.Signature),
+	})
 }
 
 func (a AuthV3Inputs) Validate() error {

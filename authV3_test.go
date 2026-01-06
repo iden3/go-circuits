@@ -164,3 +164,46 @@ func TestAuthV3Circuit_CircuitUnmarshal(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, wantStatesInfo, statesInfo, string(j))
 }
+
+func TestAuthV3Inputs_JsonMarshal(t *testing.T) {
+	inputs := authV3Inputs(t, false)
+	inputsJson, err := json.Marshal(inputs)
+	require.NoError(t, err)
+	want := `
+{
+  "authClaim" : [
+    "80551937543569765027552589160822318028",
+    "0",
+    "17640206035128972995519606214765283372613874593503528180869261482403155458945",
+    "20634138280259599560273310290025659992320584624461316485434108770067472477956",
+    "15930428023331155902",
+    "0",
+    "0",
+    "0"
+  ],
+  "authClaimIncMtp" : { "existence" : true, "siblings" : [] },
+  "authClaimNonRevMtp" : { "existence" : false, "siblings" : [ ] },
+  "challenge" : "10",
+  "genesisID" : "tQomzpDTB6x4EJUaiwk153FVi96jeNfP9WjKp9xys",
+  "gistProof" : {
+    "proof" : {
+      "existence" : false,
+      "node_aux" : {
+        "key" : "27918766665310231445021466320959318414450284884582375163563581940319453185",
+        "value" : "20177832565449474772630743317224985532862797657496372535616634430055981993180"
+      },
+      "siblings" : [ ]
+    },
+    "root" : "11098939821764568131087645431296528907277253709936443029379587475821759259406"
+  },
+  "profileNonce" : "0",
+  "signature" : "fccc15d7aed2bf4f5d7dbe55c81087970344d13e5d9f348e61965ac364f41d29b366b52bc0820c603877352054833da083f5595c29c881ccd8ee47aa639aa103",
+  "treeState" : {
+    "claimsRoot" : "9860409408344985873118363460916733946840214387455464863344022463808838582364",
+    "revocationRoot" : "0",
+    "rootOfRoots" : "0",
+    "state" : "1648710229725601204870171311149827592640182384459240511403224642152766848235"
+  }
+}`
+	require.JSONEq(t, want, string(inputsJson))
+}
