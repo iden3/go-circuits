@@ -61,6 +61,60 @@ func authV3Inputs(t testing.TB, isAuthV3_8_32 bool) AuthV3Inputs {
 	return inputs
 }
 
+// authV3Inputs_nonEmptyTrees generates AuthV3Inputs with non-empty trees,
+// so all proofs have non-empty siblings. Used to test JSON round-tripping.
+func authV3Inputs_nonEmptyTrees(t testing.TB) AuthV3Inputs {
+	ctx := context.Background()
+	challenge := big.NewInt(10)
+
+	// generate identity
+	user := it.NewIdentity(t, userPK)
+	nonce := big.NewInt(0)
+
+	user2 := it.NewIdentity(t, issuerPK)
+
+	// generate gist tree
+	gTree := it.GISTTree(ctx)
+
+	// put something to trees to make them non-empty
+	require.NoError(t, gTree.Add(ctx, big.NewInt(1), big.NewInt(2)))
+	require.NoError(t, user.Clt.Add(ctx, big.NewInt(1), big.NewInt(2)))
+	require.NoError(t, user.Ret.Add(ctx, big.NewInt(1), big.NewInt(2)))
+	require.NoError(t, user.Ret.Add(ctx, big.NewInt(3), big.NewInt(4)))
+	require.NoError(t, user.Rot.Add(ctx, big.NewInt(1), big.NewInt(2)))
+
+	err := gTree.Add(ctx, user2.ID.BigInt(), user2.State(t).BigInt())
+	require.NoError(t, err)
+
+	// prepare inputs
+	gistProof, _, err := gTree.GenerateProof(ctx, user.ID.BigInt(), nil)
+	require.NoError(t, err)
+
+	authClaimIncMTP, _ := user.ClaimMTPRaw(t, user.AuthClaim)
+
+	authClaimNonRevMTP, _ := user.ClaimRevMTPRaw(t, user.AuthClaim)
+
+	signature, err := user.SignBBJJ(challenge.Bytes())
+	require.NoError(t, err)
+
+	inputs := AuthV3Inputs{
+		GenesisID:          &user.ID,
+		ProfileNonce:       nonce,
+		AuthClaim:          user.AuthClaim,
+		AuthClaimIncMtp:    authClaimIncMTP,
+		AuthClaimNonRevMtp: authClaimNonRevMTP,
+		TreeState:          GetTreeState(t, user),
+		GISTProof: GISTProof{
+			Root:  gTree.Root(),
+			Proof: gistProof,
+		},
+		Signature: signature,
+		Challenge: challenge,
+	}
+
+	return inputs
+}
+
 func TestAuthV3Inputs_InputsMarshal(t *testing.T) {
 	inputs := authV3Inputs(t, false)
 	circuitInputJSON, err := inputs.InputsMarshal()
@@ -163,4 +217,70 @@ func TestAuthV3Circuit_CircuitUnmarshal(t *testing.T) {
 	j, err := json.Marshal(statesInfo)
 	require.NoError(t, err)
 	require.Equal(t, wantStatesInfo, statesInfo, string(j))
+}
+
+const authV3JsonData = `
+{
+  "authClaim" : [
+    "80551937543569765027552589160822318028",
+    "0",
+    "17640206035128972995519606214765283372613874593503528180869261482403155458945",
+    "20634138280259599560273310290025659992320584624461316485434108770067472477956",
+    "15930428023331155902",
+    "0",
+    "0",
+    "0"
+  ],
+  "authClaimIncMtp" : {
+    "existence" : true,
+    "siblings" : [
+      "0",
+      "13578938674299138072471463694055224830892726234048532520316387704878000008795"
+    ]
+  },
+  "authClaimNonRevMtp" : {
+    "existence" : false,
+    "siblings" : [ "3005730120051208390709623111132189920409688909294080732000390108904990744152" ]
+  },
+  "challenge" : "10",
+  "genesisID" : "tQomzpDTB6x4EJUaiwk153FVi96jeNfP9WjKp9xys",
+  "gistProof" : {
+    "proof" : {
+      "existence" : false,
+      "node_aux" : {
+        "key" : "1",
+        "value" : "2"
+      },
+      "siblings" : [
+        "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0", "0",
+        "0", "0",
+        "11098939821764568131087645431296528907277253709936443029379587475821759259406"
+      ]
+    },
+    "root" : "10122195826796332666844430824123240007331894618924395286730819280944339592481"
+  },
+  "profileNonce" : "0",
+  "signature" : "fccc15d7aed2bf4f5d7dbe55c81087970344d13e5d9f348e61965ac364f41d29b366b52bc0820c603877352054833da083f5595c29c881ccd8ee47aa639aa103",
+  "treeState" : {
+    "claimsRoot" : "1454909596806885589268441846089112629123179427429891648445730246232781889988",
+    "revocationRoot" : "12841889673319527479643314465312481019510706380873658586979489458448863021609",
+    "rootOfRoots" : "13578938674299138072471463694055224830892726234048532520316387704878000008795",
+    "state" : "15959766904303669625755872709643295491493606121401050835110518209820487836694"
+  }
+}`
+
+func TestAuthV3Inputs_JsonMarshal(t *testing.T) {
+	inputs := authV3Inputs_nonEmptyTrees(t)
+	inputsJson, err := json.Marshal(inputs)
+	require.NoError(t, err)
+	require.JSONEq(t, authV3JsonData, string(inputsJson))
+}
+
+func TestAuthV3Inputs_JsonUnmarshal(t *testing.T) {
+	var inputs AuthV3Inputs
+	err := json.Unmarshal([]byte(authV3JsonData), &inputs)
+	require.NoError(t, err)
+
+	wantInputs := authV3Inputs_nonEmptyTrees(t)
+	require.Equal(t, wantInputs, inputs)
 }
