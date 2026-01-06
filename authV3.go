@@ -30,22 +30,6 @@ type AuthV3Inputs struct {
 	Challenge *big.Int           `json:"challenge"`
 }
 
-func (a AuthV3Inputs) MarshalJSON() ([]byte, error) {
-	type Alias AuthV3Inputs
-
-	return json.Marshal(&struct {
-		*Alias
-		ProfileNonce *jsonInt       `json:"profileNonce"`
-		Challenge    *jsonInt       `json:"challenge"`
-		Signature    *jsonSignature `json:"signature"`
-	}{
-		Alias:        (*Alias)(&a),
-		ProfileNonce: (*jsonInt)(a.ProfileNonce),
-		Challenge:    (*jsonInt)(a.Challenge),
-		Signature:    (*jsonSignature)(a.Signature),
-	})
-}
-
 func (a AuthV3Inputs) Validate() error {
 
 	if a.GenesisID == nil {
@@ -137,6 +121,35 @@ func (a AuthV3Inputs) GetPublicStatesInfo() (StatesInfo, error) {
 			},
 		},
 	}, nil
+}
+
+type authV3JsonAlias AuthV3Inputs
+type authV3Json struct {
+	*authV3JsonAlias
+	ProfileNonce *jsonInt       `json:"profileNonce"`
+	Challenge    *jsonInt       `json:"challenge"`
+	Signature    *jsonSignature `json:"signature"`
+}
+
+func (a *AuthV3Inputs) UnmarshalJSON(bytes []byte) error {
+	aux := authV3Json{authV3JsonAlias: (*authV3JsonAlias)(a)}
+	err := json.Unmarshal(bytes, &aux)
+	if err != nil {
+		return err
+	}
+	a.ProfileNonce = aux.ProfileNonce.BigInt()
+	a.Challenge = aux.Challenge.BigInt()
+	a.Signature = (*babyjub.Signature)(aux.Signature)
+	return nil
+}
+
+func (a AuthV3Inputs) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&authV3Json{
+		authV3JsonAlias: (*authV3JsonAlias)(&a),
+		ProfileNonce:    (*jsonInt)(a.ProfileNonce),
+		Challenge:       (*jsonInt)(a.Challenge),
+		Signature:       (*jsonSignature)(a.Signature),
+	})
 }
 
 // AuthV3PubSignals authV3.circom/authV3-8-32.circom public signals
