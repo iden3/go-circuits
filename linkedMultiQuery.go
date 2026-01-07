@@ -16,9 +16,10 @@ const LinkedMultiQueryLength = 10
 // LinkedMultiQueryInputs type represent linkedMultiQuery10.circom inputs
 type LinkedMultiQueryInputs struct {
 	BaseConfig
-	LinkNonce *big.Int
-	Claim     *core.Claim
-	Query     []*Query
+	queryLength int
+	LinkNonce   *big.Int
+	Claim       *core.Claim
+	Query       []*Query
 }
 
 // linkedMultiQueryCircuitInputs type reflect linkedMultiQuery10.circom private inputs required by prover
@@ -51,7 +52,7 @@ func (l LinkedMultiQueryInputs) Validate() error {
 		return errors.New(ErrorEmptyQueries)
 	}
 
-	if len(l.Query) > LinkedMultiQueryLength {
+	if len(l.Query) > l.queryLength {
 		return errors.New(ErrorTooManyQueries)
 	}
 
@@ -69,6 +70,10 @@ func (l LinkedMultiQueryInputs) Validate() error {
 
 // InputsMarshal returns Circom private inputs for linkedMultiQuery10.circom
 func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
+	if l.queryLength == 0 {
+		l.queryLength = LinkedMultiQueryLength
+	}
+
 	if err := l.Validate(); err != nil {
 		return nil, err
 	}
@@ -78,18 +83,17 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 	s.IssuerClaim = l.Claim
 	s.ClaimSchema = l.Claim.GetSchemaHash().BigInt().String()
 
-	s.ClaimPathMtp = make([][]string, LinkedMultiQueryLength)
-	s.ClaimPathMtpNoAux = make([]string, LinkedMultiQueryLength)
-	s.ClaimPathMtpAuxHi = make([]*merkletree.Hash, LinkedMultiQueryLength)
-	s.ClaimPathMtpAuxHv = make([]*merkletree.Hash, LinkedMultiQueryLength)
-	s.ClaimPathKey = make([]string, LinkedMultiQueryLength)
-	s.ClaimPathValue = make([]string, LinkedMultiQueryLength)
-	s.SlotIndex = make([]int, LinkedMultiQueryLength)
-	s.Operator = make([]int, LinkedMultiQueryLength)
-	s.Value = make([][]string, LinkedMultiQueryLength)
-	s.ActualValueArraySize = make([]int, LinkedMultiQueryLength)
-
-	for i := 0; i < LinkedMultiQueryLength; i++ {
+	s.ClaimPathMtp = make([][]string, l.queryLength)
+	s.ClaimPathMtpNoAux = make([]string, l.queryLength)
+	s.ClaimPathMtpAuxHi = make([]*merkletree.Hash, l.queryLength)
+	s.ClaimPathMtpAuxHv = make([]*merkletree.Hash, l.queryLength)
+	s.ClaimPathKey = make([]string, l.queryLength)
+	s.ClaimPathValue = make([]string, l.queryLength)
+	s.SlotIndex = make([]int, l.queryLength)
+	s.Operator = make([]int, l.queryLength)
+	s.Value = make([][]string, l.queryLength)
+	s.ActualValueArraySize = make([]int, l.queryLength)
+	for i := 0; i < l.queryLength; i++ {
 		if i >= len(l.Query) || l.Query[i] == nil {
 			s.ClaimPathMtp[i] = PrepareSiblingsStr([]*merkletree.Hash{}, l.GetMTLevelsClaim())
 
@@ -150,6 +154,7 @@ type LinkedMultiQueryPubSignals struct {
 	Merklized        int        `json:"merklized"`
 	OperatorOutput   []*big.Int `json:"operatorOutput"`
 	CircuitQueryHash []*big.Int `json:"circuitQueryHash"`
+	queryLength      int
 }
 
 // PubSignalsUnmarshal unmarshal linkedMultiQuery10.circom public inputs to LinkedMultiQueryPubSignals
@@ -160,7 +165,11 @@ func (lo *LinkedMultiQueryPubSignals) PubSignalsUnmarshal(data []byte) error {
 	// operatorOutput
 	// circuitQueryHash
 
-	outputsLength := LinkedMultiQueryLength*2 + 2
+	if lo.queryLength == 0 {
+		lo.queryLength = LinkedMultiQueryLength
+	}
+
+	outputsLength := lo.queryLength*2 + 2
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
@@ -187,16 +196,16 @@ func (lo *LinkedMultiQueryPubSignals) PubSignalsUnmarshal(data []byte) error {
 	fieldIdx++
 
 	// -- operatorOutput
-	lo.OperatorOutput = make([]*big.Int, LinkedMultiQueryLength)
-	for i := 0; i < LinkedMultiQueryLength; i++ {
+	lo.OperatorOutput = make([]*big.Int, lo.queryLength)
+	for i := 0; i < lo.queryLength; i++ {
 		if lo.OperatorOutput[i], ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 			return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
 		}
 		fieldIdx++
 	}
 	// -- circuitQueryHash
-	lo.CircuitQueryHash = make([]*big.Int, LinkedMultiQueryLength)
-	for i := 0; i < LinkedMultiQueryLength; i++ {
+	lo.CircuitQueryHash = make([]*big.Int, lo.queryLength)
+	for i := 0; i < lo.queryLength; i++ {
 		if lo.CircuitQueryHash[i], ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 			return fmt.Errorf("invalid query hash value: '%s'", sVals[fieldIdx])
 		}

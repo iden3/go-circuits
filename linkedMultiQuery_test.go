@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"math/big"
+	"strconv"
 	"testing"
 
 	it "github.com/iden3/go-circuits/v2/testing"
@@ -137,60 +138,96 @@ func TestLinkedMultiQueryInputs_PrepareInputs_Error(t *testing.T) {
 }
 
 func TestLinkedMultiQueryPubSignals_CircuitUnmarshal(t *testing.T) {
-	out := new(LinkedMultiQueryPubSignals)
-	err := out.PubSignalsUnmarshal([]byte(
-		`[
-			"443",
+	outs := map[int][]string{
+		3: {
+			"11587660915189382633314527098062647837126752531205087409048618395969242885016",
+			"0",
+			"0",
+			"0",
+			"0",
+			"9458417390459068300741864705379630488534450155484493792325907355745201035449",
+			"10864698602219511323750171112812294233505545576258213541845435681330532958075",
+			"5365138871441717895206514697230448654236988235704905467582456422975445794731",
+		},
+		5: {
+			"20336008450539684768013573494073798243349685857640613070314041678185349736439",
 			"1",
-			"1",
-			"2",
-			"3",
-			"4",
-			"5",
 			"0",
 			"0",
 			"0",
 			"0",
 			"0",
-			"100",
-			"200",
-			"300",
-			"400",
-			"500",
+			"3326382892536126749483088946048689911243394580824744244053752370464747528203",
+			"9907132056133666096701539062450765284880813426582692863734448403438789333698",
+			"13362042977965885903820557513534065802896288300017199700677633721405805677442",
+			"13362042977965885903820557513534065802896288300017199700677633721405805677442",
+			"13362042977965885903820557513534065802896288300017199700677633721405805677442",
+		},
+		10: {
+			"11587660915189382633314527098062647837126752531205087409048618395969242885016",
 			"0",
 			"0",
 			"0",
 			"0",
-			"0"
-		]`))
-	require.NoError(t, err)
-
-	operatorOutput := make([]*big.Int, 10)
-	circuitQueryHash := make([]*big.Int, 10)
-	valueArrSize := make([]int, 10)
-	for i := 1; i <= 10; i++ {
-		indx := i - 1
-		operatorOutput[indx] = big.NewInt((int64(i)))
-		circuitQueryHash[indx] = big.NewInt(int64(i * 100))
-		valueArrSize[indx] = 1
-		if i > 5 {
-			operatorOutput[indx] = big.NewInt(0)
-			circuitQueryHash[indx] = big.NewInt(0)
-			valueArrSize[indx] = 0
-		}
+			"0",
+			"0",
+			"0",
+			"0",
+			"0",
+			"0",
+			"0",
+			"9458417390459068300741864705379630488534450155484493792325907355745201035449",
+			"10864698602219511323750171112812294233505545576258213541845435681330532958075",
+			"5365138871441717895206514697230448654236988235704905467582456422975445794731",
+			"6552534440600411908158043655342660449140617599402291128616319085888035740680",
+			"6552534440600411908158043655342660449140617599402291128616319085888035740680",
+			"6552534440600411908158043655342660449140617599402291128616319085888035740680",
+			"6552534440600411908158043655342660449140617599402291128616319085888035740680",
+			"6552534440600411908158043655342660449140617599402291128616319085888035740680",
+			"6552534440600411908158043655342660449140617599402291128616319085888035740680",
+			"6552534440600411908158043655342660449140617599402291128616319085888035740680",
+		},
 	}
 
-	exp := LinkedMultiQueryPubSignals{
-		LinkID:           big.NewInt(443),
-		Merklized:        1,
-		OperatorOutput:   operatorOutput,
-		CircuitQueryHash: circuitQueryHash,
+	for queriesCount, out := range outs {
+		t.Run(fmt.Sprintf("LinkedMultiQueryPubSignals_CircuitUnmarshal_%d", queriesCount), func(t *testing.T) {
+			ao := &LinkedMultiQueryPubSignals{
+				queryLength: queriesCount,
+			}
+
+			jsonData, err := json.Marshal(out)
+			require.NoError(t, err)
+
+			err = ao.PubSignalsUnmarshal(jsonData)
+			require.NoError(t, err)
+
+			// Check linkID (out[0])
+			expectedLinkID, ok := big.NewInt(0).SetString(out[0], 10)
+			require.True(t, ok, "failed to parse linkID")
+			require.Equal(t, expectedLinkID, ao.LinkID)
+
+			// Check merklized (out[1])
+			expectedMerklized, err := strconv.Atoi(out[1])
+			require.NoError(t, err)
+			require.Equal(t, expectedMerklized, ao.Merklized)
+
+			// Check operatorOutput (out.slice(2, 2 + queriesCount))
+			expectedOperatorOutput := make([]*big.Int, queriesCount)
+			for i := 0; i < queriesCount; i++ {
+				val, ok := big.NewInt(0).SetString(out[2+i], 10)
+				require.True(t, ok, fmt.Sprintf("failed to parse operatorOutput[%d]", i))
+				expectedOperatorOutput[i] = val
+			}
+			require.Equal(t, expectedOperatorOutput, ao.OperatorOutput)
+
+			// Check circuitQueryHash (out.slice(2 + queriesCount, 2 + queriesCount * 2))
+			expectedCircuitQueryHash := make([]*big.Int, queriesCount)
+			for i := 0; i < queriesCount; i++ {
+				val, ok := big.NewInt(0).SetString(out[2+queriesCount+i], 10)
+				require.True(t, ok, fmt.Sprintf("failed to parse circuitQueryHash[%d]", i))
+				expectedCircuitQueryHash[i] = val
+			}
+			require.Equal(t, expectedCircuitQueryHash, ao.CircuitQueryHash)
+		})
 	}
-
-	jsonOut, err := json.Marshal(out)
-	require.NoError(t, err)
-	jsonExp, err := json.Marshal(exp)
-	require.NoError(t, err)
-
-	require.JSONEq(t, string(jsonExp), string(jsonOut))
 }
