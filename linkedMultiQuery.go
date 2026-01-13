@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+// LinkedMultiQueryLength constant for linkedMultiQuery10.circom
 const LinkedMultiQueryLength = 10
 
 // LinkedMultiQueryInputs type represent linkedMultiQuery10.circom inputs
