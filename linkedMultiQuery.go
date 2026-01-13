@@ -41,6 +41,10 @@ type linkedMultiQueryCircuitInputs struct {
 }
 
 func (l LinkedMultiQueryInputs) Validate() error {
+	if l.QueryLength == 0 {
+		l.QueryLength = LinkedMultiQueryLength
+	}
+
 	if l.LinkNonce == nil {
 		return errors.New(ErrorEmptyLinkNonce)
 	}

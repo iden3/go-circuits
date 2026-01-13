@@ -162,25 +162,16 @@ func GetCircuitIdsWithSubVersions(filter []CircuitID) []CircuitID {
 // GetGroupedCircuitIdsWithSubVersions returns all circuit IDs grouped with their sub-versions for a given filter ID.
 func GetGroupedCircuitIdsWithSubVersions(filter CircuitID) []CircuitID {
 	for base, item := range CircuitValidator {
-		group := []CircuitID{base}
+		group := make([]CircuitID, 0, 1+len(item.SubVersions))
+		group = append(group, base)
 		for _, sv := range item.SubVersions {
 			group = append(group, sv.TargetCircuitId)
 		}
-
 		for _, id := range group {
 			if id == filter {
 				return group
 			}
 		}
 	}
-
-	if item, ok := CircuitValidator[filter]; ok {
-		group := []CircuitID{filter}
-		for _, sv := range item.SubVersions {
-			group = append(group, sv.TargetCircuitId)
-		}
-		return group
-	}
-
 	return []CircuitID{filter}
 }
