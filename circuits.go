@@ -160,19 +160,19 @@ func init() {
 
 	RegisterCircuit(LinkedMultiQuery10CircuitID, Data{
 		Input: LinkedMultiQueryInputs{
-			queryLength: LinkedMultiQueryLength,
+			QueryLength: LinkedMultiQueryLength,
 		},
 		Output: &LinkedMultiQueryPubSignals{
-			queryLength: LinkedMultiQueryLength,
+			QueryLength: LinkedMultiQueryLength,
 		},
 	})
 
 	RegisterCircuit(LinkedMultiQuery10StableCircuitID, Data{
 		Input: LinkedMultiQueryInputs{
-			queryLength: LinkedMultiQueryLength,
+			QueryLength: LinkedMultiQueryLength,
 		},
 		Output: &LinkedMultiQueryPubSignals{
-			queryLength: LinkedMultiQueryLength,
+			QueryLength: LinkedMultiQueryLength,
 		},
 	})
 }

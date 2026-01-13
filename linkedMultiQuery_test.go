@@ -192,7 +192,7 @@ func TestLinkedMultiQueryPubSignals_CircuitUnmarshal(t *testing.T) {
 	for queriesCount, out := range outs {
 		t.Run(fmt.Sprintf("LinkedMultiQueryPubSignals_CircuitUnmarshal_%d", queriesCount), func(t *testing.T) {
 			ao := &LinkedMultiQueryPubSignals{
-				queryLength: queriesCount,
+				QueryLength: queriesCount,
 			}
 
 			jsonData, err := json.Marshal(out)
