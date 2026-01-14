@@ -31,7 +31,7 @@ func (k LevelKey) Get(sv CircuitSubversion) *int {
 	}
 }
 
-// SelectV3TargetCircuit selects the appropriate CircuitSubversion for V3 circuits
+// SelectV3TargetCircuit selects the appropriate CircuitSubversion for V3 circuits.
 func SelectV3TargetCircuit(
 	circuitID CircuitID,
 	treesToCheck []TreesToCheck,
@@ -73,6 +73,7 @@ func SelectV3TargetCircuit(
 				MTLevelClaim:    sv.MTLevelClaim,
 				MTLevelOnChain:  sv.MTLevelOnChain,
 				TargetCircuitId: sv.TargetCircuitId,
+				QueryCount:      sv.QueryCount,
 			}
 		}
 	}
