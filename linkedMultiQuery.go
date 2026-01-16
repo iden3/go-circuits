@@ -11,17 +11,19 @@ import (
 	"github.com/pkg/errors"
 )
 
+// LinkedMultiQueryLength constant for linkedMultiQuery.circom
 const LinkedMultiQueryLength = 10
 
-// LinkedMultiQueryInputs type represent linkedMultiQuery10.circom inputs
+// LinkedMultiQueryInputs type represent linkedMultiQuery.circom inputs
 type LinkedMultiQueryInputs struct {
 	BaseConfig
-	LinkNonce *big.Int
-	Claim     *core.Claim
-	Query     []*Query
+	QueryLength int
+	LinkNonce   *big.Int
+	Claim       *core.Claim
+	Query       []*Query
 }
 
-// linkedMultiQueryCircuitInputs type reflect linkedMultiQuery10.circom private inputs required by prover
+// linkedMultiQueryCircuitInputs type reflect linkedMultiQuery.circom private inputs required by prover
 type linkedMultiQueryCircuitInputs struct {
 	LinkNonce            string             `json:"linkNonce"`
 	IssuerClaim          *core.Claim        `json:"issuerClaim"`
@@ -39,6 +41,10 @@ type linkedMultiQueryCircuitInputs struct {
 }
 
 func (l LinkedMultiQueryInputs) Validate() error {
+	if l.QueryLength == 0 {
+		l.QueryLength = LinkedMultiQueryLength
+	}
+
 	if l.LinkNonce == nil {
 		return errors.New(ErrorEmptyLinkNonce)
 	}
@@ -51,7 +57,7 @@ func (l LinkedMultiQueryInputs) Validate() error {
 		return errors.New(ErrorEmptyQueries)
 	}
 
-	if len(l.Query) > LinkedMultiQueryLength {
+	if len(l.Query) > l.QueryLength {
 		return errors.New(ErrorTooManyQueries)
 	}
 
@@ -67,8 +73,12 @@ func (l LinkedMultiQueryInputs) Validate() error {
 	return nil
 }
 
-// InputsMarshal returns Circom private inputs for linkedMultiQuery10.circom
+// InputsMarshal returns Circom private inputs for linkedMultiQuery.circom
 func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
+	if l.QueryLength == 0 {
+		l.QueryLength = LinkedMultiQueryLength
+	}
+
 	if err := l.Validate(); err != nil {
 		return nil, err
 	}
@@ -78,18 +88,17 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 	s.IssuerClaim = l.Claim
 	s.ClaimSchema = l.Claim.GetSchemaHash().BigInt().String()
 
-	s.ClaimPathMtp = make([][]string, LinkedMultiQueryLength)
-	s.ClaimPathMtpNoAux = make([]string, LinkedMultiQueryLength)
-	s.ClaimPathMtpAuxHi = make([]*merkletree.Hash, LinkedMultiQueryLength)
-	s.ClaimPathMtpAuxHv = make([]*merkletree.Hash, LinkedMultiQueryLength)
-	s.ClaimPathKey = make([]string, LinkedMultiQueryLength)
-	s.ClaimPathValue = make([]string, LinkedMultiQueryLength)
-	s.SlotIndex = make([]int, LinkedMultiQueryLength)
-	s.Operator = make([]int, LinkedMultiQueryLength)
-	s.Value = make([][]string, LinkedMultiQueryLength)
-	s.ActualValueArraySize = make([]int, LinkedMultiQueryLength)
-
-	for i := 0; i < LinkedMultiQueryLength; i++ {
+	s.ClaimPathMtp = make([][]string, l.QueryLength)
+	s.ClaimPathMtpNoAux = make([]string, l.QueryLength)
+	s.ClaimPathMtpAuxHi = make([]*merkletree.Hash, l.QueryLength)
+	s.ClaimPathMtpAuxHv = make([]*merkletree.Hash, l.QueryLength)
+	s.ClaimPathKey = make([]string, l.QueryLength)
+	s.ClaimPathValue = make([]string, l.QueryLength)
+	s.SlotIndex = make([]int, l.QueryLength)
+	s.Operator = make([]int, l.QueryLength)
+	s.Value = make([][]string, l.QueryLength)
+	s.ActualValueArraySize = make([]int, l.QueryLength)
+	for i := 0; i < l.QueryLength; i++ {
 		if i >= len(l.Query) || l.Query[i] == nil {
 			s.ClaimPathMtp[i] = PrepareSiblingsStr([]*merkletree.Hash{}, l.GetMTLevelsClaim())
 
@@ -144,15 +153,16 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// LinkedMultiQueryPubSignals linkedMultiQuery10.circom public signals
+// LinkedMultiQueryPubSignals linkedMultiQuery.circom public signals
 type LinkedMultiQueryPubSignals struct {
 	LinkID           *big.Int   `json:"linkID"`
 	Merklized        int        `json:"merklized"`
 	OperatorOutput   []*big.Int `json:"operatorOutput"`
 	CircuitQueryHash []*big.Int `json:"circuitQueryHash"`
+	QueryLength      int
 }
 
-// PubSignalsUnmarshal unmarshal linkedMultiQuery10.circom public inputs to LinkedMultiQueryPubSignals
+// PubSignalsUnmarshal unmarshal linkedMultiQuery.circom public inputs to LinkedMultiQueryPubSignals
 func (lo *LinkedMultiQueryPubSignals) PubSignalsUnmarshal(data []byte) error {
 	// expected order:
 	// linkID
@@ -160,7 +170,11 @@ func (lo *LinkedMultiQueryPubSignals) PubSignalsUnmarshal(data []byte) error {
 	// operatorOutput
 	// circuitQueryHash
 
-	outputsLength := LinkedMultiQueryLength*2 + 2
+	if lo.QueryLength == 0 {
+		lo.QueryLength = LinkedMultiQueryLength
+	}
+
+	outputsLength := lo.QueryLength*2 + 2
 	var sVals []string
 	err := json.Unmarshal(data, &sVals)
 	if err != nil {
@@ -187,16 +201,16 @@ func (lo *LinkedMultiQueryPubSignals) PubSignalsUnmarshal(data []byte) error {
 	fieldIdx++
 
 	// -- operatorOutput
-	lo.OperatorOutput = make([]*big.Int, LinkedMultiQueryLength)
-	for i := 0; i < LinkedMultiQueryLength; i++ {
+	lo.OperatorOutput = make([]*big.Int, lo.QueryLength)
+	for i := 0; i < lo.QueryLength; i++ {
 		if lo.OperatorOutput[i], ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 			return fmt.Errorf("invalid operator output value: '%s'", sVals[fieldIdx])
 		}
 		fieldIdx++
 	}
 	// -- circuitQueryHash
-	lo.CircuitQueryHash = make([]*big.Int, LinkedMultiQueryLength)
-	for i := 0; i < LinkedMultiQueryLength; i++ {
+	lo.CircuitQueryHash = make([]*big.Int, lo.QueryLength)
+	for i := 0; i < lo.QueryLength; i++ {
 		if lo.CircuitQueryHash[i], ok = big.NewInt(0).SetString(sVals[fieldIdx], 10); !ok {
 			return fmt.Errorf("invalid query hash value: '%s'", sVals[fieldIdx])
 		}
