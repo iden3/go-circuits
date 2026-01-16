@@ -44,8 +44,8 @@ func TestGetCircuitIdsWithSubVersions_NoFilter_ReturnsAllBaseAndSubVersions(t *t
 	requireContainsAll(t, got, []CircuitID{
 		CircuitID(string(AtomicQueryV3StableCircuitID) + "-16-16-64"),
 		CircuitID(string(AtomicQueryV3OnChainStableCircuitID) + "-16-16-64-16-32"),
-		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "3"),
-		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "5"),
+		CircuitID(LinkedMultiQueryStableCircuitID + "3"),
+		CircuitID(LinkedMultiQueryStableCircuitID + "5"),
 	})
 }
 
@@ -62,8 +62,8 @@ func TestGetCircuitIdsWithSubVersions_WithFilter_IncludesOnlyFilteredBasesAndThe
 		CircuitID(string(AtomicQueryV3StableCircuitID) + "-16-16-64"),
 
 		LinkedMultiQueryStableCircuitID,
-		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "3"),
-		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "5"),
+		CircuitID(LinkedMultiQueryStableCircuitID + "3"),
+		CircuitID(LinkedMultiQueryStableCircuitID + "5"),
 	}
 
 	requireEqualAsSet(t, got, want)
@@ -111,22 +111,20 @@ func TestGetGroupedCircuitIdsWithSubVersions_LinkedMultiQueryStable_SubGroups(t 
 
 	want := []CircuitID{
 		LinkedMultiQueryStableCircuitID,
-		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "3"),
-		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "5"),
+		CircuitID(LinkedMultiQueryStableCircuitID + "3"),
+		CircuitID(LinkedMultiQueryStableCircuitID + "5"),
 	}
-
 	requireEqualAsSet(t, got, want)
 }
 
 func TestGetGroupedCircuitIdsWithSubVersions_LinkedMultiQueryStable_SubVersionLookup(t *testing.T) {
-	sub3 := CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "3")
-
+	sub3 := CircuitID(LinkedMultiQueryStableCircuitID + "3")
 	got := GetGroupedCircuitIdsWithSubVersions(sub3)
 
 	want := []CircuitID{
 		LinkedMultiQueryStableCircuitID,
 		sub3,
-		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "5"),
+		CircuitID(LinkedMultiQueryStableCircuitID + "5"),
 	}
 
 	requireEqualAsSet(t, got, want)

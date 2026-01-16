@@ -118,11 +118,11 @@ var CircuitValidator = map[CircuitID]CircuitValidatorItem{
 		SubVersions: []CircuitSubversion{
 			{
 				QueryCount:      intPtr(3),
-				TargetCircuitId: CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "3"),
+				TargetCircuitId: CircuitID(LinkedMultiQueryStableCircuitID + "3"),
 			},
 			{
 				QueryCount:      intPtr(5),
-				TargetCircuitId: CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "5"),
+				TargetCircuitId: CircuitID(LinkedMultiQueryStableCircuitID + "5"),
 			},
 		},
 	},
