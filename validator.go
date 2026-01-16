@@ -110,7 +110,7 @@ var CircuitValidator = map[CircuitID]CircuitValidatorItem{
 		},
 	},
 
-	LinkedMultiQuery10StableCircuitID: {
+	LinkedMultiQueryStableCircuitID: {
 		Validation: Validation{
 			MaxQueriesCount:     10,
 			SupportedOperations: AllOperations,
@@ -118,11 +118,11 @@ var CircuitValidator = map[CircuitID]CircuitValidatorItem{
 		SubVersions: []CircuitSubversion{
 			{
 				QueryCount:      intPtr(3),
-				TargetCircuitId: CircuitID(string(LinkedMultiQuery10StableCircuitID[:len(LinkedMultiQuery10StableCircuitID)-2]) + "3"),
+				TargetCircuitId: CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "3"),
 			},
 			{
 				QueryCount:      intPtr(5),
-				TargetCircuitId: CircuitID(string(LinkedMultiQuery10StableCircuitID[:len(LinkedMultiQuery10StableCircuitID)-2]) + "5"),
+				TargetCircuitId: CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "5"),
 			},
 		},
 	},

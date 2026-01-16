@@ -38,21 +38,21 @@ func TestGetCircuitIdsWithSubVersions_NoFilter_ReturnsAllBaseAndSubVersions(t *t
 		LinkedMultiQuery10CircuitID,
 		AtomicQueryV3StableCircuitID,
 		AtomicQueryV3OnChainStableCircuitID,
-		LinkedMultiQuery10StableCircuitID,
+		LinkedMultiQueryStableCircuitID,
 	})
 
 	requireContainsAll(t, got, []CircuitID{
 		CircuitID(string(AtomicQueryV3StableCircuitID) + "-16-16-64"),
 		CircuitID(string(AtomicQueryV3OnChainStableCircuitID) + "-16-16-64-16-32"),
-		CircuitID(string(LinkedMultiQuery10StableCircuitID[:len(LinkedMultiQuery10StableCircuitID)-2]) + "3"),
-		CircuitID(string(LinkedMultiQuery10StableCircuitID[:len(LinkedMultiQuery10StableCircuitID)-2]) + "5"),
+		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "3"),
+		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "5"),
 	})
 }
 
 func TestGetCircuitIdsWithSubVersions_WithFilter_IncludesOnlyFilteredBasesAndTheirSubVersions(t *testing.T) {
 	filter := []CircuitID{
 		AtomicQueryV3StableCircuitID,
-		LinkedMultiQuery10StableCircuitID,
+		LinkedMultiQueryStableCircuitID,
 	}
 
 	got := GetCircuitIdsWithSubVersions(filter)
@@ -61,9 +61,9 @@ func TestGetCircuitIdsWithSubVersions_WithFilter_IncludesOnlyFilteredBasesAndThe
 		AtomicQueryV3StableCircuitID,
 		CircuitID(string(AtomicQueryV3StableCircuitID) + "-16-16-64"),
 
-		LinkedMultiQuery10StableCircuitID,
-		CircuitID(string(LinkedMultiQuery10StableCircuitID[:len(LinkedMultiQuery10StableCircuitID)-2]) + "3"),
-		CircuitID(string(LinkedMultiQuery10StableCircuitID[:len(LinkedMultiQuery10StableCircuitID)-2]) + "5"),
+		LinkedMultiQueryStableCircuitID,
+		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "3"),
+		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "5"),
 	}
 
 	requireEqualAsSet(t, got, want)
@@ -107,26 +107,26 @@ func TestGetGroupedCircuitIdsWithSubVersions_Unknown_ReturnsSingleton(t *testing
 }
 
 func TestGetGroupedCircuitIdsWithSubVersions_LinkedMultiQueryStable_SubGroups(t *testing.T) {
-	got := GetGroupedCircuitIdsWithSubVersions(LinkedMultiQuery10StableCircuitID)
+	got := GetGroupedCircuitIdsWithSubVersions(LinkedMultiQueryStableCircuitID)
 
 	want := []CircuitID{
-		LinkedMultiQuery10StableCircuitID,
-		CircuitID(string(LinkedMultiQuery10StableCircuitID[:len(LinkedMultiQuery10StableCircuitID)-2]) + "3"),
-		CircuitID(string(LinkedMultiQuery10StableCircuitID[:len(LinkedMultiQuery10StableCircuitID)-2]) + "5"),
+		LinkedMultiQueryStableCircuitID,
+		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "3"),
+		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "5"),
 	}
 
 	requireEqualAsSet(t, got, want)
 }
 
 func TestGetGroupedCircuitIdsWithSubVersions_LinkedMultiQueryStable_SubVersionLookup(t *testing.T) {
-	sub3 := CircuitID(string(LinkedMultiQuery10StableCircuitID[:len(LinkedMultiQuery10StableCircuitID)-2]) + "3")
+	sub3 := CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "3")
 
 	got := GetGroupedCircuitIdsWithSubVersions(sub3)
 
 	want := []CircuitID{
-		LinkedMultiQuery10StableCircuitID,
+		LinkedMultiQueryStableCircuitID,
 		sub3,
-		CircuitID(string(LinkedMultiQuery10StableCircuitID[:len(LinkedMultiQuery10StableCircuitID)-2]) + "5"),
+		CircuitID(string(LinkedMultiQueryStableCircuitID[:len(LinkedMultiQueryStableCircuitID)-2]) + "5"),
 	}
 
 	requireEqualAsSet(t, got, want)

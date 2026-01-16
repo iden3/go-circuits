@@ -54,8 +54,8 @@ const (
 	AtomicQueryV3StableCircuitID CircuitID = "credentialAtomicQueryV3"
 	// AtomicQueryV3OnChainStableCircuitID is a type for credentialAtomicQueryV3OnChain.circom stable version
 	AtomicQueryV3OnChainStableCircuitID CircuitID = "credentialAtomicQueryV3OnChain"
-	// LinkedMultiQuery10StableCircuitID is a type for linkedMultiQuery10.circom stable version
-	LinkedMultiQuery10StableCircuitID CircuitID = "linkedMultiQuery10"
+	// LinkedMultiQueryStableCircuitID is a type for linkedMultiQuery.circom stable version
+	LinkedMultiQueryStableCircuitID CircuitID = "linkedMultiQuery"
 )
 
 // ErrorCircuitIDNotFound returns if CircuitID is not registered
@@ -167,7 +167,7 @@ func init() {
 		},
 	})
 
-	RegisterCircuit(LinkedMultiQuery10StableCircuitID, Data{
+	RegisterCircuit(LinkedMultiQueryStableCircuitID, Data{
 		Input: LinkedMultiQueryInputs{
 			QueryLength: LinkedMultiQueryLength,
 		},

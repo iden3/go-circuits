@@ -11,10 +11,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-// LinkedMultiQueryLength constant for linkedMultiQuery10.circom
+// LinkedMultiQueryLength constant for linkedMultiQuery.circom
 const LinkedMultiQueryLength = 10
 
-// LinkedMultiQueryInputs type represent linkedMultiQuery10.circom inputs
+// LinkedMultiQueryInputs type represent linkedMultiQuery.circom inputs
 type LinkedMultiQueryInputs struct {
 	BaseConfig
 	QueryLength int
@@ -23,7 +23,7 @@ type LinkedMultiQueryInputs struct {
 	Query       []*Query
 }
 
-// linkedMultiQueryCircuitInputs type reflect linkedMultiQuery10.circom private inputs required by prover
+// linkedMultiQueryCircuitInputs type reflect linkedMultiQuery.circom private inputs required by prover
 type linkedMultiQueryCircuitInputs struct {
 	LinkNonce            string             `json:"linkNonce"`
 	IssuerClaim          *core.Claim        `json:"issuerClaim"`
@@ -73,7 +73,7 @@ func (l LinkedMultiQueryInputs) Validate() error {
 	return nil
 }
 
-// InputsMarshal returns Circom private inputs for linkedMultiQuery10.circom
+// InputsMarshal returns Circom private inputs for linkedMultiQuery.circom
 func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 	if l.QueryLength == 0 {
 		l.QueryLength = LinkedMultiQueryLength
@@ -153,7 +153,7 @@ func (l LinkedMultiQueryInputs) InputsMarshal() ([]byte, error) {
 	return json.Marshal(s)
 }
 
-// LinkedMultiQueryPubSignals linkedMultiQuery10.circom public signals
+// LinkedMultiQueryPubSignals linkedMultiQuery.circom public signals
 type LinkedMultiQueryPubSignals struct {
 	LinkID           *big.Int   `json:"linkID"`
 	Merklized        int        `json:"merklized"`
@@ -162,7 +162,7 @@ type LinkedMultiQueryPubSignals struct {
 	QueryLength      int
 }
 
-// PubSignalsUnmarshal unmarshal linkedMultiQuery10.circom public inputs to LinkedMultiQueryPubSignals
+// PubSignalsUnmarshal unmarshal linkedMultiQuery.circom public inputs to LinkedMultiQueryPubSignals
 func (lo *LinkedMultiQueryPubSignals) PubSignalsUnmarshal(data []byte) error {
 	// expected order:
 	// linkID
