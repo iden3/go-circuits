@@ -1,6 +1,9 @@
 package circuits
 
-import "github.com/iden3/go-merkletree-sql/v2"
+import (
+	"github.com/iden3/go-merkletree-sql/v2"
+	"github.com/pkg/errors"
+)
 
 // TreesToCheck holds a Merkle proof and the corresponding level key to check against.
 type TreesToCheck struct {
@@ -78,4 +81,41 @@ func SelectV3TargetCircuit(
 		}
 	}
 	return nil
+}
+
+// SelectLinkedMultiQueryCircuit selects the appropriate CircuitSubversion for linked multi-query circuits.
+func SelectLinkedMultiQueryCircuit(
+	circuitID CircuitID,
+	queriesCount int,
+) (*CircuitSubversion, error) {
+	if queriesCount > LinkedMultiQueryLength {
+		return nil, errors.New(ErrorTooManyQueries)
+	}
+
+	if circuitID == LinkedMultiQuery10CircuitID {
+		return &CircuitSubversion{
+			TargetCircuitId: LinkedMultiQuery10CircuitID,
+			QueryCount:      intPtr(LinkedMultiQueryLength),
+		}, nil
+	}
+	item, ok := CircuitValidator[LinkedMultiQueryStableCircuitID]
+	if !ok || len(item.SubVersions) == 0 {
+		return nil, errors.New(ErrorNoCiruitsValidatorEntry)
+	}
+	for i := range item.SubVersions {
+		sv := item.SubVersions[i]
+		if sv.QueryCount != nil && *sv.QueryCount >= queriesCount {
+			return &CircuitSubversion{
+				MTLevel:         sv.MTLevel,
+				MTLevelClaim:    sv.MTLevelClaim,
+				MTLevelOnChain:  sv.MTLevelOnChain,
+				TargetCircuitId: sv.TargetCircuitId,
+				QueryCount:      sv.QueryCount,
+			}, nil
+		}
+	}
+	return &CircuitSubversion{
+		QueryCount:      intPtr(LinkedMultiQueryLength),
+		TargetCircuitId: LinkedMultiQueryStableCircuitID,
+	}, nil
 }

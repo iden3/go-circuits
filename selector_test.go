@@ -123,3 +123,61 @@ func TestSelectV3TargetCircuit_OnChain_RequiresMTLevelOnChain(t *testing.T) {
 	require.Equal(t, CircuitID("good-onchain"), got.TargetCircuitId)
 	require.Equal(t, pass, *got.MTLevelOnChain)
 }
+
+func TestSelectLinkedMultiQueryCircuit_Special10(t *testing.T) {
+	sv, err := SelectLinkedMultiQueryCircuit(LinkedMultiQuery10CircuitID, 1)
+	require.NoError(t, err)
+	require.NotNil(t, sv)
+	require.Equal(t, LinkedMultiQuery10CircuitID, sv.TargetCircuitId)
+	require.NotNil(t, sv.QueryCount)
+	require.Equal(t, 10, *sv.QueryCount)
+
+	sv2, err := SelectLinkedMultiQueryCircuit(LinkedMultiQuery10CircuitID, 11)
+	require.Error(t, err)
+	require.Nil(t, sv2)
+
+	sv3, err := SelectLinkedMultiQueryCircuit(LinkedMultiQueryStableCircuitID, 11)
+	require.Error(t, err)
+	require.Nil(t, sv3)
+}
+
+func TestSelectLinkedMultiQueryCircuit_StableSelection(t *testing.T) {
+	tests := []struct {
+		name         string
+		queriesCount int
+		wantQC       int
+		wantTarget   CircuitID
+	}{
+		{"1->3", 1, 3, CircuitID(string(LinkedMultiQueryStableCircuitID) + "3")},
+		{"3->3", 3, 3, CircuitID(string(LinkedMultiQueryStableCircuitID) + "3")},
+		{"4->5", 4, 5, CircuitID(string(LinkedMultiQueryStableCircuitID) + "5")},
+		{"5->5", 5, 5, CircuitID(string(LinkedMultiQueryStableCircuitID) + "5")},
+		{"6->10", 6, 10, CircuitID(string(LinkedMultiQueryStableCircuitID))},
+		{"10->10", 10, 10, CircuitID(string(LinkedMultiQueryStableCircuitID))},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			sv, err := SelectLinkedMultiQueryCircuit(LinkedMultiQueryStableCircuitID, tt.queriesCount)
+			require.NoError(t, err)
+			require.NotNil(t, sv)
+			require.NotNil(t, sv.QueryCount)
+			require.Equal(t, tt.wantQC, *sv.QueryCount)
+			require.Equal(t, tt.wantTarget, sv.TargetCircuitId)
+		})
+	}
+}
+
+func TestSelectLinkedMultiQueryCircuit_NoValidatorEntry(t *testing.T) {
+	orig, hadOrig := CircuitValidator[LinkedMultiQueryStableCircuitID]
+	delete(CircuitValidator, LinkedMultiQueryStableCircuitID)
+	t.Cleanup(func() {
+		if hadOrig {
+			CircuitValidator[LinkedMultiQueryStableCircuitID] = orig
+		}
+	})
+
+	sv, err := SelectLinkedMultiQueryCircuit(LinkedMultiQueryStableCircuitID, 1)
+	require.Nil(t, sv)
+	require.Error(t, err)
+}

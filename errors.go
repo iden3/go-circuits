@@ -31,4 +31,5 @@ const (
 	ErrorInvalidValuesArrSize            = "invalid query Values array size"
 	ErrorEmptyStateHash                  = "empty state hash"
 	ErrorUserProfileMismatch             = "profile DID derived from genesis does not match the credential subject or incorrect profile nonce"
+	ErrorNoCiruitsValidatorEntry         = "no circuits validator entry found for the given circuit ID"
 )
