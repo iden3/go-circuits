@@ -98,9 +98,12 @@ func SelectLinkedMultiQueryCircuit(
 			QueryCount:      intPtr(LinkedMultiQueryLength),
 		}, nil
 	}
+	if circuitID != LinkedMultiQueryStableCircuitID {
+		return nil, errors.New(ErrorNoCircuitsValidatorEntry)
+	}
 	item, ok := CircuitValidator[LinkedMultiQueryStableCircuitID]
 	if !ok || len(item.SubVersions) == 0 {
-		return nil, errors.New(ErrorNoCiruitsValidatorEntry)
+		return nil, errors.New(ErrorNoCircuitsValidatorEntry)
 	}
 	for i := range item.SubVersions {
 		sv := item.SubVersions[i]
