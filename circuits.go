@@ -50,6 +50,12 @@ const (
 	SybilSigCircuitID CircuitID = "sybilCredentialAtomicSig"
 	// LinkedMultiQuery10CircuitID is a type for linkedMultiQuery10.circom
 	LinkedMultiQuery10CircuitID CircuitID = "linkedMultiQuery10-beta.1"
+	// AtomicQueryV3StableCircuitID is a type for credentialAtomicQueryV3.circom stable version
+	AtomicQueryV3StableCircuitID CircuitID = "credentialAtomicQueryV3"
+	// AtomicQueryV3OnChainStableCircuitID is a type for credentialAtomicQueryV3OnChain.circom stable version
+	AtomicQueryV3OnChainStableCircuitID CircuitID = "credentialAtomicQueryV3OnChain"
+	// LinkedMultiQueryStableCircuitID is a type for linkedMultiQuery.circom stable version
+	LinkedMultiQueryStableCircuitID CircuitID = "linkedMultiQuery"
 )
 
 // ErrorCircuitIDNotFound returns if CircuitID is not registered
@@ -140,6 +146,34 @@ func init() {
 	RegisterCircuit(AtomicQueryV3OnChainCircuitID, Data{
 		Input:  AtomicQueryV3OnChainInputs{},
 		Output: &AtomicQueryV3OnChainPubSignals{},
+	})
+
+	RegisterCircuit(AtomicQueryV3StableCircuitID, Data{
+		Input:  AtomicQueryV3Inputs{},
+		Output: &AtomicQueryV3PubSignals{},
+	})
+
+	RegisterCircuit(AtomicQueryV3OnChainStableCircuitID, Data{
+		Input:  AtomicQueryV3OnChainInputs{},
+		Output: &AtomicQueryV3OnChainPubSignals{},
+	})
+
+	RegisterCircuit(LinkedMultiQuery10CircuitID, Data{
+		Input: LinkedMultiQueryInputs{
+			QueryLength: LinkedMultiQueryLength,
+		},
+		Output: &LinkedMultiQueryPubSignals{
+			QueryLength: LinkedMultiQueryLength,
+		},
+	})
+
+	RegisterCircuit(LinkedMultiQueryStableCircuitID, Data{
+		Input: LinkedMultiQueryInputs{
+			QueryLength: LinkedMultiQueryLength,
+		},
+		Output: &LinkedMultiQueryPubSignals{
+			QueryLength: LinkedMultiQueryLength,
+		},
 	})
 }
 
