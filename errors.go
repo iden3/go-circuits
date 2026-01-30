@@ -32,4 +32,6 @@ const (
 	ErrorEmptyStateHash                  = "empty state hash"
 	ErrorUserProfileMismatch             = "profile DID derived from genesis does not match the credential subject or incorrect profile nonce"
 	ErrorNoCircuitsValidatorEntry        = "no circuits validator entry found for the given circuit ID"
+	ErrorInputsTypeNotSupported          = "inputs type not supported for circuit selection"
+	ErrorInputsTooLarge                  = "inputs require larger circuit configuration"
 )
