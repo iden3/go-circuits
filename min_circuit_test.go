@@ -106,10 +106,10 @@ func TestAdjustInputsForMinCircuit_SelectsSmallestCircuit(t *testing.T) {
 
 	// The test identity creates shallow trees, so should fit in small circuit
 	require.Equal(t, CircuitID("credentialAtomicQueryV3-16-16-64"), circuitID)
-	require.Equal(t, 16, inputs.BaseConfig.MTLevel)
-	require.Equal(t, 16, inputs.BaseConfig.MTLevelClaim)
-	require.Equal(t, 64, inputs.BaseConfig.ValueArraySize)
-	require.Equal(t, 32, inputs.BaseConfig.MTLevelOnChain)
+	require.Equal(t, 16, inputs.MTLevel)
+	require.Equal(t, 16, inputs.MTLevelClaim)
+	require.Equal(t, 64, inputs.ValueArraySize)
+	require.Equal(t, 32, inputs.MTLevelOnChain)
 }
 
 func TestAdjustInputsForMinCircuit_AtomicQueryV3OnChain_CircuitID(t *testing.T) {
@@ -132,7 +132,7 @@ func TestAdjustInputsForMinCircuit_LargeValueArray(t *testing.T) {
 	circuitID, err := AdjustInputsForMinCircuit(&inputs)
 	require.NoError(t, err)
 	require.Equal(t, CircuitID("credentialAtomicQueryV3-16-16-64"), circuitID)
-	require.GreaterOrEqual(t, inputs.BaseConfig.GetValueArrSize(), 60)
+	require.GreaterOrEqual(t, inputs.GetValueArrSize(), 60)
 }
 
 // Test fit functions directly to verify selection logic

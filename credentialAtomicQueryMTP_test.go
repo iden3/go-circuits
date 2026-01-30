@@ -22,7 +22,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
 
-	userIdentity, uClaimsTree, uRevsTree, _, err, userAuthCoreClaim, userPrivateKey := it.Generate(ctx,
+	userIdentity, uClaimsTree, uRevsTree, _, userAuthCoreClaim, userPrivateKey, err := it.Generate(ctx,
 		userPrivKHex)
 	require.NoError(t, err)
 
@@ -52,7 +52,7 @@ func TestAtomicQuery_PrepareInputs(t *testing.T) {
 	challengeSignature := userPrivateKey.SignPoseidon(message)
 
 	// Issuer
-	issuerID, iClaimsTree, _, _, err, _, _ := it.Generate(ctx, issuerPrivKHex)
+	issuerID, iClaimsTree, _, _, _, _, err := it.Generate(ctx, issuerPrivKHex)
 	require.NoError(t, err)
 
 	// issue issuerClaim for user
