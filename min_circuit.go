@@ -5,47 +5,49 @@ import (
 	"github.com/pkg/errors"
 )
 
-// SelectMinCircuitForInputs inspects the provided circuit inputs and selects
-// the smallest circuit variant that can accommodate them.
-//
-// It analyzes merkle proof depths and query value array sizes to determine
-// the minimum required circuit configuration, returning:
-//   - CircuitID: the specific circuit variant identifier
-//   - BaseConfig: the configuration to use when marshaling inputs
-//   - error: if the input type is unsupported or exceeds all available presets
-//
-// Supported input types:
-//   - AtomicQueryV3Inputs / *AtomicQueryV3Inputs
-//   - AtomicQueryV3OnChainInputs / *AtomicQueryV3OnChainInputs
-//   - AuthV3Inputs / *AuthV3Inputs
-//
-// The returned BaseConfig should be assigned to the input's BaseConfig field
-// before calling InputsMarshal() to ensure correct array padding.
-func SelectMinCircuitForInputs(input any) (CircuitID, BaseConfig, error) {
-	switch v := input.(type) {
-	case AtomicQueryV3Inputs:
-		return minCircuitForAtomicQueryV3(v)
+// MinCircuitInput is a type constraint for inputs that support minimal circuit
+// selection.
+type MinCircuitInput interface {
+	*AtomicQueryV3Inputs | *AtomicQueryV3OnChainInputs | *AuthV3Inputs
+}
+
+// AdjustInputsForMinCircuit inspects the provided circuit inputs, selects
+// the smallest circuit variant that can accommodate them, and modifies
+// the input's configuration in place.
+func AdjustInputsForMinCircuit[T MinCircuitInput](input T) (CircuitID, error) {
+	switch v := any(input).(type) {
 	case *AtomicQueryV3Inputs:
 		if v == nil {
-			return "", BaseConfig{}, errors.New(ErrorInputsTypeNotSupported)
+			return "", errors.New(ErrorInputsTypeNotSupported)
 		}
-		return minCircuitForAtomicQueryV3(*v)
-	case AtomicQueryV3OnChainInputs:
-		return minCircuitForAtomicQueryV3OnChain(v)
+		circuitID, cfg, err := minCircuitForAtomicQueryV3(*v)
+		if err != nil {
+			return "", err
+		}
+		v.BaseConfig = cfg
+		return circuitID, nil
 	case *AtomicQueryV3OnChainInputs:
 		if v == nil {
-			return "", BaseConfig{}, errors.New(ErrorInputsTypeNotSupported)
+			return "", errors.New(ErrorInputsTypeNotSupported)
 		}
-		return minCircuitForAtomicQueryV3OnChain(*v)
-	case AuthV3Inputs:
-		return minCircuitForAuthV3(v)
+		circuitID, cfg, err := minCircuitForAtomicQueryV3OnChain(*v)
+		if err != nil {
+			return "", err
+		}
+		v.BaseConfig = cfg
+		return circuitID, nil
 	case *AuthV3Inputs:
 		if v == nil {
-			return "", BaseConfig{}, errors.New(ErrorInputsTypeNotSupported)
+			return "", errors.New(ErrorInputsTypeNotSupported)
 		}
-		return minCircuitForAuthV3(*v)
+		circuitID, cfg, err := minCircuitForAuthV3(*v)
+		if err != nil {
+			return "", err
+		}
+		v.BaseConfig = cfg
+		return circuitID, nil
 	default:
-		return "", BaseConfig{}, errors.New(ErrorInputsTypeNotSupported)
+		return "", errors.New(ErrorInputsTypeNotSupported)
 	}
 }
 

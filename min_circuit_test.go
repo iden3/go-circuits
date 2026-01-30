@@ -9,162 +9,118 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSelectMinCircuitForInputs_AtomicQueryV3_Sig(t *testing.T) {
+func TestAdjustInputsForMinCircuit_AtomicQueryV3_Sig(t *testing.T) {
 	inputs := createV3Inputs_Sig(t)
 
-	circuitID, cfg, err := SelectMinCircuitForInputs(inputs)
+	circuitID, err := AdjustInputsForMinCircuit(&inputs)
 	require.NoError(t, err)
 	require.Equal(t, CircuitID("credentialAtomicQueryV3-16-16-64"), circuitID)
-	require.Equal(t, presetCfg16_16_64_32, cfg)
+	require.Equal(t, presetCfg16_16_64_32, inputs.BaseConfig)
 
 	// Verify the config works with InputsMarshal
-	inputs.BaseConfig = cfg
 	_, err = inputs.InputsMarshal()
 	require.NoError(t, err)
 }
 
-func TestSelectMinCircuitForInputs_AtomicQueryV3_Mtp(t *testing.T) {
+func TestAdjustInputsForMinCircuit_AtomicQueryV3_Mtp(t *testing.T) {
 	inputs := createV3Inputs_Mtp(t)
 
-	circuitID, cfg, err := SelectMinCircuitForInputs(inputs)
+	circuitID, err := AdjustInputsForMinCircuit(&inputs)
 	require.NoError(t, err)
 	require.Equal(t, CircuitID("credentialAtomicQueryV3-16-16-64"), circuitID)
-	require.Equal(t, presetCfg16_16_64_32, cfg)
+	require.Equal(t, presetCfg16_16_64_32, inputs.BaseConfig)
 
 	// Verify the config works with InputsMarshal
-	inputs.BaseConfig = cfg
 	_, err = inputs.InputsMarshal()
 	require.NoError(t, err)
 }
 
-func TestSelectMinCircuitForInputs_AtomicQueryV3_Pointer(t *testing.T) {
-	inputs := createV3Inputs_Sig(t)
-
-	circuitID, cfg, err := SelectMinCircuitForInputs(&inputs)
-	require.NoError(t, err)
-	require.Equal(t, CircuitID("credentialAtomicQueryV3-16-16-64"), circuitID)
-	require.Equal(t, presetCfg16_16_64_32, cfg)
-}
-
-func TestSelectMinCircuitForInputs_AtomicQueryV3_NilPointer(t *testing.T) {
+func TestAdjustInputsForMinCircuit_AtomicQueryV3_NilPointer(t *testing.T) {
 	var inputs *AtomicQueryV3Inputs
 
-	_, _, err := SelectMinCircuitForInputs(inputs)
+	_, err := AdjustInputsForMinCircuit(inputs)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), ErrorInputsTypeNotSupported)
 }
 
-func TestSelectMinCircuitForInputs_AtomicQueryV3OnChain(t *testing.T) {
+func TestAdjustInputsForMinCircuit_AtomicQueryV3OnChain(t *testing.T) {
 	inputs := createV3OnChainInputs_BJJAuth(t)
 
-	circuitID, cfg, err := SelectMinCircuitForInputs(inputs)
+	circuitID, err := AdjustInputsForMinCircuit(&inputs)
 	require.NoError(t, err)
 	require.Equal(t, CircuitID("credentialAtomicQueryV3OnChain-16-16-64-16-32"), circuitID)
-	require.Equal(t, presetCfg16_16_64_32, cfg)
+	require.Equal(t, presetCfg16_16_64_32, inputs.BaseConfig)
 
 	// Verify the config works with InputsMarshal
-	inputs.BaseConfig = cfg
 	_, err = inputs.InputsMarshal()
 	require.NoError(t, err)
 }
 
-func TestSelectMinCircuitForInputs_AtomicQueryV3OnChain_NoBJJAuth(t *testing.T) {
+func TestAdjustInputsForMinCircuit_AtomicQueryV3OnChain_NoBJJAuth(t *testing.T) {
 	inputs := createV3OnChainInputs_NoBJJAuth(t)
 
-	circuitID, cfg, err := SelectMinCircuitForInputs(inputs)
+	circuitID, err := AdjustInputsForMinCircuit(&inputs)
 	require.NoError(t, err)
 	require.Equal(t, CircuitID("credentialAtomicQueryV3OnChain-16-16-64-16-32"), circuitID)
-	require.Equal(t, presetCfg16_16_64_32, cfg)
+	require.Equal(t, presetCfg16_16_64_32, inputs.BaseConfig)
 
-	inputs.BaseConfig = cfg
 	_, err = inputs.InputsMarshal()
 	require.NoError(t, err)
 }
 
-func TestSelectMinCircuitForInputs_AtomicQueryV3OnChain_Pointer(t *testing.T) {
-	inputs := createV3OnChainInputs_BJJAuth(t)
-
-	circuitID, cfg, err := SelectMinCircuitForInputs(&inputs)
-	require.NoError(t, err)
-	require.Equal(t, CircuitID("credentialAtomicQueryV3OnChain-16-16-64-16-32"), circuitID)
-	require.Equal(t, presetCfg16_16_64_32, cfg)
-}
-
-func TestSelectMinCircuitForInputs_AtomicQueryV3OnChain_NilPointer(t *testing.T) {
+func TestAdjustInputsForMinCircuit_AtomicQueryV3OnChain_NilPointer(t *testing.T) {
 	var inputs *AtomicQueryV3OnChainInputs
 
-	_, _, err := SelectMinCircuitForInputs(inputs)
+	_, err := AdjustInputsForMinCircuit(inputs)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), ErrorInputsTypeNotSupported)
 }
 
-func TestSelectMinCircuitForInputs_AuthV3(t *testing.T) {
+func TestAdjustInputsForMinCircuit_AuthV3(t *testing.T) {
 	inputs := authV3Inputs(t, false)
 
-	circuitID, cfg, err := SelectMinCircuitForInputs(inputs)
+	circuitID, err := AdjustInputsForMinCircuit(&inputs)
 	require.NoError(t, err)
 	require.Equal(t, AuthV3_8_32CircuitID, circuitID)
-	require.Equal(t, presetCfg8_32, cfg)
+	require.Equal(t, presetCfg8_32, inputs.BaseConfig)
 
 	// Verify the config works with InputsMarshal
-	inputs.BaseConfig = cfg
 	_, err = inputs.InputsMarshal()
 	require.NoError(t, err)
 }
 
-func TestSelectMinCircuitForInputs_AuthV3_Pointer(t *testing.T) {
-	inputs := authV3Inputs(t, false)
-
-	circuitID, cfg, err := SelectMinCircuitForInputs(&inputs)
-	require.NoError(t, err)
-	require.Equal(t, AuthV3_8_32CircuitID, circuitID)
-	require.Equal(t, presetCfg8_32, cfg)
-}
-
-func TestSelectMinCircuitForInputs_AuthV3_NilPointer(t *testing.T) {
+func TestAdjustInputsForMinCircuit_AuthV3_NilPointer(t *testing.T) {
 	var inputs *AuthV3Inputs
 
-	_, _, err := SelectMinCircuitForInputs(inputs)
+	_, err := AdjustInputsForMinCircuit(inputs)
 	require.Error(t, err)
 	require.Contains(t, err.Error(), ErrorInputsTypeNotSupported)
 }
 
-func TestSelectMinCircuitForInputs_UnsupportedType(t *testing.T) {
-	_, _, err := SelectMinCircuitForInputs("unsupported")
-	require.Error(t, err)
-	require.Contains(t, err.Error(), ErrorInputsTypeNotSupported)
-
-	_, _, err = SelectMinCircuitForInputs(123)
-	require.Error(t, err)
-
-	_, _, err = SelectMinCircuitForInputs(nil)
-	require.Error(t, err)
-}
-
-func TestSelectMinCircuitForInputs_SelectsSmallestCircuit(t *testing.T) {
+func TestAdjustInputsForMinCircuit_SelectsSmallestCircuit(t *testing.T) {
 	// With small proofs, should select the smaller circuit variant
 	inputs := createV3Inputs_Sig(t)
 
-	circuitID, cfg, err := SelectMinCircuitForInputs(inputs)
+	circuitID, err := AdjustInputsForMinCircuit(&inputs)
 	require.NoError(t, err)
 
 	// The test identity creates shallow trees, so should fit in small circuit
 	require.Equal(t, CircuitID("credentialAtomicQueryV3-16-16-64"), circuitID)
-	require.Equal(t, 16, cfg.MTLevel)
-	require.Equal(t, 16, cfg.MTLevelClaim)
-	require.Equal(t, 64, cfg.ValueArraySize)
-	require.Equal(t, 32, cfg.MTLevelOnChain)
+	require.Equal(t, 16, inputs.BaseConfig.MTLevel)
+	require.Equal(t, 16, inputs.BaseConfig.MTLevelClaim)
+	require.Equal(t, 64, inputs.BaseConfig.ValueArraySize)
+	require.Equal(t, 32, inputs.BaseConfig.MTLevelOnChain)
 }
 
-func TestSelectMinCircuitForInputs_AtomicQueryV3OnChain_CircuitID(t *testing.T) {
+func TestAdjustInputsForMinCircuit_AtomicQueryV3OnChain_CircuitID(t *testing.T) {
 	inputs := createV3OnChainInputs_BJJAuth(t)
 
-	circuitID, _, err := SelectMinCircuitForInputs(inputs)
+	circuitID, err := AdjustInputsForMinCircuit(&inputs)
 	require.NoError(t, err)
 	require.Equal(t, CircuitID("credentialAtomicQueryV3OnChain-16-16-64-16-32"), circuitID)
 }
 
-func TestSelectMinCircuitForInputs_LargeValueArray(t *testing.T) {
+func TestAdjustInputsForMinCircuit_LargeValueArray(t *testing.T) {
 	inputs := createV3Inputs_Sig(t)
 
 	// Create query with many values (but still within limit)
@@ -173,10 +129,10 @@ func TestSelectMinCircuitForInputs_LargeValueArray(t *testing.T) {
 		inputs.Query.Values[i] = big.NewInt(int64(i))
 	}
 
-	circuitID, cfg, err := SelectMinCircuitForInputs(inputs)
+	circuitID, err := AdjustInputsForMinCircuit(&inputs)
 	require.NoError(t, err)
 	require.Equal(t, CircuitID("credentialAtomicQueryV3-16-16-64"), circuitID)
-	require.GreaterOrEqual(t, cfg.GetValueArrSize(), 60)
+	require.GreaterOrEqual(t, inputs.BaseConfig.GetValueArrSize(), 60)
 }
 
 // Test fit functions directly to verify selection logic
