@@ -49,7 +49,7 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	defer f.Close()
+	defer func() { _ = f.Close() }()
 
 	seenSignals := make(map[string]struct{})
 	var items []listItem

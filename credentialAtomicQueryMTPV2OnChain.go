@@ -160,16 +160,16 @@ func (a AtomicQueryMTPV2OnChainInputs) InputsMarshal() ([]byte, error) {
 		return nil, err
 	}
 
-	if a.Query.ValueProof != nil {
-		if err := a.Query.validate(); err != nil {
+	if a.ValueProof != nil {
+		if err := a.validate(); err != nil {
 			return nil, err
 		}
-		if err := a.Query.ValueProof.validate(); err != nil {
+		if err := a.ValueProof.validate(); err != nil {
 			return nil, err
 		}
 	}
 
-	valueProof := a.Query.ValueProof
+	valueProof := a.ValueProof
 	if valueProof == nil {
 		valueProof = &ValueProof{}
 		valueProof.Path = big.NewInt(0)

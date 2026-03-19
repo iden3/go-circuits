@@ -20,7 +20,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	challenge := new(big.Int).SetInt64(1)
 	ctx := context.Background()
 
-	userIdentity, uClaimsTree, _, _, err, userAuthCoreClaim, userPrivateKey := it.Generate(ctx,
+	userIdentity, uClaimsTree, _, _, userAuthCoreClaim, userPrivateKey, err := it.Generate(ctx,
 		userPrivKHex)
 	require.Nil(t, err)
 
@@ -49,7 +49,7 @@ func TestAttrQuerySig_PrepareInputs(t *testing.T) {
 	challengeSignature := userPrivateKey.SignPoseidon(message)
 
 	// Issuer
-	issuerIdentity, iClaimsTree, iRevTree, _, err, issuerAuthClaim, issuerKey := it.Generate(ctx,
+	issuerIdentity, iClaimsTree, iRevTree, _, issuerAuthClaim, issuerKey, err := it.Generate(ctx,
 		issuerPrivKHex)
 	require.Nil(t, err)
 

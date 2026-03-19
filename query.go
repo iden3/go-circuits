@@ -126,7 +126,7 @@ func (v *Vector) Compare(t int) (bool, error) {
 		if len(v.y) < 2 {
 			return false, nil
 		}
-		if !(v.x.Cmp(v.y[0]) >= 0 && v.x.Cmp(v.y[1]) <= 0) {
+		if v.x.Cmp(v.y[0]) < 0 || v.x.Cmp(v.y[1]) > 0 {
 			return true, nil
 		}
 		return false, nil

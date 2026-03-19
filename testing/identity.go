@@ -46,7 +46,7 @@ func AuthV2ClaimFromPubKey(X, Y *big.Int) (*core.Claim, error) {
 
 func Generate(ctx context.Context, privKHex string) (*core.ID,
 	*merkletree.MerkleTree, *merkletree.MerkleTree, *merkletree.MerkleTree,
-	error, *core.Claim, *babyjub.PrivateKey) {
+	*core.Claim, *babyjub.PrivateKey, error) {
 
 	// extract pubKey
 	var privKey babyjub.PrivateKey
@@ -61,36 +61,36 @@ func Generate(ctx context.Context, privKHex string) (*core.ID,
 	claimsTree, err := merkletree.NewMerkleTree(ctx, memory.NewMemoryStorage(),
 		40)
 	if err != nil {
-		return nil, nil, nil, nil, err, nil, nil
+		return nil, nil, nil, nil, nil, nil, err
 	}
 	// create auth claim
 	authClaim, err := AuthClaimFromPubKey(X, Y)
 	if err != nil {
-		return nil, nil, nil, nil, err, nil, nil
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	// add auth claim to claimsMT
 	hi, hv, err := claimsIndexValueHashes(*authClaim)
 	if err != nil {
-		return nil, nil, nil, nil, err, nil, nil
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	err = claimsTree.Add(ctx, hi, hv)
 	if err != nil {
-		return nil, nil, nil, nil, err, nil, nil
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	state, _ := poseidon.Hash([]*big.Int{claimsTree.Root().BigInt(), big.NewInt(0), big.NewInt(0)})
 	// create new identity
 	identifier, err := core.NewIDFromIdenState(core.TypeDefault, state)
 	if err != nil {
-		return nil, nil, nil, nil, err, nil, nil
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	revTree, _ := merkletree.NewMerkleTree(ctx, memory.NewMemoryStorage(), 40)
 	rootsTree, _ := merkletree.NewMerkleTree(ctx, memory.NewMemoryStorage(), 40)
 
-	return identifier, claimsTree, revTree, rootsTree, nil, authClaim, &privKey
+	return identifier, claimsTree, revTree, rootsTree, authClaim, &privKey, nil
 }
 
 func CalcStateFromRoots(claimsTree *merkletree.MerkleTree,
@@ -120,7 +120,7 @@ func AuthClaimFullInfo(ctx context.Context, privKeyHex string,
 	*merkletree.MerkleTree, *merkletree.MerkleTree, *merkletree.Proof,
 	*merkletree.Proof, *babyjub.Signature, error) {
 
-	identity, claimsTree, revTree, rootsTree, err, claim, privateKey :=
+	identity, claimsTree, revTree, rootsTree, claim, privateKey, err :=
 		Generate(ctx, privKeyHex)
 	if err != nil {
 		return nil, nil, nil, nil, nil, nil, nil, nil, nil, err
